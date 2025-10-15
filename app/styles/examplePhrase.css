@@ -1,0 +1,150 @@
+/* Базовые стили для всех фраз */
+.example-phrase {
+    color: white;
+    padding: 10px 15px;
+    border-radius: 8px;
+    margin: 10px 0;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    min-height: 50px;
+    display: flex;
+    align-items: center;
+}
+
+.example-phrase:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Стили для контента фразы */
+.phrase-content {
+    flex: 1;
+    padding-right: 120px; /* Место для кнопки */
+}
+
+/* Стили для многострочных сообщений */
+.multi-line {
+    align-items: flex-start;
+    padding: 15px;
+}
+
+.multi-line .phrase-content {
+    width: 100%;
+}
+
+.phrase-text {
+    margin: 0;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: 1.4;
+    background: none;
+    border: none;
+    outline: none;
+}
+
+/* Стили для однострочных сообщений */
+.single-line {
+    align-items: center;
+    padding: 10px 15px;
+    min-height: 50px;
+}
+
+.single-line .phrase-content {
+    display: flex;
+    align-items: center;
+}
+
+.single-line .phrase-content span {
+    white-space: nowrap;
+    max-width: 100%;
+    word-break: break-word;
+}
+
+/* Градиенты для Младшего Состава (МС) */
+.ms-phrase {
+    background: linear-gradient(135deg, #43cea2 0%, #185a9d 100%);
+    border-left: 3px solid #185a9d;
+}
+
+.ms-phrase:hover {
+    background: linear-gradient(135deg, #3ab795 0%, #154b85 100%);
+}
+
+/* Градиенты для Старшего Состава (СС) */
+.ss-phrase {
+    background: linear-gradient(135deg, #ff7e5f 0%, #feb47b 100%);
+    border-left: 3px solid #ff7e5f;
+}
+
+.ss-phrase:hover {
+    background: linear-gradient(135deg, #e86f50 0%, #f0a269 100%);
+}
+
+/* Дополнительные варианты градиентов */
+
+/* Альтернативный для МС */
+.ms-phrase.alternate {
+    background: linear-gradient(135deg, #5D4157 0%, #A8CABA 100%);
+}
+
+/* Альтернативный для СС */
+.ss-phrase.alternate {
+    background: linear-gradient(135deg, #1a2a6c 0%, #b21f1f 100%);
+}
+
+/* Премиум вариант для важных фраз */
+.ss-phrase.premium {
+    background: linear-gradient(135deg, #8E2DE2 0%, #4A00E0 100%);
+    border-left: 3px solid gold;
+}
+
+/* Кнопка копирования */
+.copy-btn {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    z-index: 1;
+}
+
+.copy-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.copy-btn.copied {
+    background: rgba(46, 204, 113, 0.8);
+}
+
+/* Адаптация для мобильных устройств */
+@media (max-width: 768px) {
+    .example-phrase {
+        padding: 10px;
+    }
+
+    .phrase-content {
+        padding-right: 100px;
+    }
+
+    .copy-btn {
+        right: 5px;
+        padding: 3px 6px;
+        font-size: 0.7rem;
+    }
+
+    .single-line .phrase-content span {
+        white-space: normal;
+    }
+}

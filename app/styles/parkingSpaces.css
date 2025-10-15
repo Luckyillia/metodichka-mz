@@ -1,0 +1,403 @@
+/* Контейнер таблицы парковки */
+.parking-table-container {
+    max-width: 1200px;
+    margin: 20px auto;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    animation: parkingFadeIn 0.8s ease-out;
+}
+
+/* Заголовок таблицы парковки */
+.parking-table-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    text-align: center;
+    padding: 30px;
+    position: relative;
+    overflow: hidden;
+}
+
+.parking-table-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: repeating-linear-gradient(
+            45deg,
+            transparent,
+            transparent 10px,
+            rgba(255,255,255,0.1) 10px,
+            rgba(255,255,255,0.1) 20px
+    );
+    animation: parkingSlide 20s linear infinite;
+}
+
+@keyframes parkingSlide {
+    0% { transform: translateX(-50px); }
+    100% { transform: translateX(50px); }
+}
+
+.parking-table-header h1 {
+    margin: 0;
+    font-size: 2.5rem;
+    font-weight: 300;
+    position: relative;
+    z-index: 1;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+/* Основная таблица парковки */
+.parking-section-table {
+    margin: 0;
+    border-collapse: collapse;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* Заголовки разделов */
+.parking-section-header {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+    font-weight: bold;
+    text-align: center;
+    padding: 20px;
+    font-size: 1.3rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    position: relative;
+    box-shadow: inset 0 -3px 0 rgba(0,0,0,0.2);
+}
+
+.parking-section-header.commanders {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+}
+
+.parking-section-header.deputies {
+    background: linear-gradient(135deg, #feca57 0%, #ff9ff3 100%);
+}
+
+.parking-section-header.junior {
+    background: linear-gradient(135deg, #48dbfb 0%, #0abde3 100%);
+}
+
+/* Заголовки колонок */
+.parking-section-table th {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 0.9rem;
+    padding: 15px 20px;
+    text-align: left;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+/* Ячейки таблицы */
+.parking-section-table td {
+    padding: 15px 20px;
+    text-align: left;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+    color: white;
+}
+
+/* Строки таблицы */
+.parking-section-table tbody tr {
+    transition: all 0.3s ease;
+    position: relative;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.parking-section-table tbody tr:hover {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+    transform: translateX(5px);
+    box-shadow: 5px 0 15px rgba(0,0,0,0.2);
+}
+
+.parking-section-table tbody tr:nth-child(even) {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.parking-section-table tbody tr.occupied {
+    background: rgba(76, 175, 80, 0.1);
+    border-left: 4px solid #4caf50;
+}
+
+.parking-section-table tbody tr.occupied:hover {
+    background: rgba(76, 175, 80, 0.2);
+}
+
+/* Номер места */
+.parking-place-number {
+    font-weight: bold;
+    color: #7ABDFF;
+    font-size: 1.1rem;
+    text-align: center;
+    min-width: 60px;
+}
+
+/* Модель автомобиля */
+.parking-car-model {
+    font-weight: 600;
+    color: #FFF;
+}
+
+/* Госномер */
+.parking-license-plate {
+    font-family: 'Courier New', monospace;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 8px;
+    font-weight: bold;
+    display: inline-block;
+    font-size: 0.9rem;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Имя сотрудника */
+.parking-person-name {
+    color: #E0E0E0;
+    font-weight: 500;
+}
+
+/* Анимация появления */
+@keyframes parkingFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 768px) {
+    .parking-table-container {
+        margin: 10px;
+        border-radius: 15px;
+    }
+
+    .parking-table-header h1 {
+        font-size: 1.8rem;
+    }
+
+    .parking-section-table th,
+    .parking-section-table td {
+        padding: 10px 8px;
+        font-size: 0.9rem;
+    }
+
+    .parking-section-header {
+        font-size: 1.1rem;
+        padding: 15px;
+    }
+
+    /* Для очень маленьких экранов - горизонтальная прокрутка */
+    .parking-section-table {
+        min-width: 600px;
+    }
+
+    .parking-table-container {
+        overflow-x: auto;
+    }
+}
+
+/* Дополнительные стили для улучшения читаемости */
+.parking-section-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.parking-section-table:not(:last-child) {
+    margin-bottom: 2px;
+}
+
+/* Стили для редактирования */
+.parking-section-table tbody tr.editing {
+    background: rgba(102, 126, 234, 0.3) !important;
+    border-left: 4px solid #667eea;
+    box-shadow: 0 0 20px rgba(102, 126, 234, 0.4);
+}
+
+.edit-input {
+    width: 100%;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(102, 126, 234, 0.5);
+    border-radius: 8px;
+    color: white;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    outline: none;
+}
+
+.edit-input:focus {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: #667eea;
+    box-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
+}
+
+.edit-input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.edit-input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+/* Кнопки действий */
+.action-cell {
+    text-align: center;
+    padding: 10px !important;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    align-items: center;
+}
+
+.edit-btn,
+.save-btn,
+.cancel-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    min-width: 36px;
+    min-height: 36px;
+}
+
+.edit-btn:hover {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.save-btn {
+    background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+}
+
+.save-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #45a049 0%, #3d8b40 100%);
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+}
+
+.save-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.cancel-btn {
+    background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+}
+
+.cancel-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #d32f2f 0%, #c62828 100%);
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(244, 67, 54, 0.4);
+}
+
+.cancel-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Уведомления */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 16px 24px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 500;
+    z-index: 1000;
+    animation: slideIn 0.3s ease-out;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+}
+
+.notification.success {
+    background: linear-gradient(135deg, rgba(76, 175, 80, 0.95) 0%, rgba(69, 160, 73, 0.95) 100%);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.notification.error {
+    background: linear-gradient(135deg, rgba(244, 67, 54, 0.95) 0%, rgba(211, 47, 47, 0.95) 100%);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Подсказка для редактирования */
+.edit-hint {
+    margin-top: 10px;
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 400;
+    position: relative;
+    z-index: 1;
+}
+
+/* Адаптивность для кнопок на мобильных устройствах */
+@media (max-width: 768px) {
+    .action-buttons {
+        gap: 4px;
+    }
+
+    .edit-btn,
+    .save-btn,
+    .cancel-btn {
+        min-width: 32px;
+        min-height: 32px;
+        padding: 6px;
+    }
+
+    .notification {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        padding: 12px 16px;
+        font-size: 0.9rem;
+    }
+
+    .edit-hint {
+        font-size: 0.8rem;
+    }
+}

@@ -1,0 +1,231 @@
+/* Career Path Component */
+.career-path {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    margin: 20px 0;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.career-path::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px 12px 0 0;
+}
+
+.career-path:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(102, 126, 234, 0.2);
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(102, 126, 234, 0.3);
+}
+
+/* Career Path Timeline */
+.career-path-timeline {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-right: 20px;
+    position: relative;
+}
+
+.career-path-step {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1.1rem;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    border: 3px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 2;
+}
+
+.career-path-step::before {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 50%;
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.career-path:hover .career-path-step {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.career-path:hover .career-path-step::before {
+    opacity: 0.2;
+}
+
+/* Career Path Connector Line */
+.career-path-connector {
+    width: 3px;
+    height: 60px;
+    background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+    margin: 12px 0;
+    border-radius: 2px;
+    position: relative;
+    opacity: 0.6;
+}
+
+.career-path-connector::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 8px;
+    height: 8px;
+    background: #7ABDFF;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+
+.career-path-connector::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 6px solid #764ba2;
+}
+
+/* Career Path Content */
+.career-path-content {
+    flex: 1;
+    padding-left: 10px;
+}
+
+.career-path-rank {
+    font-weight: bold;
+    font-size: 1.3rem;
+    color: #7ABDFF;
+    margin-bottom: 15px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    position: relative;
+    display: inline-block;
+}
+
+.career-path-rank::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, #7ABDFF 0%, transparent 100%);
+    border-radius: 1px;
+}
+
+.career-path-requirements {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.career-path-requirement {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 8px 0;
+    color: #efefef;
+    line-height: 1.4;
+    position: relative;
+}
+
+.career-path-requirement::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: linear-gradient(180deg, transparent 0%, #7ABDFF 50%, transparent 100%);
+    opacity: 0.3;
+}
+
+.career-path-requirement-icon {
+    font-size: 1.1rem;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.career-path-requirement-text {
+    flex: 1;
+    font-size: 0.95rem;
+    opacity: 0.9;
+}
+
+/* Career Path Variants */
+.career-path.completed {
+    background: linear-gradient(135deg, rgba(40, 167, 69, 0.15) 0%, rgba(60, 179, 113, 0.15) 100%);
+    border-color: rgba(40, 167, 69, 0.3);
+}
+
+.career-path.completed::before {
+    background: linear-gradient(90deg, #28a745 0%, #3cb371 100%);
+}
+
+.career-path.completed .career-path-step {
+    background: linear-gradient(135deg, #28a745 0%, #3cb371 100%);
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+}
+
+.career-path.in-progress {
+    background: linear-gradient(135deg, rgba(255, 193, 7, 0.15) 0%, rgba(255, 152, 0, 0.15) 100%);
+    border-color: rgba(255, 193, 7, 0.3);
+}
+
+.career-path.in-progress::before {
+    background: linear-gradient(90deg, #ffc107 0%, #ff9800 100%);
+}
+
+.career-path.in-progress .career-path-step {
+    background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+    box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3);
+}
+
+.career-path.locked {
+    background: linear-gradient(135deg, rgba(108, 117, 125, 0.15) 0%, rgba(134, 142, 150, 0.15) 100%);
+    border-color: rgba(108, 117, 125, 0.3);
+    opacity: 0.7;
+}
+
+.career-path.locked::before {
+    background: linear-gradient(90deg, #6c757d 0%, #868e96 100%);
+}
+
+.career-path.locked .career-path-step {
+    background: linear-gradient(135deg, #6c757d 0%, #868e96 100%);
+    box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+}
