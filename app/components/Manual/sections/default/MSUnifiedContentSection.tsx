@@ -1,25 +1,21 @@
 import React, { useState, Suspense, lazy } from 'react';
 
 const UnifiedContentSection = () => {
-    const [activeTab, setActiveTab] = useState<'lectures' | 'training' | 'events' | 'operations' | 'procedures'>('lectures');
+    const [activeTab, setActiveTab] = useState< 'operations' | 'procedures' | 'rptask'>('operations');
 
     // Динамическая загрузка компонентов
-    const LecturesSection = lazy(() => import('./LecturesSection'));
-    const TrainingSection = lazy(() => import('./TrainingSection'));
-    const EventsSection = lazy(() => import('./EventsSection'));
-    const OperationsSection = lazy(() => import('./OperationsSection'));
-    const ProceduresSection = lazy(() => import('./ProceduresSection'));
+    const OperationsSection = lazy(() => import('./UnifiedContent/OperationsSection'));
+    const ProceduresSection = lazy(() => import('./UnifiedContent/ProceduresSection'));
+    const RPTaskSection = lazy(() => import('./UnifiedContent/RPTaskSection'));
 
     const tabs = [
-        { id: 'lectures' as const, label: '📚 Лекции', icon: '📚', component: LecturesSection },
-        { id: 'training' as const, label: '🏃 Тренировки', icon: '🏃', component: TrainingSection },
-        { id: 'events' as const, label: '🎯 Мероприятия', icon: '🎯', component: EventsSection },
         { id: 'operations' as const, label: '🏥 Операции', icon: '🏥', component: OperationsSection },
         { id: 'procedures' as const, label: '💊 Процедуры', icon: '💊', component: ProceduresSection },
+        { id: 'rptask' as const, label: '🎯 РП задания', icon: '🎯', component: RPTaskSection },
     ];
 
     const activeTabData = tabs.find(tab => tab.id === activeTab);
-    const ActiveComponent = activeTabData?.component || LecturesSection;
+    const ActiveComponent = activeTabData?.component || OperationsSection;
 
     return (
         <>

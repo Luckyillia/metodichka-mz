@@ -9,3 +9,11 @@ export type NavItem = {
   title: string;
   icon: string;
 };
+
+export type NavGroup = {
+  id: string;
+  title: string;
+  items: NavItem[];
+};
+
+export type SidebarItem = NavGroup | NavItem;

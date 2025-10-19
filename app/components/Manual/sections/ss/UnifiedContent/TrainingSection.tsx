@@ -1,5 +1,5 @@
 import React from 'react';
-import DropdownMenu from '../../DropdownMenu';
+import DropdownMenu from '../../../DropdownMenu';
 
 const TrainingSection = () => {
     const trainings = [
@@ -47,7 +47,7 @@ const TrainingSection = () => {
         <>
             <div className="subsection">
                 <h3>🏟️ Места проведения тренировок</h3>
-                <p>Все тренировки в основном проходят на территории воинской части:</p>
+                <p>Все тренировки в основном проходят в здании:</p>
             </div>
 
             <div className="subsection">
@@ -80,12 +80,12 @@ const TrainingSection = () => {
                 </ul>
             </div>
 
-            <div className="subsection">
+            {/* <div className="subsection">
                 <h3>📂 Материалы для тренировок</h3>
                 <p>Файл с тренировками: <a
                     href="https://docs.google.com/document/d/1RZ9_iGUavo-IC1WNr-APZVf8VRrrG7sI-wT5xzEKbps/edit?tab=t.0"
                     className="document-link" target="_blank" rel="noopener noreferrer">Открыть документ</a></p>
-            </div>
+            </div> */}
         </>
     );
 };

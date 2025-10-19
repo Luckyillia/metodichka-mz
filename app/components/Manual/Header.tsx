@@ -53,8 +53,8 @@ export default function Header() {
 
   const getRoleBadge = (role: string) => {
     const badges = {
-      root: { label: "ГС", color: "bg-purple-600" },
-      admin: { label: "ПГС", color: "bg-red-600" },
+      root: { label: "Суперадмин", color: "bg-purple-600" },
+      admin: { label: "Администратор", color: "bg-red-600" },
       ld: { label: "Лидер", color: "bg-blue-600" },
       cc: { label: "CC", color: "bg-blue-600" },
       user: { label: "Пользователь", color: "bg-green-600" },

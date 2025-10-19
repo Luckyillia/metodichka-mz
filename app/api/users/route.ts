@@ -35,12 +35,12 @@ export async function GET(request: Request) {
 
     let query = supabase
         .from("users")
-        .select("id, username, game_nick, role, active, created_at")
+        .select("id, username, game_nick, role, status, created_at")
         .order("created_at", { ascending: false })
 
     // Admin видит только активных пользователей
     if (currentUser.role === "admin") {
-      query = query.eq("active", true)
+      query = query.eq("status", "active")
       console.log("[Users API] Admin filter: active users only")
     }
     // Root видит всех пользователей
@@ -103,7 +103,7 @@ export async function POST(request: Request) {
         .from("users")
         .select("id")
         .eq("username", username)
-        .eq("active", true)
+        .eq("status", "active")
         .single()
 
     if (existingUsername) {
@@ -114,7 +114,7 @@ export async function POST(request: Request) {
         .from("users")
         .select("id")
         .eq("game_nick", gameNick)
-        .eq("active", true)
+        .eq("status", "active")
         .single()
 
     if (existingGameNick) {
@@ -131,10 +131,11 @@ export async function POST(request: Request) {
             game_nick: gameNick,
             password: hashedPassword,
             role,
-            active: true,
+            status: "active",
+            ip_address: "1.1.1.1", // Специальный IP для пользователей, созданных админом
           },
         ])
-        .select("id, username, game_nick, role, active, created_at")
+        .select("id, username, game_nick, role, status, created_at")
         .single()
 
     if (error) {
@@ -164,7 +165,7 @@ export async function POST(request: Request) {
             username,
             game_nick: gameNick,
             role,
-            active: true,
+            status: "active",
           },
           metadata: {
             username,
@@ -205,7 +206,7 @@ export async function PUT(request: Request) {
 
     const { data: existingUser, error: fetchError } = await supabase
         .from("users")
-        .select("role, username, game_nick, active")
+        .select("role, username, game_nick, status")
         .eq("id", userId)
         .single()
 
@@ -240,7 +241,7 @@ export async function PUT(request: Request) {
           .from("users")
           .select("id")
           .eq("username", username)
-          .eq("active", true)
+          .eq("status", "active")
           .neq("id", userId)
           .single()
 
@@ -254,7 +255,7 @@ export async function PUT(request: Request) {
           .from("users")
           .select("id")
           .eq("game_nick", gameNick)
-          .eq("active", true)
+          .eq("status", "active")
           .neq("id", userId)
           .single()
 
@@ -279,7 +280,7 @@ export async function PUT(request: Request) {
         .from("users")
         .update(updateData)
         .eq("id", userId)
-        .select("id, username, game_nick, role, active, created_at")
+        .select("id, username, game_nick, role, status, created_at")
         .single()
 
     if (updateError) {
@@ -351,6 +352,67 @@ export async function PATCH(request: Request) {
     const body = await request.json()
     const { userId, role, action } = body
 
+    // Обработка одобрения запроса на аккаунт
+    if (action === "approve") {
+      console.log("[Users API] Approving account request:", userId, "by:", currentUser.username)
+
+      if (!userId) {
+        return NextResponse.json({ error: "ID пользователя обязателен" }, { status: 400 })
+      }
+
+      const { data: existingUser, error: fetchError } = await supabase
+          .from("users")
+          .select("id, username, game_nick, role, status")
+          .eq("id", userId)
+          .single()
+
+      if (fetchError || !existingUser) {
+        return NextResponse.json({ error: "Запрос не найден" }, { status: 404 })
+      }
+
+      if (existingUser.status !== "request") {
+        return NextResponse.json({ error: "Это не запрос на создание аккаунта" }, { status: 400 })
+      }
+
+      const { data: approvedUser, error: approveError } = await supabase
+          .from("users")
+          .update({ status: "active" })
+          .eq("id", userId)
+          .select("id, username, game_nick, role, status, created_at")
+          .single()
+
+      if (approveError) {
+        console.error("[Users API] Approve error:", approveError)
+        return NextResponse.json({ error: "Не удалось одобрить запрос" }, { status: 500 })
+      }
+
+      // Логируем одобрение
+      try {
+        await supabase.from("action_logs").insert([
+          {
+            user_id: currentUser.id,
+            game_nick: currentUser.game_nick,
+            action: `Одобрен запрос на аккаунт: ${approvedUser.game_nick}`,
+            action_type: "create",
+            target_type: "user",
+            target_id: userId,
+            target_name: approvedUser.game_nick,
+            details: `Одобрен запрос на создание аккаунта с логином "${approvedUser.username}"`,
+            previous_state: { status: "request" },
+            new_state: { status: "active" },
+            metadata: {
+              approved_by: currentUser.game_nick,
+              username: approvedUser.username,
+            },
+          },
+        ])
+      } catch (logError) {
+        console.error("[Users API] Failed to log approval:", logError)
+      }
+
+      return NextResponse.json(approvedUser)
+    }
+
     // Обработка восстановления пользователя
     if (action === "restore") {
       console.log("[Users API] Restoring user:", userId, "by:", currentUser.username)
@@ -361,7 +423,7 @@ export async function PATCH(request: Request) {
 
       const { data: existingUser, error: fetchError } = await supabase
           .from("users")
-          .select("id, username, game_nick, role, active")
+          .select("id, username, game_nick, role, status")
           .eq("id", userId)
           .single()
 
@@ -369,15 +431,15 @@ export async function PATCH(request: Request) {
         return NextResponse.json({ error: "Пользователь не найден" }, { status: 404 })
       }
 
-      if (existingUser.active) {
+      if (existingUser.status === "active") {
         return NextResponse.json({ error: "Пользователь уже активен" }, { status: 400 })
       }
 
       const { data: restoredUser, error: restoreError } = await supabase
           .from("users")
-          .update({ active: true })
+          .update({ status: "active" })
           .eq("id", userId)
-          .select("id, username, game_nick, role, active, created_at")
+          .select("id, username, game_nick, role, status, created_at")
           .single()
 
       if (restoreError) {
@@ -397,8 +459,8 @@ export async function PATCH(request: Request) {
             target_id: userId,
             target_name: restoredUser.game_nick,
             details: `Пользователь с логином "${restoredUser.username}" восстановлен`,
-            previous_state: { active: false },
-            new_state: { active: true },
+            previous_state: { status: existingUser.status },
+            new_state: { status: "active" },
             metadata: {
               restored_by: currentUser.game_nick,
               username: restoredUser.username,
@@ -421,7 +483,7 @@ export async function PATCH(request: Request) {
 
     const { data: existingUser, error: fetchError } = await supabase
         .from("users")
-        .select("role, username, game_nick, active")
+        .select("role, username, game_nick, status")
         .eq("id", userId)
         .single()
 
@@ -461,7 +523,7 @@ export async function PATCH(request: Request) {
         .from("users")
         .update({ role })
         .eq("id", userId)
-        .select("id, username, game_nick, role, active, created_at")
+        .select("id, username, game_nick, role, status, created_at")
         .single()
 
     if (updateError) {
@@ -522,7 +584,7 @@ export async function DELETE(request: Request) {
 
     const { data: existingUser, error: fetchError } = await supabase
         .from("users")
-        .select("id, role, username, game_nick, active")
+        .select("id, role, username, game_nick, status")
         .eq("id", userId)
         .single()
 
@@ -549,14 +611,14 @@ export async function DELETE(request: Request) {
       )
     }
 
-    if (!existingUser.active) {
+    if (existingUser.status === "inactive") {
       return NextResponse.json({ error: "Пользователь уже деактивирован" }, { status: 400 })
     }
 
-    // Soft delete - устанавливаем active = false
+    // Soft delete - устанавливаем status = inactive
     const { error: deactivateError } = await supabase
         .from("users")
-        .update({ active: false })
+        .update({ status: "inactive" })
         .eq("id", userId)
 
     if (deactivateError) {
@@ -579,13 +641,13 @@ export async function DELETE(request: Request) {
           target_name: existingUser.game_nick,
           details: `Деактивирован пользователь с логином "${existingUser.username}" и ролью "${existingUser.role}"`,
           previous_state: {
-            active: true,
+            status: existingUser.status,
             username: existingUser.username,
             game_nick: existingUser.game_nick,
             role: existingUser.role,
           },
           new_state: {
-            active: false,
+            status: "inactive",
             username: existingUser.username,
             game_nick: existingUser.game_nick,
             role: existingUser.role,

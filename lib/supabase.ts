@@ -3,12 +3,24 @@ import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = process.env.MZ_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.MZ_PUBLIC_SUPABASE_ANON_KEY!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
 if (!supabaseUrl || !supabaseAnonKey) {
     throw new Error('Missing Supabase environment variables')
 }
 
+// Клиентский supabase (с anon key)
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+
+// Серверный supabase (с service role key) - обходит RLS
+export const supabaseAdmin = supabaseServiceKey 
+    ? createClient(supabaseUrl, supabaseServiceKey, {
+        auth: {
+            autoRefreshToken: false,
+            persistSession: false
+        }
+    })
+    : supabase // fallback на обычный клиент если нет service key
 
 // Обновлённый тип User с игровым ником
 export type User = {

@@ -5,19 +5,21 @@ import { useState, Suspense, lazy, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Header from "@/app/components/Manual/Header"
 import Sidebar from "@/app/components/Manual/Sidebar"
-import { navItems } from "@/data/manualData"
+import { sidebarItems } from "@/data/manualData"
 import OverviewSection from "@/app/components/Manual/sections/default/OverviewSection"
 import { useAuth } from "@/lib/auth/auth-context"
 import { AlertCircle } from "lucide-react"
 
-const UnifiedContentSection = lazy(() => import("@/app/components/Manual/sections/default/UnifiedContentSection"))
+const MSUnifiedContentSection = lazy(() => import("@/app/components/Manual/sections/default/MSUnifiedContentSection"))
+const SSUnifiedContentSection = lazy(() => import("@/app/components/Manual/sections/ss/SSUnifiedContentSection"))
 const ExamSection = lazy(() => import("@/app/components/Manual/sections/ss/ExamSection"))
-const PracticalTasksSection = lazy(() => import("@/app/components/Manual/sections/ss/PracticalTasksSection"))
+const PracticalTasksSection = lazy(() => import("@/app/components/Manual/sections/ss/UnifiedContent/PracticalTasksSection"))
 const MedicalCommissionSection = lazy(() => import("@/app/components/Manual/sections/default/MedicalCommissionSection"))
 const InterviewSection = lazy(() => import("@/app/components/Manual/sections/default/InterviewSection"))
 const MedicationsSection = lazy(() => import("@/app/components/Manual/sections/default/MedicationsSection"))
 const MedicalCardSection = lazy(() => import("@/app/components/Manual/sections/default/MedicalCardSection"))
-const RPTaskSection = lazy(() => import("@/app/components/Manual/sections/default/RPTaskSection"))
+const RPTaskSection = lazy(() => import("@/app/components/Manual/sections/default/UnifiedContent/RPTaskSection"))
+const CommandTemplatesSection = lazy(() => import("@/app/components/Manual/sections/default/CommandTemplatesSection"))
 const AnnouncementsSection = lazy(() => import("@/app/components/Manual/sections/ss/AnnouncementsSection"))
 const ForumResponsesSection = lazy(() => import("@/app/components/Manual/sections/ss/ForumResponsesSection"))
 const GossWaveSection = lazy(() => import("@/app/components/Manual/sections/ss/GossWaveSection"))
@@ -27,7 +29,9 @@ const ActionLogSection = lazy(() => import("@/app/components/Manual/sections/adm
 
 const sectionComponents: Record<string, React.ComponentType> = {
   overview: OverviewSection,
-  "unified-content": UnifiedContentSection,
+  "ss-unified-content": SSUnifiedContentSection,
+  "ms-unified-content": MSUnifiedContentSection,
+  "commands": CommandTemplatesSection,
   "exam-section": ExamSection,
   "practical-tasks": PracticalTasksSection,
   "medical-commission": MedicalCommissionSection,
@@ -44,7 +48,19 @@ const sectionComponents: Record<string, React.ComponentType> = {
 }
 
 const getSectionTitle = (id: string) => {
-  const item = navItems.find((item) => item.id === id)
+  const findItem = (items: any[]): any => {
+    for (const item of items) {
+      if ('items' in item) {
+        const found = item.items.find((navItem: any) => navItem.id === id)
+        if (found) return found
+      } else if (item.id === id) {
+        return item
+      }
+    }
+    return null
+  }
+
+  const item = findItem(sidebarItems)
   return item ? item.title : "Раздел"
 }
 
@@ -75,7 +91,7 @@ export default function ManualPage() {
   return (
       <div className="min-h-screen">
         <Header />
-        <Sidebar navItems={navItems} activeSection={activeSection} setActiveSection={setActiveSection} />
+        <Sidebar sidebarItems={sidebarItems} activeSection={activeSection} setActiveSection={setActiveSection} />
 
         <div className="ml-64">
           <div className="max-w-7xl mx-auto px-6 py-6">

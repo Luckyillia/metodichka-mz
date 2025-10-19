@@ -1,5 +1,5 @@
 import React from 'react';
-import DropdownMenu from '../../DropdownMenu';
+import DropdownMenu from '../../../DropdownMenu';
 
 const LecturesSection = () => {
 
@@ -843,27 +843,15 @@ const LecturesSection = () => {
 
             <div className="subsection">
                 <h3>📚 Медицинские лекции</h3>
-
-                <div className="space-y-3 mt-4">
-                    {lectures.map((lecture) => (
-                        <DropdownMenu
-                            key={lecture}
-                            title={lecture}
-                            icon={lectureIcons[lecture] || "📖"}
-                            items={lectureContent[lecture] || ["Содержание лекции будет добавлено позже"]}
-                            who="ss"
-                        />
-                    ))}
-                </div>
-            </div>
-
-            <div className="subsection">
-                <h3>📂 Материалы для лекций</h3>
-                <p>Файлы с лекциями находятся в папке NewFile/File/Лекции</p>
-            </div>
-
-            <div className="note">
-                <strong>📌 Примечание:</strong> Содержимое лекций будет добавлено по мере обработки файлов из папки.
+                {lectures.map((lecture) => (
+                    <DropdownMenu
+                        key={lecture}
+                        title={lecture}
+                        icon={lectureIcons[lecture] || "📖"}
+                        items={lectureContent[lecture] || ["Содержание лекции будет добавлено позже"]}
+                        who="ss"
+                    />
+                ))}
             </div>
         </>
     );

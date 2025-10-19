@@ -1,15 +1,15 @@
 "use client"
 
-import type { NavItem } from "@/types/manualTypes"
+import type { SidebarItem } from "@/types/manualTypes"
 import { useAuth } from "@/lib/auth/auth-context"
 
 interface SidebarProps {
-  navItems: NavItem[]
+  sidebarItems: SidebarItem[]
   activeSection: string
   setActiveSection: (id: string) => void
 }
 
-export default function Sidebar({ navItems, activeSection, setActiveSection }: SidebarProps) {
+export default function Sidebar({ sidebarItems, activeSection, setActiveSection }: SidebarProps) {
   const { canAccessSection } = useAuth()
 
   return (
@@ -34,36 +34,80 @@ export default function Sidebar({ navItems, activeSection, setActiveSection }: S
 
         {/* Navigation items */}
         <ul className="space-y-1 list-none flex-1 overflow-y-auto">
-          {navItems.map((item) => {
-            const hasAccess = canAccessSection(item.id)
+          {sidebarItems.map((item) => {
+            // Проверяем, является ли элемент группой или обычным элементом
+            if ('items' in item) {
+              // Это группа - показываем заголовок группы и её элементы
+              const accessibleItems = item.items.filter(navItem => canAccessSection(navItem.id))
 
-            if (!hasAccess) {
-              return null
-            }
+              if (accessibleItems.length === 0) {
+                return null
+              }
 
-            return (
-              <li key={item.id}>
-                <button
-                  onClick={() => setActiveSection(item.id)}
-                  className={`
-                    w-full text-left px-3 py-2 rounded-lg transition-all duration-200 
-                    flex items-center gap-2
-                    ${
-                      activeSection === item.id
-                        ? "bg-sidebar-primary text-sidebar-primary-foreground font-semibold"
-                        : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                    }
-                  `}
-                >
-                  <span className="text-base min-w-[20px] flex items-center justify-center flex-shrink-0">
-                    {item.icon}
-                  </span>
-                  <span className="text-xs leading-tight flex-1">
+              return (
+                <li key={item.id} className="space-y-1">
+                  {/* Заголовок группы */}
+                  <div className="px-3 py-2 text-xs font-semibold text-sidebar-foreground/70 uppercase tracking-wider">
                     {item.title}
-                  </span>
-                </button>
-              </li>
-            )
+                  </div>
+                  {/* Элементы группы */}
+                  {accessibleItems.map((navItem) => (
+                    <div key={navItem.id} className="ml-2">
+                      <button
+                        onClick={() => setActiveSection(navItem.id)}
+                        className={`
+                          w-full text-left px-3 py-2 rounded-lg transition-all duration-200
+                          flex items-center gap-2
+                          ${
+                            activeSection === navItem.id
+                              ? "bg-sidebar-primary text-sidebar-primary-foreground font-semibold"
+                              : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                          }
+                        `}
+                      >
+                        <span className="text-base min-w-[20px] flex items-center justify-center flex-shrink-0">
+                          {navItem.icon}
+                        </span>
+                        <span className="text-xs leading-tight flex-1">
+                          {navItem.title}
+                        </span>
+                      </button>
+                    </div>
+                  ))}
+                </li>
+              )
+            } else {
+              // Это обычный элемент навигации
+              const hasAccess = canAccessSection(item.id)
+
+              if (!hasAccess) {
+                return null
+              }
+
+              return (
+                <li key={item.id}>
+                  <button
+                    onClick={() => setActiveSection(item.id)}
+                    className={`
+                      w-full text-left px-3 py-2 rounded-lg transition-all duration-200
+                      flex items-center gap-2
+                      ${
+                        activeSection === item.id
+                          ? "bg-sidebar-primary text-sidebar-primary-foreground font-semibold"
+                          : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                      }
+                    `}
+                  >
+                    <span className="text-base min-w-[20px] flex items-center justify-center flex-shrink-0">
+                      {item.icon}
+                    </span>
+                    <span className="text-xs leading-tight flex-1">
+                      {item.title}
+                    </span>
+                  </button>
+                </li>
+              )
+            }
           })}
         </ul>
       </div>

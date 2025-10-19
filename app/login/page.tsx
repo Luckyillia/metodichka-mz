@@ -105,9 +105,16 @@ export default function LoginPage() {
             </form>
 
             <div className="mt-6 pt-6 border-t-2 border-border">
-              <p className="text-sm text-muted-foreground text-center">
-                Для получения учетной записи обратитесь к администратору системы
+              <p className="text-sm text-muted-foreground text-center mb-3">
+                Нет аккаунта?
               </p>
+              <button
+                type="button"
+                onClick={() => router.push("/account-request")}
+                className="w-full px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 transition-all text-sm font-medium"
+              >
+                Отправить запрос на создание аккаунта
+              </button>
             </div>
           </div>
         </div>

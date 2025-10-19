@@ -1,5 +1,5 @@
 import React from 'react';
-import DropdownMenu from '../../DropdownMenu';
+import DropdownMenu from '../../../DropdownMenu';
 
 const OperationsSection = () => {
     const operationsContent = {
@@ -357,6 +357,9 @@ const OperationsSection = () => {
             <div className="subsection">
                 <h3>🏥 Хирургические операции</h3>
                 <p>Руководства по проведению различных хирургических вмешательств и оперативных процедур.</p>
+            </div>
+            <div className="note">
+                <strong>📌 Примечание:</strong> Пред каждой операцией обязетельно вымойте руки.
             </div>
             <div className="subsection">
                 <h3>📚 Доступные операции</h3>

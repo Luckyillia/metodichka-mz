@@ -1,6 +1,12 @@
 import ExamplePhrase from "../../ExamplePhrase"
+import { useAuth } from "@/lib/auth/auth-context"
 
 const InterviewSection = () => {
+  const { canAccessSection } = useAuth()
+
+  // Проверяем, относится ли пользователь к старшему составу
+  const isSeniorStaff = canAccessSection('exam-section') || canAccessSection('goss-wave') || canAccessSection('announcements')
+
   return (
     <>
       <div className="warning">
@@ -122,6 +128,7 @@ const InterviewSection = () => {
             <strong>📌 Примечание:</strong> Ждём ответа, может это быть всё что угодно, но не термины, если термины засчитываем ошибку
           </div>
 
+          
           <div className="note mt-4">
             <p><strong>📖 Расшифровка РП понятий:</strong></p>
             <div className="text-sm mt-2 space-y-1">
@@ -140,21 +147,30 @@ const InterviewSection = () => {
 
           <ExamplePhrase text="say Мои поздравления, вы прошли собеседование!" />
 
-          <div className="note mt-6">
-            <h4><strong>📝 Форма для заполнения:</strong></h4>
-            <p className="text-sm mt-2"><strong>📌 Примечание:</strong> добавить друзья и напиши мне в вк https://vk.com/id523507300</p>
-            <div className="mt-4 bg-muted/50 p-4 rounded-lg border-2 border-border">
-              <p>Форма</p>
-              <p>1. Ник:</p>
-              <p>2. Номер паспорта:</p>
-              <p>3. Банк счёт:</p>
-              <p>4. Пароль ЖА:</p>
-              <p>5. До какого Мед. карта:</p>
-              <p>6. Ссылка на ВК:</p>
-              <p>7. Дискорд ID(Не тєг):</p>
-              <p className="mt-2">А также в чате "выдача-роли" запросите роль в официальном дискорд сервере: https://discord.gg/4Gdsch6s</p>
+          {!isSeniorStaff && (
+            <div className="note mt-6">
+              <p><strong>📌 Примечание:</strong> Направте человека который прошле к проводящему собеседование.</p>
             </div>
-          </div>
+          )}
+
+          {isSeniorStaff && (
+            <>
+              <div className="note mt-6">
+                <h4><strong>📝 Форма для заполнения в ВК:</strong></h4>
+                <div className="mt-4 bg-muted/50 p-4 rounded-lg border-2 border-border">
+                  <p>Форма</p>
+                  <p>1. Ник:</p>
+                  <p>2. Номер паспорта:</p>
+                  <p>3. Банк счёт:</p>
+                  <p>4. Пароль ЖА:</p>
+                  <p>5. До какого Мед. карта:</p>
+                  <p>6. Ссылка на ВК:</p>
+                  <p>7. Дискорд ID(Не тєг):</p>
+                  <p className="mt-2">А также в чате "выдача-роли" запросите роль в официальном дискорд сервере: https://discord.gg/4Gdsch6s</p>
+                </div>
+              </div>
+            </>
+          )}
       </div>
     </>
   )

@@ -7,7 +7,7 @@
 
 .input-group label {
     font-weight: 600;
-    color: #2d3748;
+    color: var(--foreground);
     margin-bottom: 0.5rem;
     font-size: 1rem;
     position: relative;
@@ -20,7 +20,7 @@
     left: 0;
     width: 0;
     height: 2px;
-    background: linear-gradient(90deg, #667eea, #764ba2);
+    background: var(--primary);
     transition: width 0.3s ease;
 }
 
@@ -28,14 +28,15 @@
     width: 100%;
 }
 
-/* Стили для input и select - делаем прозрачными */
+/* Стили для input и select - адаптивные под тему */
 .input-group input,
 .input-group select {
     padding: 1rem 1.2rem;
-    border: 2px solid rgba(226, 232, 240, 0.6);
+    border: 2px solid var(--border);
     border-radius: 12px;
     font-size: 1rem;
-    background: rgba(255, 255, 255, 0.4);
+    background: var(--card);
+    color: var(--foreground);
     backdrop-filter: blur(10px);
     transition: all 0.3s ease;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
@@ -44,15 +45,16 @@
 .input-group input:focus,
 .input-group select:focus {
     outline: none;
-    border-color: rgba(102, 126, 234, 0.8);
-    background: rgba(255, 255, 255, 0.4);
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    border-color: var(--primary);
+    background: var(--card);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 15%, transparent);
     transform: translateY(-2px);
 }
 
 .input-group input::placeholder {
-    color: #000000;
+    color: var(--muted-foreground);
     font-style: italic;
+    opacity: 0.7;
 }
 
 /* Стили для строк элементов */
@@ -66,9 +68,10 @@
 
 .item-row input {
     margin-bottom: 0;
-    background: rgba(255, 255, 255, 0.3);
+    background: var(--card);
+    color: var(--foreground);
     backdrop-filter: blur(5px);
-    border: 2px solid rgba(226, 232, 240, 0.6);
+    border: 2px solid var(--border);
     border-radius: 10px;
     padding: 0.8rem 1rem;
     font-size: 0.9rem;
@@ -76,13 +79,15 @@
 }
 
 .item-row input:focus {
-    border-color: rgba(102, 126, 234, 0.8);
-    background: rgba(255, 255, 255, 0.5);
-    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+    border-color: var(--primary);
+    background: var(--card);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 15%, transparent);
 }
+
 .item-row input::placeholder {
-    color: #000000;
+    color: var(--muted-foreground);
     font-style: italic;
+    opacity: 0.7;
 }
 /* Кнопки */
 .add-btn,
@@ -209,70 +214,69 @@
 .subsection:last-child h3::before {
     content: '📄';
 }
-/* Стили для чекбокса в разделе основной информации */
+/* Стили для чекбокса - адаптивные под тему */
 .input-group input[type="checkbox"] {
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
     width: 24px;
     height: 24px;
-    border: 2px solid #007bff; /* Синий цвет границы для акцента */
-    border-radius: 6px; /* Закругленные углы для современного вида */
-    background-color: #ffffff; /* Белый фон по умолчанию */
+    border: 2px solid var(--primary);
+    border-radius: 6px;
+    background-color: var(--card);
     position: relative;
     cursor: pointer;
-    transition: all 0.3s ease; /* Плавные переходы для анимации */
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Легкая тень для глубины */
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .input-group input[type="checkbox"]:checked {
-    background-color: #007bff; /* Синий фон при выборе */
-    border-color: #0056b3; /* Темнее для контраста */
-    box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3); /* Усиленная тень при активации */
+    background-color: var(--primary);
+    border-color: var(--primary);
+    box-shadow: 0 4px 8px color-mix(in srgb, var(--primary) 30%, transparent);
 }
 
 .input-group input[type="checkbox"]:checked::after {
-    content: "\2713"; /* Символ галочки */
+    content: "\2713";
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     font-size: 16px;
-    color: #ffffff; /* Белый цвет галочки */
+    color: var(--primary-foreground);
     font-weight: bold;
 }
 
 .input-group input[type="checkbox"]:hover {
-    border-color: #0056b3; /* Изменение цвета границы при наведении */
-    box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2); /* Легкая анимация при hover */
+    border-color: var(--primary);
+    box-shadow: 0 4px 8px color-mix(in srgb, var(--primary) 20%, transparent);
 }
 
 .input-group input[type="checkbox"]:focus {
     outline: none;
-    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25); /* Фокус-ринг для доступности */
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 25%, transparent);
 }
 
 /* Стили для лейбла рядом с чекбоксом для лучшей интеграции */
 .input-group label {
     display: flex;
     align-items: center;
-    gap: 10px; /* Пространство между лейблом и чекбоксом */
+    gap: 10px;
     font-size: 16px;
-    color: #333; /* Темный цвет текста */
     cursor: pointer;
 }
-/* Стили для селекта в строках элементов */
+/* Стили для селекта в строках элементов - адаптивные под тему */
 .item-row select {
     margin-bottom: 0;
-    background: rgba(255, 255, 255, 0.3);
+    background: var(--card);
     backdrop-filter: blur(5px);
-    border: 2px solid rgba(226, 232, 240, 0.6);
+    border: 2px solid var(--border);
     border-radius: 10px;
     padding: 0.8rem 1rem;
     font-size: 0.9rem;
     transition: all 0.3s ease;
     cursor: pointer;
-    color: #2d3748;
+    color: var(--foreground);
     font-weight: 500;
 
     /* Убираем стандартную стрелочку браузера */
@@ -289,34 +293,34 @@
 }
 
 .item-row select:focus {
-    border-color: rgba(102, 126, 234, 0.8);
-    background-color: rgba(255, 255, 255, 0.5);
-    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+    border-color: var(--primary);
+    background-color: var(--card);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 15%, transparent);
     outline: none;
 }
 
 .item-row select:hover {
-    border-color: rgba(102, 126, 234, 0.6);
-    background-color: rgba(255, 255, 255, 0.4);
+    border-color: color-mix(in srgb, var(--primary) 60%, transparent);
+    background-color: color-mix(in srgb, var(--muted) 50%, transparent);
     transform: translateY(-1px);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Стили для опций селекта */
+/* Стили для опций селекта - адаптивные под тему */
 .item-row select option {
-    background-color: #ffffff;
-    color: #2d3748;
+    background-color: var(--card);
+    color: var(--foreground);
     padding: 0.5rem;
     font-weight: 500;
 }
 
 .item-row select option:hover {
-    background-color: #f7fafc;
+    background-color: var(--muted);
 }
 
 .item-row select option:checked {
-    background-color: #667eea;
-    color: white;
+    background-color: var(--primary);
+    color: var(--primary-foreground);
 }
 
 /* Специальная сетка для attendance с селектом */

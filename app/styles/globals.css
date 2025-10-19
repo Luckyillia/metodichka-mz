@@ -260,6 +260,32 @@
     color: var(--sidebar-foreground);
   }
 
+  /* Custom scrollbar styles for sidebar */
+  .modern-sidebar ul::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .modern-sidebar ul::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 4px;
+  }
+
+  .modern-sidebar ul::-webkit-scrollbar-thumb {
+    background: var(--sidebar-primary);
+    border-radius: 4px;
+    transition: background 0.3s ease;
+  }
+
+  .modern-sidebar ul::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in srgb, var(--sidebar-primary) 80%, white);
+  }
+
+  /* Firefox scrollbar */
+  .modern-sidebar ul {
+    scrollbar-width: thin;
+    scrollbar-color: var(--sidebar-primary) transparent;
+  }
+
   /* Navigation - solid background, strict border */
   .modern-nav {
     border-bottom: 2px solid var(--border);
@@ -539,5 +565,69 @@
   .schedule-grid {
     grid-template-columns: 1fr;
     gap: 0.75rem;
+  }
+}
+
+/* Tab Navigation Styles */
+.exam-section {
+  width: 100%;
+}
+
+.tab-navigation {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid var(--border);
+  overflow-x: auto;
+}
+
+.tab-button {
+  padding: 0.75rem 1rem;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  font-size: 0.9rem;
+}
+
+.tab-button:hover {
+  color: var(--primary);
+}
+
+.tab-button.active {
+  color: var(--primary);
+  border-bottom: 3px solid var(--primary);
+  font-weight: 600;
+  position: relative;
+}
+
+.tab-button.active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background-color: var(--primary);
+  border-radius: 2px 2px 0 0;
+}
+
+.tab-content {
+  min-height: 400px;
+}
+
+/* Mobile responsive tabs */
+@media (max-width: 768px) {
+  .tab-navigation {
+    gap: 0.25rem;
+  }
+
+  .tab-button {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
   }
 }

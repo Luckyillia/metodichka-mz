@@ -161,7 +161,8 @@ export class AuthService {
   static canAccessSection(user: User | null, sectionId: string): boolean {
     const publicSections = [
       "overview",
-      "unified-content",
+      "ms-unified-content",
+      "commands",
       "rp-task",
       "parking-spaces",
       "medical-commission",
@@ -170,7 +171,7 @@ export class AuthService {
       "medical-card",
     ]
 
-    const ccLdSections = [...publicSections, "exam-section", "practical-tasks", "goss-wave", "announcements", "forum-responses", "report-generator"]
+    const ccLdSections = [...publicSections, "exam-section", "ss-unified-content", "goss-wave", "announcements", "forum-responses", "report-generator"]
     const privilegedSections = [...ccLdSections, "user-management", "action-log"]
 
     if (!user) {
@@ -396,6 +397,71 @@ export class AuthService {
       return data
     } catch (error) {
       console.error("[AuthService] Error undoing action:", error)
+      throw error
+    }
+  }
+
+  static async permanentDeleteUser(userId: string): Promise<void> {
+    try {
+      const response = await this.fetchWithAuth(`/api/users/permanent-delete?id=${userId}`, {
+        method: "DELETE",
+      })
+
+      if (!response.ok) {
+        let errorMessage = "Failed to permanently delete user"
+        try {
+          const data = await response.json()
+          errorMessage = data.error || errorMessage
+        } catch {
+          // Response might be empty
+        }
+        throw new Error(errorMessage)
+      }
+    } catch (error) {
+      console.error("[AuthService] Error permanently deleting user:", error)
+      throw error
+    }
+  }
+
+  static async approveAccountRequest(userId: string): Promise<User | null> {
+    try {
+      const response = await this.fetchWithAuth("/api/users", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, action: "approve" }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to approve account request")
+      }
+
+      return data
+    } catch (error) {
+      console.error("[AuthService] Error approving account request:", error)
+      throw error
+    }
+  }
+
+  static async rejectAccountRequest(userId: string): Promise<void> {
+    try {
+      const response = await this.fetchWithAuth(`/api/users/permanent-delete?id=${userId}`, {
+        method: "DELETE",
+      })
+
+      if (!response.ok) {
+        let errorMessage = "Failed to reject account request"
+        try {
+          const data = await response.json()
+          errorMessage = data.error || errorMessage
+        } catch {
+          // Response might be empty
+        }
+        throw new Error(errorMessage)
+      }
+    } catch (error) {
+      console.error("[AuthService] Error rejecting account request:", error)
       throw error
     }
   }

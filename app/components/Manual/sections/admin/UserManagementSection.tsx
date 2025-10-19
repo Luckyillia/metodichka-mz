@@ -34,7 +34,7 @@ export default function UserManagementSection() {
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
   const [showRoleModal, setShowRoleModal] = useState(false)
-  const [showInactiveUsers, setShowInactiveUsers] = useState(false)
+  const [activeTab, setActiveTab] = useState<'active' | 'inactive' | 'requests'>('active')
   const [changingRoleUser, setChangingRoleUser] = useState<UserType | null>(null)
   const [recentActions, setRecentActions] = useState<ActionLog[]>([])
   const [loadingActions, setLoadingActions] = useState(false)
@@ -240,6 +240,86 @@ export default function UserManagementSection() {
     })
   }
 
+  const handlePermanentDelete = async (userId: string, gameNick: string) => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'Окончательное удаление пользователя',
+      message: `ВНИМАНИЕ! Вы собираетесь ОКОНЧАТЕЛЬНО удалить пользователя ${gameNick}. Это действие НЕОБРАТИМО! Все данные пользователя будут удалены из базы данных. Продолжить?`,
+      type: 'danger',
+      confirmText: 'Удалить окончательно',
+      onConfirm: async () => {
+        setConfirmModal({ ...confirmModal, isOpen: false })
+        setError("")
+        setSuccess("")
+
+        try {
+          await AuthService.permanentDeleteUser(userId)
+          setSuccess(`Пользователь ${gameNick} окончательно удален`)
+          fetchUsers()
+          fetchRecentActions()
+        } catch (err: any) {
+          setError(err.message || "Не удалось удалить пользователя")
+        }
+      }
+    })
+  }
+
+  const handleApproveRequest = async (userId: string, gameNick: string) => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'Одобрение запроса на аккаунт',
+      message: `Вы уверены, что хотите одобрить запрос на создание аккаунта для ${gameNick}?`,
+      type: 'info',
+      confirmText: 'Одобрить',
+      onConfirm: async () => {
+        setConfirmModal({ ...confirmModal, isOpen: false })
+        setError("")
+        setSuccess("")
+
+        try {
+          await AuthService.approveAccountRequest(userId)
+          setSuccess(`Запрос на аккаунт для ${gameNick} одобрен`)
+          await fetchUsers()
+          fetchRecentActions()
+          // Если это был последний запрос, переключаемся на активных
+          if (requestUsers.length === 1) {
+            setActiveTab('active')
+          }
+        } catch (err: any) {
+          setError(err.message || "Не удалось одобрить запрос")
+        }
+      }
+    })
+  }
+
+  const handleRejectRequest = async (userId: string, gameNick: string) => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'Отклонение запроса на аккаунт',
+      message: `Вы уверены, что хотите отклонить запрос на создание аккаунта для ${gameNick}? Запрос будет удален.`,
+      type: 'warning',
+      confirmText: 'Отклонить',
+      onConfirm: async () => {
+        setConfirmModal({ ...confirmModal, isOpen: false })
+        setError("")
+        setSuccess("")
+
+        try {
+          await AuthService.rejectAccountRequest(userId)
+          setSuccess(`Запрос на аккаунт для ${gameNick} отклонен`)
+          await fetchUsers()
+          fetchRecentActions()
+          // Если это был последний запрос, переключаемся на активных
+          if (requestUsers.length === 1) {
+            setActiveTab('active')
+          }
+        } catch (err: any) {
+          setError(err.message || "Не удалось отклонить запрос")
+        }
+      }
+    })
+  }
+
   const openEditModal = (u: UserType) => {
     setEditUser({
       id: u.id,
@@ -324,12 +404,15 @@ export default function UserManagementSection() {
     return ["deactivate", "restore", "role_change", "update"].includes(log.action_type)
   }
 
-  const filteredUsers = showInactiveUsers
-      ? users
-      : users.filter((u) => u.active)
+  const activeUsers = users.filter((u) => u.status === "active")
+  const inactiveUsers = users.filter((u) => u.status === "inactive")
+  const requestUsers = users.filter((u) => u.status === "request")
 
-  const activeUsers = users.filter((u) => u.active)
-  const inactiveUsers = users.filter((u) => !u.active)
+  const filteredUsers = activeTab === 'active' 
+    ? activeUsers 
+    : activeTab === 'inactive' 
+    ? inactiveUsers 
+    : requestUsers
 
   if (loading) {
     return (
@@ -367,6 +450,21 @@ export default function UserManagementSection() {
             <div className="text-3xl font-semibold text-foreground">{inactiveUsers.length}</div>
           </div>
         </div>
+        {(currentUser?.role === "root" || currentUser?.role === "admin") && requestUsers.length > 0 && (
+          <div className="grid grid-cols-1 gap-4">
+            <button
+                onClick={() => setActiveTab('requests')}
+                className="bg-card border-2 border-yellow-500/30 rounded-lg p-4 transition-all hover:border-yellow-500/50 hover:bg-yellow-500/5 text-left"
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <AlertCircle className="w-6 h-6 text-yellow-600 dark:text-yellow-400"/>
+                <span className="text-sm text-muted-foreground">Запросы на создание аккаунта</span>
+              </div>
+              <div className="text-3xl font-semibold text-foreground">{requestUsers.length}</div>
+              <p className="text-xs text-muted-foreground mt-2">Нажмите для просмотра</p>
+            </button>
+          </div>
+        )}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="bg-card border-2 border-border rounded-lg p-4 transition-colors">
             <div className="flex items-center gap-3 mb-2">
@@ -374,7 +472,7 @@ export default function UserManagementSection() {
               <span className="text-sm text-muted-foreground">Администраторы</span>
             </div>
             <div className="text-3xl font-semibold text-foreground">
-              {users.filter((u) => (  u.role === "admin" || u.role === "root")  && u.active).length}
+              {users.filter((u) => (  u.role === "admin" || u.role === "root")  && u.status === "active").length}
             </div>
           </div>
 
@@ -384,7 +482,7 @@ export default function UserManagementSection() {
               <span className="text-sm text-muted-foreground">Лидеры</span>
             </div>
             <div className="text-3xl font-semibold text-foreground">
-              {users.filter((u) => u.role === "ld" && u.active).length}
+              {users.filter((u) => u.role === "ld" && u.status === "active").length}
             </div>
           </div>
 
@@ -393,7 +491,7 @@ export default function UserManagementSection() {
               <UserCog className="w-5 h-5 text-primary"/>
               <span className="text-sm text-muted-foreground">CC аккаунты</span>
             </div>
-            <div className="text-3xl font-semibold text-foreground">{users.filter((u) => u.role === "cc" && u.active).length}</div>
+            <div className="text-3xl font-semibold text-foreground">{users.filter((u) => u.role === "cc" && u.status === "active").length}</div>
           </div>
 
           <div className="bg-card border-2 border-border rounded-lg p-4 transition-colors">
@@ -401,7 +499,7 @@ export default function UserManagementSection() {
               <Users className="w-5 h-5 text-green-500"/>
               <span className="text-sm text-muted-foreground">Обычные пользователи</span>
             </div>
-            <div className="text-3xl font-semibold text-foreground">{users.filter((u) => u.role === "user" && u.active).length}</div>
+            <div className="text-3xl font-semibold text-foreground">{users.filter((u) => u.role === "user" && u.status === "active").length}</div>
           </div>
         </div>
 
@@ -429,38 +527,13 @@ export default function UserManagementSection() {
 
         {/* Actions */}
         <div className="flex items-center justify-between flex-wrap gap-3">
-          <div className="flex items-center gap-3">
-            <button
-                onClick={() => setShowCreateModal(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-all"
-            >
-              <UserPlus className="w-5 h-5"/>
-              Создать пользователя
-            </button>
-
-            {currentUser?.role === "root" && (
-                <button
-                    onClick={() => setShowInactiveUsers(!showInactiveUsers)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
-                        showInactiveUsers
-                            ? "bg-secondary text-secondary-foreground"
-                            : "bg-muted text-muted-foreground hover:bg-secondary"
-                    }`}
-                >
-                  {showInactiveUsers ? (
-                      <>
-                        <Eye className="w-5 h-5"/>
-                        Показаны все
-                      </>
-                  ) : (
-                      <>
-                        <EyeOff className="w-5 h-5"/>
-                        Показать неактивных
-                      </>
-                  )}
-                </button>
-            )}
-          </div>
+          <button
+              onClick={() => setShowCreateModal(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-all"
+          >
+            <UserPlus className="w-5 h-5"/>
+            Создать пользователя
+          </button>
 
           <button
               onClick={fetchUsers}
@@ -469,6 +542,46 @@ export default function UserManagementSection() {
             <RotateCcw className="w-5 h-5"/>
             Обновить
           </button>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex items-center gap-2 border-b-2 border-border">
+          <button
+              onClick={() => setActiveTab('active')}
+              className={`px-4 py-2 font-medium transition-all border-b-2 -mb-0.5 ${
+                  activeTab === 'active'
+                      ? 'border-primary text-primary'
+                      : 'border-transparent text-muted-foreground hover:text-foreground'
+              }`}
+          >
+            Активные ({activeUsers.length})
+          </button>
+
+          {(currentUser?.role === "root" || currentUser?.role === "admin") && (
+              <button
+                  onClick={() => setActiveTab('requests')}
+                  className={`px-4 py-2 font-medium transition-all border-b-2 -mb-0.5 ${
+                      activeTab === 'requests'
+                          ? 'border-yellow-500 text-yellow-600 dark:text-yellow-400'
+                          : 'border-transparent text-muted-foreground hover:text-foreground'
+                  }`}
+              >
+                Запросы ({requestUsers.length})
+              </button>
+          )}
+
+          {currentUser?.role === "root" && (
+              <button
+                  onClick={() => setActiveTab('inactive')}
+                  className={`px-4 py-2 font-medium transition-all border-b-2 -mb-0.5 ${
+                      activeTab === 'inactive'
+                          ? 'border-destructive text-destructive'
+                          : 'border-transparent text-muted-foreground hover:text-foreground'
+                  }`}
+              >
+                Неактивные ({inactiveUsers.length})
+              </button>
+          )}
         </div>
 
         {/* Users Table */}
@@ -502,15 +615,20 @@ export default function UserManagementSection() {
                   <tr
                       key={user.id}
                       className={`hover:bg-muted/30 transition-colors ${
-                          !user.active ? "opacity-60" : ""
+                          user.status !== "active" ? "opacity-60" : ""
                       }`}
                   >
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <span className="text-foreground font-medium">{user.game_nick}</span>
-                        {!user.active && (
+                        {user.status === "inactive" && (
                             <span className="text-xs bg-destructive/20 text-destructive px-2 py-1 rounded">
                           Деактивирован
+                        </span>
+                        )}
+                        {user.status === "request" && (
+                            <span className="text-xs bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 px-2 py-1 rounded">
+                          Запрос
                         </span>
                         )}
                       </div>
@@ -528,10 +646,15 @@ export default function UserManagementSection() {
                     </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {user.active ? (
+                      {user.status === "active" ? (
                           <span className="text-green-600 dark:text-green-400 flex items-center gap-1">
                         <CheckCircle className="w-4 h-4"/>
                         Активен
+                      </span>
+                      ) : user.status === "request" ? (
+                          <span className="text-yellow-600 dark:text-yellow-400 flex items-center gap-1">
+                        <AlertCircle className="w-4 h-4"/>
+                        Запрос
                       </span>
                       ) : (
                           <span className="text-destructive flex items-center gap-1">
@@ -545,8 +668,28 @@ export default function UserManagementSection() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex items-center justify-end gap-2">
+                        {/* Кнопки для запросов на создание аккаунта */}
+                        {user.status === "request" && currentUser?.role === "root" && (
+                            <>
+                              <button
+                                  onClick={() => handleApproveRequest(user.id, user.game_nick)}
+                                  className="text-green-600 dark:text-green-400 hover:opacity-70 transition-all"
+                                  title="Одобрить запрос"
+                              >
+                                <CheckCircle className="w-5 h-5"/>
+                              </button>
+                              <button
+                                  onClick={() => handleRejectRequest(user.id, user.game_nick)}
+                                  className="text-destructive hover:opacity-70 transition-all"
+                                  title="Отклонить запрос"
+                              >
+                                <X className="w-5 h-5"/>
+                              </button>
+                            </>
+                        )}
+
                         {/* Показываем кнопки только для активных пользователей и не для root (кроме случая редактирования себя) */}
-                        {user.active && user.role !== "root" && (
+                        {user.status === "active" && user.role !== "root" && (
                             <>
                               {/* Кнопка редактирования: root видит всех, admin видит только себя и не-админов */}
                               {(currentUser?.role === "root" ||
@@ -588,15 +731,24 @@ export default function UserManagementSection() {
                             </>
                         )}
 
-                        {/* Восстановление неактивных - только root */}
-                        {!user.active && currentUser?.role === "root" && (
-                            <button
-                                onClick={() => handleRestoreUser(user.id, user.game_nick)}
-                                className="text-green-600 dark:text-green-400 hover:opacity-70 transition-all"
-                                title="Восстановить"
-                            >
-                              <RotateCcw className="w-5 h-5"/>
-                            </button>
+                        {/* Восстановление и окончательное удаление неактивных - только root */}
+                        {user.status === "inactive" && currentUser?.role === "root" && (
+                            <>
+                              <button
+                                  onClick={() => handleRestoreUser(user.id, user.game_nick)}
+                                  className="text-green-600 dark:text-green-400 hover:opacity-70 transition-all"
+                                  title="Восстановить"
+                              >
+                                <RotateCcw className="w-5 h-5"/>
+                              </button>
+                              <button
+                                  onClick={() => handlePermanentDelete(user.id, user.game_nick)}
+                                  className="text-destructive hover:opacity-70 transition-all"
+                                  title="Удалить окончательно"
+                              >
+                                <Trash2 className="w-5 h-5"/>
+                              </button>
+                            </>
                         )}
                       </div>
                     </td>
