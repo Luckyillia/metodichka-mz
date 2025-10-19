@@ -85,7 +85,7 @@ const MedicalCommissionSection = () => {
 
         <ExamplePhrase text="say Желаю Вам удачной службы. Не болейте. Всего доброго!" />
 
-        <div className="note mt-6">
+        <div className="warning mt-6">
           <h4><strong>📝 Примеры объявлений:</strong></h4>
           <div className="mt-4">
             <p><strong>Годен:</strong></p>

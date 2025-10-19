@@ -1,329 +1,361 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import ExamplePhrase from '../../ExamplePhrase';
-import ProtectedSection from "../../ProtectedSection";
 import "@/app/styles/reportGenerator.css";
 
-// Define the position type
 type Position =
-    | 'Начальник Гарнизона'
-    | 'Начальник Штаба'
-    | 'Начальник Штаба Гражданской Обороны'
-    | 'Начальник по Военной Профессиональной Подготовке'
-    | 'Командир Подразделения'
-    | 'Заместитель Командира Подразделения';
+    | 'Заведующий отделением'
+    | 'Заведующий отделением | Командир ОВМ ГВ-МУ'
+    | 'Заведующий отделением | Заместитель Начальника СА'
+    | 'Заместитель главного врача'
+    | 'Заместитель главного врача | Начальник ИМУ'
+    | 'Заместитель главного врача | Заместитель Начальника ГВ-МУ'
+    | 'Заместитель главного врача | Начальник СА'
+    | 'Главный Заместитель главного врача';
 
 const ReportGenerator = () => {
-    const [position, setPosition] = useState<Position>('Начальник Гарнизона');
+    const [position, setPosition] = useState<Position>('Заведующий отделением');
     const [fullName, setFullName] = useState('');
-    const [startDate, setStartDate] = useState('');
-    const [endDate, setEndDate] = useState('');
-    const [onlineHours, setOnlineHours] = useState(21);
-    const [isVrio, setIsVrio] = useState(false);
-    const [signature, setSignature] = useState('');
+    const [branch, setBranch] = useState<'ЦГБ-П' | 'ОКБ-М' | 'ЦГБ-Н'>('ЦГБ-П');
+    const [customPosition, setCustomPosition] = useState('');
 
-    // Данные для различных должностей
-    const [interviews, setInterviews] = useState([{ date: '', type: '', link: '' }]);
-    const [events, setEvents] = useState([{ date: '', name: '', link: '' }]);
-    const [lectures, setLectures] = useState([{ date: '', name: '', link: '' }]);
-    const [drills, setDrills] = useState([{ date: '', name: '', link: '' }]);
-    const [trainings, setTrainings] = useState([{ date: '', name: '', link: '' }]);
-    const [shootings, setShootings] = useState([{ date: '', name: '', link: '' }]);
-    const [exercises, setExercises] = useState([{ date: '', name: '', link: '' }]);
-    const [attendances, setAttendances] = useState([{ type: 'leader', link: '' }]);
+    const [interviews, setInterviews] = useState([{ link: '' }]);
+    const [lecturesMZ, setLecturesMZ] = useState([{ name: '', link: '' }]);
+    const [lecturesMO, setLecturesMO] = useState([{ name: '', link: '' }]);
+    const [trainings, setTrainings] = useState([{ name: '', link: '' }]);
+    const [eventsWithOrg, setEventsWithOrg] = useState([{ name: '', link: '' }]);
+    const [eventsWithoutPost, setEventsWithoutPost] = useState([{ name: '', link: '' }]);
+    const [interviewsAttendance, setInterviewsAttendance] = useState([{ link: '' }]);
+    const [patrolCity, setPatrolCity] = useState([{ minutes: 0, link: '' }]);
+    const [patrolAir, setPatrolAir] = useState([{ minutes: 0, link: '' }]);
+    const [postAny, setPostAny] = useState([{ minutes: 0, link: '' }]);
+    const [postGVMU, setPostGVMU] = useState([{ minutes: 0, link: '' }]);
 
-    // Специфичные данные для разных должностей
-    const [contractStats, setContractStats] = useState({ arrived: 0, left: 0, current: 0 });
-    const [conscriptStats, setConscriptStats] = useState({ current: 0 });
-    const [penalties, setPenalties] = useState({ contract: 0, conscript: 0 });
-    const [divisionStats, setDivisionStats] = useState({ left: 0, arrived: 0, current: 0 });
-
-    // Видимые разделы в зависимости от должности
-    // Видимые разделы в зависимости от должности - now with proper typing
-    const visibleSections: Record<Position, string[]> = {
-        'Начальник Гарнизона': ['interviews', 'events', 'lectures', 'drills', 'exercises', 'shootings', 'attendance'],
-        'Начальник Штаба': ['interviews', 'events', 'lectures', 'drills', 'exercises', 'attendance'],
-        'Начальник Штаба Гражданской Обороны': ['interviews', 'events', 'lectures', 'drills', 'exercises', 'attendance'],
-        'Начальник по Военной Профессиональной Подготовке': ['interviews', 'events', 'lectures', 'drills', 'trainings', 'exercises', 'attendance'],
-        'Командир Подразделения': ['interviews', 'events', 'lectures', 'drills', 'trainings', 'exercises', 'shootings', 'attendance'],
-        'Заместитель Командира Подразделения': ['interviews', 'events', 'lectures', 'trainings', 'attendance'],
+    const positionRequirements: Record<Position, {
+        interviews?: number;
+        lecturesMZ?: number;
+        lecturesMO?: number;
+        trainings?: number;
+        eventsWithOrg?: number;
+        eventsWithoutPost?: number;
+        interviewsAttendance?: number;
+        patrolCity?: number;
+        patrolAir?: number;
+        postAny?: number;
+        postGVMU?: number;
+    }> = {
+        'Заведующий отделением': {
+            lecturesMZ: 8,
+            trainings: 6,
+            eventsWithOrg: 1,
+            eventsWithoutPost: 3,
+            interviewsAttendance: 2,
+            patrolCity: 60,
+            postAny: 60
+        },
+        'Заведующий отделением | Командир ОВМ ГВ-МУ': {
+            lecturesMZ: 3,
+            lecturesMO: 3,
+            trainings: 5,
+            eventsWithOrg: 1,
+            eventsWithoutPost: 2,
+            interviewsAttendance: 1,
+            postGVMU: 60
+        },
+        'Заведующий отделением | Заместитель Начальника СА': {
+            lecturesMZ: 6,
+            trainings: 4,
+            eventsWithOrg: 1,
+            eventsWithoutPost: 2,
+            interviewsAttendance: 1,
+            patrolAir: 60
+        },
+        'Заместитель главного врача': {
+            interviews: 1,
+            lecturesMZ: 8,
+            trainings: 4,
+            eventsWithOrg: 1,
+            eventsWithoutPost: 4,
+            patrolCity: 60
+        },
+        'Заместитель главного врача | Начальник ИМУ': {
+            interviews: 1,
+            lecturesMZ: 9,
+            trainings: 5,
+            eventsWithOrg: 1,
+            eventsWithoutPost: 2,
+            patrolCity: 30,
+            postAny: 30
+        },
+        'Заместитель главного врача | Заместитель Начальника ГВ-МУ': {
+            interviews: 1,
+            lecturesMZ: 3,
+            lecturesMO: 3,
+            trainings: 5,
+            eventsWithOrg: 1,
+            eventsWithoutPost: 2,
+            postGVMU: 30
+        },
+        'Заместитель главного врача | Начальник СА': {
+            interviews: 1,
+            lecturesMZ: 5,
+            trainings: 3,
+            eventsWithOrg: 1,
+            eventsWithoutPost: 2,
+            patrolAir: 30
+        },
+        'Главный Заместитель главного врача': {
+            interviews: 2,
+            lecturesMZ: 9,
+            eventsWithOrg: 1,
+            eventsWithoutPost: 3,
+            patrolCity: 30
+        }
     };
 
-    // Helper function to check if a section is visible for current position
-    const isSectionVisible = ({sectionName}: { sectionName: any }) => {
-        return visibleSections[position]?.includes(sectionName) || false;
-    };
+    const currentRequirements = positionRequirements[position];
 
-    // Генерация дат по умолчанию (текущая неделя)
-    useEffect(() => {
-        const today = new Date();
-        const start = new Date(today);
-        start.setDate(today.getDate() - today.getDay()); // Воскресенье предыдущей недели
-        const end = new Date(today);
-        end.setDate(today.getDate() + (6 - today.getDay())); // Суббота текущей недели
-
-        setStartDate(formatDate({date: start}));
-        setEndDate(formatDate({date: end}));
-    }, []);
-
-    const formatDate = ({date}: { date: any }) => {
-        return date.toLocaleDateString('ru-RU');
-    };
-
-    const handleAddItem = ({setter, currentItems, template}: { setter: any, currentItems: any, template: any }) => {
+    const handleAddItem = (setter: Function, currentItems: any[], template: any) => {
         setter([...currentItems, template]);
     };
 
-    const handleRemoveItem = ({setter, currentItems, index}: { setter: any, currentItems: any, index: any }) => {
+    const handleRemoveItem = (setter: Function, currentItems: any[], index: number) => {
         if (currentItems.length === 1) return;
         const newItems = [...currentItems];
         newItems.splice(index, 1);
         setter(newItems);
     };
 
-    const handleItemChange = ({setter, currentItems, index, field, value}: {
-        setter: any,
-        currentItems: any,
-        index: any,
-        field: any,
-        value: any
-    }) => {
+    const handleItemChange = (setter: Function, currentItems: any[], index: number, field: string, value: any) => {
         const newItems = [...currentItems];
         newItems[index][field] = value;
         setter(newItems);
     };
 
     const generateReport = () => {
-        const vrioPrefix = isVrio ? 'ВрИО ' : '';
-        let report = `Маршалу Республики Провинция\n`;
-        report += `Начальнику Генерального Штаба\n`;
-        report += `Гуду К.И.\n`;
-        report += `От "${vrioPrefix}${position}" "${fullName}"\n\n`;
+        const displayPosition = customPosition || position;
+        let report = `${branch}\nВаш никнейм: ${fullName}\nДолжность: ${displayPosition}\n\n`;
+        let sectionNumber = 1;
 
-        report += `Я, "${vrioPrefix}${position}", "${fullName}", докладываю о состоянии несения службы и выполненной мной работе за промежуток времени с ${startDate} по ${endDate}. За данный промежуток времени мною был выполнен следующий объём работ:\n\n`;
-
-        report += `Отработано часов в онлайн: ${onlineHours}\n\n`;
-
-        // Собеседования
-        if (interviews.length > 0 && interviews[0].date) {
-            report += `Собеседования:\n`;
-            interviews.forEach(item => {
-                if (item.date) {
-                    report += `Дата: ${item.date}, тип: ${item.type || 'не указано'} - ${item.link || 'ссылка отсутствует'}\n`;
-                }
+        if (currentRequirements.interviews && interviews.some(item => item.link)) {
+            report += `${sectionNumber}. Проведение собеседования.\n`;
+            interviews.forEach((item, idx) => {
+                if (item.link) report += `${sectionNumber}.${idx + 1} ${item.link}\n`;
             });
             report += `\n`;
+            sectionNumber++;
         }
 
-        // Мероприятия
-        if (events.length > 0 && events[0].date) {
-            report += `Мероприятия:\n`;
-            events.forEach(item => {
-                if (item.date) {
-                    report += `Дата: ${item.date}, количество: 1 - ${item.name || 'Название'} - ${item.link || 'ссылка отсутствует'}\n`;
-                }
-            });
-            report += `\n`;
-        }
-
-        // Лекции
-        if (lectures.length > 0 && lectures[0].date) {
-            report += `Лекции:\n`;
-            lectures.forEach(item => {
-                if (item.date) {
-                    report += `Дата: ${item.date}, количество: 1 - ${item.name || 'Название'} - ${item.link || 'ссылка отсутствует'}\n`;
-                }
-            });
-            report += `\n`;
-        }
-
-        // Дополнительные поля в зависимости от должности
-        if (position === 'Начальник Гарнизона') {
-            report += `Количество военнослужащих контрактной службы:\n`;
-            report += `Прибыло: ${contractStats.arrived}, уволилось: ${contractStats.left}\n`;
-            report += `Текущее количество: ${contractStats.current}\n\n`;
-        }
-
-        if (position === 'Начальник по Военной Профессиональной Подготовке') {
-            report += `Количество военнослужащих срочной службы: ${conscriptStats.current}\n\n`;
-        }
-
-        if (position === 'Начальник Штаба') {
-            report += `Выданные наказания:\n`;
-            report += `Контрактная служба: ${penalties.contract}\n`;
-            report += `Срочная служба: ${penalties.conscript}\n\n`;
-        }
-
-        if (position.includes('Командир') || position.includes('Заместитель')) {
-            report += `Статистика подразделения:\n`;
-            report += `Ушло: ${divisionStats.left}, прибыло: ${divisionStats.arrived}, текущее количество: ${divisionStats.current}\n\n`;
-        }
-
-        // Строевая подготовка
-        if (drills.length > 0 && drills[0].date) {
-            report += `Строевая подготовка:\n`;
-            drills.forEach(item => {
-                if (item.date) {
-                    report += `Дата: ${item.date} - ${item.name || 'Название'} - ${item.link || 'ссылка отсутствует'}\n`;
-                }
-            });
-            report += `\n`;
-        }
-
-        // Учения
-        if (exercises.length > 0 && exercises[0].date) {
-            report += `Учения:\n`;
-            exercises.forEach(item => {
-                if (item.date) {
-                    report += `Дата: ${item.date} - ${item.name || 'Название'} - ${item.link || 'ссылка отсутствует'}\n`;
-                }
-            });
-            report += `\n`;
-        }
-
-        // Учебные стрельбы
-        if (shootings.length > 0 && shootings[0].date) {
-            report += `Учебные стрельбы:\n`;
-            shootings.forEach(item => {
-                if (item.date) {
-                    report += `Дата: ${item.date} - ${item.name || 'Название'} - ${item.link || 'ссылка отсутствует'}\n`;
-                }
-            });
-            report += `\n`;
-        }
-
-        // Тренировки
-        if (trainings.length > 0 && trainings[0].date) {
-            report += `Тренировки:\n`;
-            trainings.forEach(item => {
-                if (item.date) {
-                    report += `Дата: ${item.date} - ${item.name || 'Название'} - ${item.link || 'ссылка отсутствует'}\n`;
-                }
-            });
-            report += `\n`;
-        }
-
-        // Посещение мероприятий (теперь объединено: или у лидера, или на ГРП)
-        if (attendances.length > 0 && attendances[0].link) {
-            attendances.forEach(item => {
+        if (currentRequirements.lecturesMZ && lecturesMZ.some(item => item.link)) {
+            const label = currentRequirements.lecturesMO 
+                ? `${sectionNumber}. Проведение ${currentRequirements.lecturesMZ} лекций сотрудникам МЗ.`
+                : `${sectionNumber}. Проведение ${currentRequirements.lecturesMZ} лекций.`;
+            report += `${label}\n`;
+            lecturesMZ.forEach((item, idx) => {
                 if (item.link) {
-                    if (item.type === 'leader') {
-                        report += `Присутствие на качественном мероприятии от лидера: ${item.link}\n`;
-                    } else if (item.type === 'grp') {
-                        report += `Присутствие на ГРП: ${item.link}\n`;
-                    }
+                    const namePrefix = item.name ? `Лекция "${item.name}" - ` : '';
+                    report += `${sectionNumber}.${idx + 1} ${namePrefix}${item.link}\n`;
                 }
             });
             report += `\n`;
+            sectionNumber++;
         }
 
-        report += `Дата: ${new Date().toLocaleDateString('ru-RU')}\n`;
-        report += `Подпись: ${signature || fullName}\n`;
+        if (currentRequirements.lecturesMO && lecturesMO.some(item => item.link)) {
+            report += `${sectionNumber}. Проведение ${currentRequirements.lecturesMO} лекций сотрудникам МО.\n`;
+            lecturesMO.forEach((item, idx) => {
+                if (item.link) {
+                    const namePrefix = item.name ? `Лекция "${item.name}" - ` : '';
+                    report += `${sectionNumber}.${idx + 1} ${namePrefix}${item.link}\n`;
+                }
+            });
+            report += `\n`;
+            sectionNumber++;
+        }
 
-        return report;
+        if (currentRequirements.trainings && trainings.some(item => item.link)) {
+            report += `${sectionNumber}. Проведение ${currentRequirements.trainings} тренировок.\n`;
+            trainings.forEach((item, idx) => {
+                if (item.link) {
+                    const namePrefix = item.name ? `Тренировка "${item.name}" - ` : '';
+                    report += `${sectionNumber}.${idx + 1} ${namePrefix}${item.link}\n`;
+                }
+            });
+            report += `\n`;
+            sectionNumber++;
+        }
+
+        const hasEvents = (currentRequirements.eventsWithOrg && eventsWithOrg.some(item => item.link)) ||
+                          (currentRequirements.eventsWithoutPost && eventsWithoutPost.some(item => item.link));
+        
+        if (hasEvents) {
+            report += `${sectionNumber}. Проведение мероприятий.\n`;
+            let eventIdx = 1;
+            
+            if (currentRequirements.eventsWithOrg && eventsWithOrg.some(item => item.link)) {
+                eventsWithOrg.forEach((item) => {
+                    if (item.link) {
+                        const namePrefix = item.name ? `Мероприятие "${item.name}" - ` : 'Мероприятие с другой организацией - ';
+                        report += `${sectionNumber}.${eventIdx} ${namePrefix}${item.link}\n`;
+                        eventIdx++;
+                    }
+                });
+            }
+            
+            if (currentRequirements.eventsWithoutPost && eventsWithoutPost.some(item => item.link)) {
+                eventsWithoutPost.forEach((item) => {
+                    if (item.link) {
+                        const namePrefix = item.name ? `Мероприятие "${item.name}" - ` : '';
+                        report += `${sectionNumber}.${eventIdx} ${namePrefix}${item.link}\n`;
+                        eventIdx++;
+                    }
+                });
+            }
+            report += `\n`;
+            sectionNumber++;
+        }
+
+        if (currentRequirements.interviewsAttendance && interviewsAttendance.some(item => item.link)) {
+            report += `${sectionNumber}. Присутствие на ${currentRequirements.interviewsAttendance} собеседованиях филиалов МЗ.\n`;
+            interviewsAttendance.forEach((item, idx) => {
+                if (item.link) report += `${sectionNumber}.${idx + 1} ${item.link}\n`;
+            });
+            report += `\n`;
+            sectionNumber++;
+        }
+
+        if (currentRequirements.patrolCity) {
+            const totalMinutes = patrolCity.reduce((sum, item) => sum + (item.minutes || 0), 0);
+            if (totalMinutes > 0) {
+                report += `${sectionNumber}. Междугородний патруль.\n`;
+                patrolCity.forEach((item, idx) => {
+                    if (item.link) report += `${sectionNumber}.${idx + 1} ${item.minutes} минут - ${item.link}\n`;
+                });
+                report += `\n`;
+                sectionNumber++;
+            }
+        }
+
+        if (currentRequirements.patrolAir) {
+            const totalMinutes = patrolAir.reduce((sum, item) => sum + (item.minutes || 0), 0);
+            if (totalMinutes > 0) {
+                report += `${sectionNumber}. Междугородний воздушный патруль.\n`;
+                patrolAir.forEach((item, idx) => {
+                    if (item.link) report += `${sectionNumber}.${idx + 1} ${item.minutes} минут - ${item.link}\n`;
+                });
+                report += `\n`;
+                sectionNumber++;
+            }
+        }
+
+        if (currentRequirements.postAny) {
+            const totalMinutes = postAny.reduce((sum, item) => sum + (item.minutes || 0), 0);
+            if (totalMinutes > 0) {
+                report += `${sectionNumber}. Любой пост.\n`;
+                postAny.forEach((item, idx) => {
+                    if (item.link) report += `${sectionNumber}.${idx + 1} ${item.minutes} минут - ${item.link}\n`;
+                });
+                report += `\n`;
+                sectionNumber++;
+            }
+        }
+
+        if (currentRequirements.postGVMU) {
+            const totalMinutes = postGVMU.reduce((sum, item) => sum + (item.minutes || 0), 0);
+            if (totalMinutes > 0) {
+                report += `${sectionNumber}. Любой дежурный пост ГВ-МУ.\n`;
+                postGVMU.forEach((item, idx) => {
+                    if (item.link) report += `${sectionNumber}.${idx + 1} ${item.minutes} минут - ${item.link}\n`;
+                });
+                report += `\n`;
+                sectionNumber++;
+            }
+        }
+
+        return report.trim();
     };
 
-    const renderPositionSpecificFields = () => {
-        switch(position) {
-            case 'Начальник Гарнизона':
-                return (
-                    <div className="subsection">
-                        <h3>Статистика контрактной службы</h3>
-                        <div className="input-group">
-                            <label>Прибыло военнослужащих:</label>
+    const renderSection = (
+        title: string,
+        required: number | undefined,
+        items: any[],
+        setter: Function,
+        template: any,
+        hasMinutes: boolean = false,
+        hasName: boolean = false
+    ) => {
+        if (!required) return null;
+
+        // Для патрулей и постов считаем минуты, для остальных - количество элементов
+        const filledCount = hasMinutes 
+            ? items.reduce((sum, item) => sum + (item.link ? (item.minutes || 0) : 0), 0)
+            : items.filter(item => item.link).length;
+        const remaining = required - filledCount;
+        const displayTitle = hasMinutes ? title : `${title} (требуется: ${required})`;
+        
+        const getCounterColor = () => {
+            if (remaining === 0) return '#28a745';
+            if (remaining < 0) return '#ffc107';
+            return '#dc3545';
+        };
+
+        return (
+            <div className="subsection" style={{ marginTop: '25px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                    <h3 style={{ margin: 0 }}>{displayTitle}</h3>
+                    <span style={{ 
+                        fontSize: '0.9em', 
+                        fontWeight: 'bold', 
+                        color: getCounterColor(),
+                        padding: '5px 10px',
+                        borderRadius: '5px',
+                        backgroundColor: `${getCounterColor()}15`
+                    }}>
+                        {filledCount} / {required} {hasMinutes ? 'мин' : ''} {remaining > 0 ? `(осталось: ${remaining}${hasMinutes ? ' мин' : ''})` : remaining === 0 ? '✓' : `(+${Math.abs(remaining)}${hasMinutes ? ' мин' : ''})`}
+                    </span>
+                </div>
+                {hasMinutes && (
+                    <p style={{ fontSize: '0.9em', color: '#666', marginTop: '0', marginBottom: '12px' }}>
+                        💡 Укажите количество минут для каждого патруля/поста
+                    </p>
+                )}
+                <div style={{ marginTop: '12px' }}>
+                    {items.map((item, index) => (
+                        <div key={index} className="item-row" style={{ marginBottom: '10px' }}>
+                            {hasMinutes && (
+                                <input
+                                    type="number"
+                                    value={item.minutes}
+                                    onChange={(e) => handleItemChange(setter, items, index, 'minutes', parseInt(e.target.value) || 0)}
+                                    placeholder="Минуты"
+                                    style={{ width: '100px' }}
+                                />
+                            )}
+                            {hasName && (
+                                <input
+                                    type="text"
+                                    value={item.name}
+                                    onChange={(e) => handleItemChange(setter, items, index, 'name', e.target.value)}
+                                    placeholder="Название (опционально)"
+                                    style={{ flex: '0 0 250px' }}
+                                />
+                            )}
                             <input
-                                type="number"
-                                value={contractStats.arrived}
-                                onChange={(e) => setContractStats({...contractStats, arrived: parseInt(e.target.value) || 0})}
+                                type="text"
+                                value={item.link}
+                                onChange={(e) => handleItemChange(setter, items, index, 'link', e.target.value)}
+                                placeholder="Ссылка на доказательство"
                             />
+                            <button className="remove-btn" onClick={() => handleRemoveItem(setter, items, index)}>
+                                Удалить
+                            </button>
                         </div>
-                        <div className="input-group">
-                            <label>Уволилось военнослужащих:</label>
-                            <input
-                                type="number"
-                                value={contractStats.left}
-                                onChange={(e) => setContractStats({...contractStats, left: parseInt(e.target.value) || 0})}
-                            />
-                        </div>
-                        <div className="input-group">
-                            <label>Текущее количество:</label>
-                            <input
-                                type="number"
-                                value={contractStats.current}
-                                onChange={(e) => setContractStats({...contractStats, current: parseInt(e.target.value) || 0})}
-                            />
-                        </div>
-                    </div>
-                );
-            case 'Начальник Штаба':
-                return (
-                    <div className="subsection">
-                        <h3>Выданные наказания</h3>
-                        <div className="input-group">
-                            <label>Контрактная служба:</label>
-                            <input
-                                type="number"
-                                value={penalties.contract}
-                                onChange={(e) => setPenalties({...penalties, contract: parseInt(e.target.value) || 0})}
-                            />
-                        </div>
-                        <div className="input-group">
-                            <label>Срочная служба:</label>
-                            <input
-                                type="number"
-                                value={penalties.conscript}
-                                onChange={(e) => setPenalties({...penalties, conscript: parseInt(e.target.value) || 0})}
-                            />
-                        </div>
-                    </div>
-                );
-            case 'Начальник по Военной Профессиональной Подготовке':
-                return (
-                    <div className="subsection">
-                        <h3>Статистика срочной службы</h3>
-                        <div className="input-group">
-                            <label>Текущее количество:</label>
-                            <input
-                                type="number"
-                                value={conscriptStats.current}
-                                onChange={(e) => setConscriptStats({...conscriptStats, current: parseInt(e.target.value) || 0})}
-                            />
-                        </div>
-                    </div>
-                );
-            case 'Командир Подразделения':
-            case 'Заместитель Командира Подразделения':
-                return (
-                    <div className="subsection">
-                        <h3>Статистика подразделения</h3>
-                        <div className="input-group">
-                            <label>Ушло (ОЧС, ПСЖ, Перевод):</label>
-                            <input
-                                type="number"
-                                value={divisionStats.left}
-                                onChange={(e) => setDivisionStats({...divisionStats, left: parseInt(e.target.value) || 0})}
-                            />
-                        </div>
-                        <div className="input-group">
-                            <label>Пришло:</label>
-                            <input
-                                type="number"
-                                value={divisionStats.arrived}
-                                onChange={(e) => setDivisionStats({...divisionStats, arrived: parseInt(e.target.value) || 0})}
-                            />
-                        </div>
-                        <div className="input-group">
-                            <label>Текущее количество:</label>
-                            <input
-                                type="number"
-                                value={divisionStats.current}
-                                onChange={(e) => setDivisionStats({...divisionStats, current: parseInt(e.target.value) || 0})}
-                            />
-                        </div>
-                    </div>
-                );
-            default:
-                return null;
-        }
+                    ))}
+                </div>
+                <button className="add-btn" onClick={() => handleAddItem(setter, items, template)} style={{ marginTop: '10px' }}>
+                    Добавить
+                </button>
+            </div>
+        );
     };
 
     return (
@@ -331,601 +363,88 @@ const ReportGenerator = () => {
             <div className="subsection">
                 <h3>Основная информация</h3>
                 <div className="input-group">
-                    <label>Должность:</label>
-                    <select value={position} onChange={(e) => setPosition(e.target.value as Position)}>
-                        <option value="Начальник Гарнизона">Начальник Гарнизона</option>
-                        <option value="Начальник Штаба">Начальник Штаба</option>
-                        <option value="Начальник Штаба Гражданской Обороны">Начальник Штаба Гражданской Обороны
-                        </option>
-                        <option value="Начальник по Военной Профессиональной Подготовке">Начальник по Военной
-                            Профессиональной Подготовке
-                        </option>
-                        <option value="Командир Подразделения">Командир Подразделения</option>
-                        <option value="Заместитель Командира Подразделения">Заместитель Командира Подразделения
-                        </option>
+                    <label>Филиал:</label>
+                    <select value={branch} onChange={(e) => setBranch(e.target.value as any)}>
+                        <option value="ЦГБ-П">ЦГБ-П</option>
+                        <option value="ОКБ-М">ОКБ-М</option>
+                        <option value="ЦГБ-Н">ЦГБ-Н</option>
                     </select>
                 </div>
                 <div className="input-group">
-                <label>ФИО:</label>
+                    <label>Ваш никнейм:</label>
                     <input
                         type="text"
                         value={fullName}
                         onChange={(e) => setFullName(e.target.value)}
-                        placeholder="Введите ваше ФИО"
+                        placeholder="Введите ваш никнейм"
                     />
                 </div>
                 <div className="input-group">
-                    <label>ВрИО:</label>
-                    <input
-                        type="checkbox"
-                        checked={isVrio}
-                        onChange={(e) => setIsVrio(e.target.checked)}
-                    />
+                    <label>Должность:</label>
+                    <select value={position} onChange={(e) => setPosition(e.target.value as Position)}>
+                        <option value="Заведующий отделением">Заведующий отделением (8 ранг)</option>
+                        <option value="Заведующий отделением | Командир ОВМ ГВ-МУ">Заведующий отделением | Командир ОВМ ГВ-МУ (8 ранг)</option>
+                        <option value="Заведующий отделением | Заместитель Начальника СА">Заведующий отделением | Заместитель Начальника СА (8 ранг)</option>
+                        <option value="Заместитель главного врача">Заместитель главного врача (9 ранг)</option>
+                        <option value="Заместитель главного врача | Начальник ИМУ">Заместитель главного врача | Начальник ИМУ (9 ранг)</option>
+                        <option value="Заместитель главного врача | Заместитель Начальника ГВ-МУ">Заместитель главного врача | Заместитель Начальника ГВ-МУ (9 ранг)</option>
+                        <option value="Заместитель главного врача | Начальник СА">Заместитель главного врача | Начальник СА (9 ранг)</option>
+                        <option value="Главный Заместитель главного врача">Главный Заместитель главного врача (9 ранг)</option>
+                    </select>
                 </div>
                 <div className="input-group">
-                    <label>Подпись:</label>
-                    <input
-                        type="text"
-                        value={signature}
-                        onChange={(e) => setSignature(e.target.value)}
-                        placeholder="Введите подпись (по умолчанию ФИО)"
-                    />
-                </div>
-                <div className="input-group">
-                    <label>Период с:</label>
+                    <label>Название должности в отчете (опционально):</label>
                     <input
                         type="text"
-                        value={startDate}
-                        onChange={(e) => setStartDate(e.target.value)}
-                        placeholder="дд.мм.гггг"
+                        value={customPosition}
+                        onChange={(e) => setCustomPosition(e.target.value)}
+                        placeholder="Например: Заместитель Начальника Санитарной Авиации"
                     />
-                </div>
-                <div className="input-group">
-                    <label>Период по:</label>
-                    <input
-                        type="text"
-                        value={endDate}
-                        onChange={(e) => setEndDate(e.target.value)}
-                        placeholder="дд.мм.гггг"
-                    />
-                </div>
-                <div className="input-group">
-                    <label>Отработанные часы:</label>
-                    <input
-                        type="number"
-                        value={onlineHours}
-                        onChange={(e) => setOnlineHours(parseInt(e.target.value) || 0)}
-                        min="21"
-                    />
+                    <small style={{ color: '#666', fontSize: '0.85em', marginTop: '5px', display: 'block' }}>
+                        Если не заполнено, будет использовано название из выпадающего списка
+                    </small>
                 </div>
             </div>
 
-            {renderPositionSpecificFields()}
-
-            {isSectionVisible({sectionName: 'interviews'}) && (
-                <div className="subsection">
-                    <h3>Собеседования</h3>
-                    {interviews.map((item, index) => (
-                        <div key={index} className="item-row">
-                            <input
-                                type="date"
-                                value={item.date}
-                                onChange={(e) => handleItemChange({
-                                    setter: setInterviews,
-                                    currentItems: interviews,
-                                    index: index,
-                                    field: 'date',
-                                    value: e.target.value
-                                })}
-                                placeholder="Дата (дд.мм.гггг)"
-                            />
-                            <input
-                                type="text"
-                                value={item.type}
-                                onChange={(e) => handleItemChange({
-                                    setter: setInterviews,
-                                    currentItems: interviews,
-                                    index: index,
-                                    field: 'type',
-                                    value: e.target.value
-                                })}
-                                placeholder="Контракт или Срочка"
-                            />
-                            <input
-                                type="text"
-                                value={item.link}
-                                onChange={(e) => handleItemChange({
-                                    setter: setInterviews,
-                                    currentItems: interviews,
-                                    index: index,
-                                    field: 'link',
-                                    value: e.target.value
-                                })}
-                                placeholder="Ссылка на доказательство"
-                            />
-                            <button
-                                className="remove-btn"
-                                onClick={() => handleRemoveItem({
-                                    setter: setInterviews,
-                                    currentItems: interviews,
-                                    index: index
-                                })}
-                            >
-                                Удалить
-                            </button>
-                        </div>
-                    ))}
-                    <button
-                        className="add-btn"
-                        onClick={() => handleAddItem({
-                            setter: setInterviews,
-                            currentItems: interviews,
-                            template: {date: '', type: '', link: ''}
-                        })}
-                    >
-                        Добавить собеседование
-                    </button>
-                </div>
+            {renderSection('Проведение собеседования', currentRequirements.interviews, interviews, setInterviews, { link: '' }, false, false)}
+            {renderSection(
+                currentRequirements.lecturesMO ? 'Проведение лекций сотрудникам МЗ' : 'Проведение лекций',
+                currentRequirements.lecturesMZ,
+                lecturesMZ,
+                setLecturesMZ,
+                { name: '', link: '' },
+                false,
+                true
             )}
-
-            {isSectionVisible({sectionName: 'events'}) && (
-                <div className="subsection">
-                    <h3>Мероприятия</h3>
-                    {events.map((item, index) => (
-                        <div key={index} className="item-row">
-                            <input
-                                type="date"
-                                value={item.date}
-                                onChange={(e) => handleItemChange({
-                                    setter: setEvents,
-                                    currentItems: events,
-                                    index: index,
-                                    field: 'date',
-                                    value: e.target.value
-                                })}
-                                placeholder="Дата (дд.мм.гггг)"
-                            />
-                            <input
-                                type="text"
-                                value={item.name}
-                                onChange={(e) => handleItemChange({
-                                    setter: setEvents,
-                                    currentItems: events,
-                                    index: index,
-                                    field: 'name',
-                                    value: e.target.value
-                                })}
-                                placeholder="Название мероприятия"
-                            />
-                            <input
-                                type="text"
-                                value={item.link}
-                                onChange={(e) => handleItemChange({
-                                    setter: setEvents,
-                                    currentItems: events,
-                                    index: index,
-                                    field: 'link',
-                                    value: e.target.value
-                                })}
-                                placeholder="Ссылка на доказательство"
-                            />
-                            <button
-                                className="remove-btn"
-                                onClick={() => handleRemoveItem({
-                                    setter: setEvents,
-                                    currentItems: events,
-                                    index: index
-                                })}
-                            >
-                                Удалить
-                            </button>
-                        </div>
-                    ))}
-                    <button
-                        className="add-btn"
-                        onClick={() => handleAddItem({
-                            setter: setEvents,
-                            currentItems: events,
-                            template: {date: '', name: '', link: ''}
-                        })}
-                    >
-                        Добавить мероприятие
-                    </button>
-                </div>
-            )}
-
-            {isSectionVisible({sectionName: 'lectures'}) && (
-                <div className="subsection">
-                    <h3>Лекции</h3>
-                    {lectures.map((item, index) => (
-                        <div key={index} className="item-row">
-                            <input
-                                type="date"
-                                value={item.date}
-                                onChange={(e) => handleItemChange({
-                                    setter: setLectures,
-                                    currentItems: lectures,
-                                    index: index,
-                                    field: 'date',
-                                    value: e.target.value
-                                })}
-                                placeholder="Дата (дд.мм.гггг)"
-                            />
-                            <input
-                                type="text"
-                                value={item.name}
-                                onChange={(e) => handleItemChange({
-                                    setter: setLectures,
-                                    currentItems: lectures,
-                                    index: index,
-                                    field: 'name',
-                                    value: e.target.value
-                                })}
-                                placeholder="Название лекции"
-                            />
-                            <input
-                                type="text"
-                                value={item.link}
-                                onChange={(e) => handleItemChange({
-                                    setter: setLectures,
-                                    currentItems: lectures,
-                                    index: index,
-                                    field: 'link',
-                                    value: e.target.value
-                                })}
-                                placeholder="Ссылка на доказательство"
-                            />
-                            <button
-                                className="remove-btn"
-                                onClick={() => handleRemoveItem({
-                                    setter: setLectures,
-                                    currentItems: lectures,
-                                    index: index
-                                })}
-                            >
-                                Удалить
-                            </button>
-                        </div>
-                    ))}
-                    <button
-                        className="add-btn"
-                        onClick={() => handleAddItem({
-                            setter: setLectures,
-                            currentItems: lectures,
-                            template: {date: '', name: '', link: ''}
-                        })}
-                    >
-                        Добавить лекцию
-                    </button>
-                </div>
-            )}
-
-            {isSectionVisible({sectionName: 'drills'}) && (
-                <div className="subsection">
-                    <h3>Строевая подготовка</h3>
-                    {drills.map((item, index) => (
-                        <div key={index} className="item-row">
-                            <input
-                                type="date"
-                                value={item.date}
-                                onChange={(e) => handleItemChange({
-                                    setter: setDrills,
-                                    currentItems: drills,
-                                    index: index,
-                                    field: 'date',
-                                    value: e.target.value
-                                })}
-                                placeholder="Дата (дд.мм.гггг)"
-                            />
-                            <input
-                                type="text"
-                                value={item.name}
-                                onChange={(e) => handleItemChange({
-                                    setter: setDrills,
-                                    currentItems: drills,
-                                    index: index,
-                                    field: 'name',
-                                    value: e.target.value
-                                })}
-                                placeholder="Название"
-                            />
-                            <input
-                                type="text"
-                                value={item.link}
-                                onChange={(e) => handleItemChange({
-                                    setter: setDrills,
-                                    currentItems: drills,
-                                    index: index,
-                                    field: 'link',
-                                    value: e.target.value
-                                })}
-                                placeholder="Ссылка на доказательство"
-                            />
-                            <button
-                                className="remove-btn"
-                                onClick={() => handleRemoveItem({
-                                    setter: setDrills,
-                                    currentItems: drills,
-                                    index: index
-                                })}
-                            >
-                                Удалить
-                            </button>
-                        </div>
-                    ))}
-                    <button
-                        className="add-btn"
-                        onClick={() => handleAddItem({
-                            setter: setDrills,
-                            currentItems: drills,
-                            template: {date: '', name: '', link: ''}
-                        })}
-                    >
-                        Добавить строевую подготовку
-                    </button>
-                </div>
-            )}
-
-            {isSectionVisible({sectionName: 'exercises'}) && (
-                <div className="subsection">
-                    <h3>Учения</h3>
-                    {exercises.map((item, index) => (
-                        <div key={index} className="item-row">
-                            <input
-                                type="date"
-                                value={item.date}
-                                onChange={(e) => handleItemChange({
-                                    setter: setExercises,
-                                    currentItems: exercises,
-                                    index: index,
-                                    field: 'date',
-                                    value: e.target.value
-                                })}
-                                placeholder="Дата (дд.мм.гггг)"
-                            />
-                            <input
-                                type="text"
-                                value={item.name}
-                                onChange={(e) => handleItemChange({
-                                    setter: setExercises,
-                                    currentItems: exercises,
-                                    index: index,
-                                    field: 'name',
-                                    value: e.target.value
-                                })}
-                                placeholder="Название"
-                            />
-                            <input
-                                type="text"
-                                value={item.link}
-                                onChange={(e) => handleItemChange({
-                                    setter: setExercises,
-                                    currentItems: exercises,
-                                    index: index,
-                                    field: 'link',
-                                    value: e.target.value
-                                })}
-                                placeholder="Ссылка на доказательство"
-                            />
-                            <button
-                                className="remove-btn"
-                                onClick={() => handleRemoveItem({
-                                    setter: setExercises,
-                                    currentItems: exercises,
-                                    index: index
-                                })}
-                            >
-                                Удалить
-                            </button>
-                        </div>
-                    ))}
-                    <button
-                        className="add-btn"
-                        onClick={() => handleAddItem({
-                            setter: setExercises,
-                            currentItems: exercises,
-                            template: {date: '', name: '', link: ''}
-                        })}
-                    >
-                        Добавить учение
-                    </button>
-                </div>
-            )}
-
-            {isSectionVisible({sectionName: 'shootings'}) && (
-                <div className="subsection">
-                    <h3>Учебные стрельбы</h3>
-                    {shootings.map((item, index) => (
-                        <div key={index} className="item-row">
-                            <input
-                                type="date"
-                                value={item.date}
-                                onChange={(e) => handleItemChange({
-                                    setter: setShootings,
-                                    currentItems: shootings,
-                                    index: index,
-                                    field: 'date',
-                                    value: e.target.value
-                                })}
-                                placeholder="Дата (дд.мм.гггг)"
-                            />
-                            <input
-                                type="text"
-                                value={item.name}
-                                onChange={(e) => handleItemChange({
-                                    setter: setShootings,
-                                    currentItems: shootings,
-                                    index: index,
-                                    field: 'name',
-                                    value: e.target.value
-                                })}
-                                placeholder="Название"
-                            />
-                            <input
-                                type="text"
-                                value={item.link}
-                                onChange={(e) => handleItemChange({
-                                    setter: setShootings,
-                                    currentItems: shootings,
-                                    index: index,
-                                    field: 'link',
-                                    value: e.target.value
-                                })}
-                                placeholder="Ссылка на доказательство"
-                            />
-                            <button
-                                className="remove-btn"
-                                onClick={() => handleRemoveItem({
-                                    setter: setShootings,
-                                    currentItems: shootings,
-                                    index: index
-                                })}
-                            >
-                                Удалить
-                            </button>
-                        </div>
-                    ))}
-                    <button
-                        className="add-btn"
-                        onClick={() => handleAddItem({
-                            setter: setShootings,
-                            currentItems: shootings,
-                            template: {date: '', name: '', link: ''}
-                        })}
-                    >
-                        Добавить учебные стрельбы
-                    </button>
-                </div>
-            )}
-
-            {isSectionVisible({sectionName: 'trainings'}) && (
-                <div className="subsection">
-                    <h3>Тренировки</h3>
-                    {trainings.map((item, index) => (
-                        <div key={index} className="item-row">
-                            <input
-                                type="date"
-                                value={item.date}
-                                onChange={(e) => handleItemChange({
-                                    setter: setTrainings,
-                                    currentItems: trainings,
-                                    index: index,
-                                    field: 'date',
-                                    value: e.target.value
-                                })}
-                                placeholder="Дата (дд.мм.гггг)"
-                            />
-                            <input
-                                type="text"
-                                value={item.name}
-                                onChange={(e) => handleItemChange({
-                                    setter: setTrainings,
-                                    currentItems: trainings,
-                                    index: index,
-                                    field: 'name',
-                                    value: e.target.value
-                                })}
-                                placeholder="Название"
-                            />
-                            <input
-                                type="text"
-                                value={item.link}
-                                onChange={(e) => handleItemChange({
-                                    setter: setTrainings,
-                                    currentItems: trainings,
-                                    index: index,
-                                    field: 'link',
-                                    value: e.target.value
-                                })}
-                                placeholder="Ссылка на доказательство"
-                            />
-                            <button
-                                className="remove-btn"
-                                onClick={() => handleRemoveItem({
-                                    setter: setTrainings,
-                                    currentItems: trainings,
-                                    index: index
-                                })}
-                            >
-                                Удалить
-                            </button>
-                        </div>
-                    ))}
-                    <button
-                        className="add-btn"
-                        onClick={() => handleAddItem({
-                            setter: setTrainings,
-                            currentItems: trainings,
-                            template: {date: '', name: '', link: ''}
-                        })}
-                    >
-                        Добавить тренировку
-                    </button>
-                </div>
-            )}
-
-            {isSectionVisible({sectionName: 'attendance'}) && (
-                <div className="subsection">
-                    <h3>Посещение мероприятий</h3>
-                    {attendances.map((item, index) => (
-                        <div key={index} className="item-row">
-                            <select
-                                value={item.type}
-                                onChange={(e) => handleItemChange({
-                                    setter: setAttendances,
-                                    currentItems: attendances,
-                                    index: index,
-                                    field: 'type',
-                                    value: e.target.value
-                                })}
-                            >
-                                <option value="leader">Качественное мероприятие от лидера</option>
-                                <option value="grp">ГРП</option>
-                            </select>
-                            <input
-                                type="text"
-                                value={item.link}
-                                onChange={(e) => handleItemChange({
-                                    setter: setAttendances,
-                                    currentItems: attendances,
-                                    index: index,
-                                    field: 'link',
-                                    value: e.target.value
-                                })}
-                                placeholder="Ссылка на доказательство"
-                            />
-                            <button
-                                className="remove-btn"
-                                onClick={() => handleRemoveItem({
-                                    setter: setAttendances,
-                                    currentItems: attendances,
-                                    index: index
-                                })}
-                            >
-                                Удалить
-                            </button>
-                        </div>
-                    ))}
-                    <button
-                        className="add-btn"
-                        onClick={() => handleAddItem({
-                            setter: setAttendances,
-                            currentItems: attendances,
-                            template: { type: 'leader', link: '' }
-                        })}
-                    >
-                        Добавить посещение мероприятия
-                    </button>
-                </div>
-            )}
+            {renderSection('Проведение лекций сотрудникам МО', currentRequirements.lecturesMO, lecturesMO, setLecturesMO, { name: '', link: '' }, false, true)}
+            {renderSection('Проведение тренировок', currentRequirements.trainings, trainings, setTrainings, { name: '', link: '' }, false, true)}
+            {renderSection('Качественное мероприятие с другой организацией без поста', currentRequirements.eventsWithOrg, eventsWithOrg, setEventsWithOrg, { name: '', link: '' }, false, true)}
+            {renderSection('Качественные мероприятия без поста', currentRequirements.eventsWithoutPost, eventsWithoutPost, setEventsWithoutPost, { name: '', link: '' }, false, true)}
+            {renderSection('Присутствие на собеседованиях филиалов МЗ', currentRequirements.interviewsAttendance, interviewsAttendance, setInterviewsAttendance, { link: '' }, false, false)}
+            {renderSection(`Междугородний патруль (требуется: ${currentRequirements.patrolCity} минут)`, currentRequirements.patrolCity, patrolCity, setPatrolCity, { minutes: 0, link: '' }, true)}
+            {renderSection(`Воздушный междугородний патруль (требуется: ${currentRequirements.patrolAir} минут)`, currentRequirements.patrolAir, patrolAir, setPatrolAir, { minutes: 0, link: '' }, true)}
+            {renderSection(`Любой пост (требуется: ${currentRequirements.postAny} минут)`, currentRequirements.postAny, postAny, setPostAny, { minutes: 0, link: '' }, true)}
+            {renderSection(`Любой дежурный пост ГВ-МУ (требуется: ${currentRequirements.postGVMU} минут)`, currentRequirements.postGVMU, postGVMU, setPostGVMU, { minutes: 0, link: '' }, true)}
 
             <div className="subsection">
                 <h3>Сгенерированный отчет</h3>
-                <ExamplePhrase
-                    text={generateReport()}
-                    type="ss"
-                    messageType="multiline"
-                />
+                <ExamplePhrase text={generateReport()} type="ss" messageType="multiline" />
+            </div>
+
+            <div className="warning">
+                <h3 style={{ color: '#856404', marginTop: 0 }}>⚠️ Важная информация</h3>
+                <p style={{ margin: '10px 0', lineHeight: '1.6' }}>
+                    <strong>День сдачи еженедельного отчёта сотрудника СС — суббота.</strong> В случае, если сотрудник по каким-то причинам не смог сдать отчет в субботу, то он должен сдать в воскресенье, предварительно предупредив лидера о задержке своего отчёта.
+                </p>
+                <p style={{ margin: '10px 0', lineHeight: '1.6' }}>
+                    Требования должны быть выполнены <strong>с понедельника до субботы</strong>, воскресенье не входит (можно и заранее, если имеется неактив, предварительно предупредив лидера).
+                </p>
+                <p style={{ margin: '10px 0', lineHeight: '1.6' }}>
+                    Если сотрудник отсутствует на неделю по уважительным причинам, тогда отчёт можно не сдавать.
+                </p>
+                <p style={{ margin: '10px 0', lineHeight: '1.6', color: '#d9534f' }}>
+                    <strong>⚠️ Не сдача отчёта (или неполный отчёт) карается дисциплинарным взысканием по пункту 2.12 ПСГО.</strong>
+                </p>
             </div>
         </>
     );
