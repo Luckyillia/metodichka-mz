@@ -52,9 +52,9 @@ const MedicalCommissionSection = () => {
         <div className="note">
             <strong>📌 Примечание:</strong> Ждем пока напишет отыгровки.
         </div>
-        <ExamplePhrase text='me указала на букву "М"' />
-        <ExamplePhrase text='me указала на букву "З"' />
-        <ExamplePhrase text='me указала на букву "П"' />
+        <ExamplePhrase text='me указал на букву "М"' />
+        <ExamplePhrase text='me указал на букву "З"' />
+        <ExamplePhrase text='me указал на букву "П"' />
         <ExamplePhrase text="me положил указку на стол" />
 
         <div className="note">

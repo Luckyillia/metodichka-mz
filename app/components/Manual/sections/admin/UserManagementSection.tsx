@@ -279,10 +279,18 @@ export default function UserManagementSection() {
         try {
           await AuthService.approveAccountRequest(userId)
           setSuccess(`Запрос на аккаунт для ${gameNick} одобрен`)
-          await fetchUsers()
+          const updatedUsers = await AuthService.getUsers()
+          setUsers(updatedUsers)
           fetchRecentActions()
-          // Если это был последний запрос, переключаемся на активных
-          if (requestUsers.length === 1) {
+          // Проверяем, остались ли доступные запросы для текущего пользователя
+          const remainingRequests = updatedUsers.filter((u) => {
+            if (u.status !== "request") return false
+            if (currentUser?.role === "ld") {
+              return u.role === "cc" || u.role === "user"
+            }
+            return true
+          })
+          if (remainingRequests.length === 0) {
             setActiveTab('active')
           }
         } catch (err: any) {
@@ -307,10 +315,18 @@ export default function UserManagementSection() {
         try {
           await AuthService.rejectAccountRequest(userId)
           setSuccess(`Запрос на аккаунт для ${gameNick} отклонен`)
-          await fetchUsers()
+          const updatedUsers = await AuthService.getUsers()
+          setUsers(updatedUsers)
           fetchRecentActions()
-          // Если это был последний запрос, переключаемся на активных
-          if (requestUsers.length === 1) {
+          // Проверяем, остались ли доступные запросы для текущего пользователя
+          const remainingRequests = updatedUsers.filter((u) => {
+            if (u.status !== "request") return false
+            if (currentUser?.role === "ld") {
+              return u.role === "cc" || u.role === "user"
+            }
+            return true
+          })
+          if (remainingRequests.length === 0) {
             setActiveTab('active')
           }
         } catch (err: any) {
@@ -408,11 +424,28 @@ export default function UserManagementSection() {
   const inactiveUsers = users.filter((u) => u.status === "inactive")
   const requestUsers = users.filter((u) => u.status === "request")
 
+  // Фильтруем пользователей в зависимости от роли текущего пользователя
+  const getFilteredUsersByRole = (usersList: UserType[]) => {
+    if (currentUser?.role === "ld") {
+      // Лидер видит только cc и user
+      return usersList.filter((u) => u.role === "cc" || u.role === "user")
+    }
+    if (currentUser?.role === "admin") {
+      // Админ видит всех активных, но в запросах только cc, user и ld (не admin и root)
+      if (usersList === requestUsers) {
+        return usersList.filter((u) => u.role === "cc" || u.role === "user" || u.role === "ld")
+      }
+      return usersList
+    }
+    // Root видит всех
+    return usersList
+  }
+
   const filteredUsers = activeTab === 'active' 
-    ? activeUsers 
+    ? getFilteredUsersByRole(activeUsers)
     : activeTab === 'inactive' 
-    ? inactiveUsers 
-    : requestUsers
+    ? getFilteredUsersByRole(inactiveUsers)
+    : getFilteredUsersByRole(requestUsers)
 
   if (loading) {
     return (
@@ -450,7 +483,7 @@ export default function UserManagementSection() {
             <div className="text-3xl font-semibold text-foreground">{inactiveUsers.length}</div>
           </div>
         </div>
-        {(currentUser?.role === "root" || currentUser?.role === "admin") && requestUsers.length > 0 && (
+        {(currentUser?.role === "root" || currentUser?.role === "admin" || currentUser?.role === "ld") && getFilteredUsersByRole(requestUsers).length > 0 && (
           <div className="grid grid-cols-1 gap-4">
             <button
                 onClick={() => setActiveTab('requests')}
@@ -460,7 +493,7 @@ export default function UserManagementSection() {
                 <AlertCircle className="w-6 h-6 text-yellow-600 dark:text-yellow-400"/>
                 <span className="text-sm text-muted-foreground">Запросы на создание аккаунта</span>
               </div>
-              <div className="text-3xl font-semibold text-foreground">{requestUsers.length}</div>
+              <div className="text-3xl font-semibold text-foreground">{getFilteredUsersByRole(requestUsers).length}</div>
               <p className="text-xs text-muted-foreground mt-2">Нажмите для просмотра</p>
             </button>
           </div>
@@ -557,7 +590,7 @@ export default function UserManagementSection() {
             Активные ({activeUsers.length})
           </button>
 
-          {(currentUser?.role === "root" || currentUser?.role === "admin") && (
+          {(currentUser?.role === "root" || currentUser?.role === "admin" || currentUser?.role === "ld") && (
               <button
                   onClick={() => setActiveTab('requests')}
                   className={`px-4 py-2 font-medium transition-all border-b-2 -mb-0.5 ${
@@ -566,7 +599,7 @@ export default function UserManagementSection() {
                           : 'border-transparent text-muted-foreground hover:text-foreground'
                   }`}
               >
-                Запросы ({requestUsers.length})
+                Запросы ({getFilteredUsersByRole(requestUsers).length})
               </button>
           )}
 
@@ -669,22 +702,65 @@ export default function UserManagementSection() {
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex items-center justify-end gap-2">
                         {/* Кнопки для запросов на создание аккаунта */}
-                        {user.status === "request" && currentUser?.role === "root" && (
+                        {user.status === "request" && (
                             <>
-                              <button
-                                  onClick={() => handleApproveRequest(user.id, user.game_nick)}
-                                  className="text-green-600 dark:text-green-400 hover:opacity-70 transition-all"
-                                  title="Одобрить запрос"
-                              >
-                                <CheckCircle className="w-5 h-5"/>
-                              </button>
-                              <button
-                                  onClick={() => handleRejectRequest(user.id, user.game_nick)}
-                                  className="text-destructive hover:opacity-70 transition-all"
-                                  title="Отклонить запрос"
-                              >
-                                <X className="w-5 h-5"/>
-                              </button>
+                              {/* Root видит все запросы */}
+                              {currentUser?.role === "root" && (
+                                <>
+                                  <button
+                                      onClick={() => handleApproveRequest(user.id, user.game_nick)}
+                                      className="text-green-600 dark:text-green-400 hover:opacity-70 transition-all"
+                                      title="Одобрить запрос"
+                                  >
+                                    <CheckCircle className="w-5 h-5"/>
+                                  </button>
+                                  <button
+                                      onClick={() => handleRejectRequest(user.id, user.game_nick)}
+                                      className="text-destructive hover:opacity-70 transition-all"
+                                      title="Отклонить запрос"
+                                  >
+                                    <X className="w-5 h-5"/>
+                                  </button>
+                                </>
+                              )}
+                              {/* Admin может одобрять/отклонять cc, user и ld */}
+                              {currentUser?.role === "admin" && (user.role === "cc" || user.role === "user" || user.role === "ld") && (
+                                <>
+                                  <button
+                                      onClick={() => handleApproveRequest(user.id, user.game_nick)}
+                                      className="text-green-600 dark:text-green-400 hover:opacity-70 transition-all"
+                                      title="Одобрить запрос"
+                                  >
+                                    <CheckCircle className="w-5 h-5"/>
+                                  </button>
+                                  <button
+                                      onClick={() => handleRejectRequest(user.id, user.game_nick)}
+                                      className="text-destructive hover:opacity-70 transition-all"
+                                      title="Отклонить запрос"
+                                  >
+                                    <X className="w-5 h-5"/>
+                                  </button>
+                                </>
+                              )}
+                              {/* LD может одобрять/отклонять только cc и user */}
+                              {currentUser?.role === "ld" && (user.role === "cc" || user.role === "user") && (
+                                <>
+                                  <button
+                                      onClick={() => handleApproveRequest(user.id, user.game_nick)}
+                                      className="text-green-600 dark:text-green-400 hover:opacity-70 transition-all"
+                                      title="Одобрить запрос"
+                                  >
+                                    <CheckCircle className="w-5 h-5"/>
+                                  </button>
+                                  <button
+                                      onClick={() => handleRejectRequest(user.id, user.game_nick)}
+                                      className="text-destructive hover:opacity-70 transition-all"
+                                      title="Отклонить запрос"
+                                  >
+                                    <X className="w-5 h-5"/>
+                                  </button>
+                                </>
+                              )}
                             </>
                         )}
 
@@ -716,10 +792,11 @@ export default function UserManagementSection() {
                                   </button>
                               )}
 
-                              {/* Кнопка деактивации: только root или admin для не-админов, но не для себя */}
-                              {(currentUser?.role === "root" ||
-                                  (currentUser?.role === "admin" && user.role !== "admin")) &&
-                                  currentUser?.id !== user.id && (
+                              {/* Кнопка деактивации: root/admin для не-админов, ld для cc и user, но не для себя */}
+                              {((currentUser?.role === "root" ||
+                                  (currentUser?.role === "admin" && user.role !== "admin") ||
+                                  (currentUser?.role === "ld" && (user.role === "cc" || user.role === "user"))) &&
+                                  currentUser?.id !== user.id) && (
                                   <button
                                       onClick={() => handleDeactivateUser(user.id, user.game_nick)}
                                       className="text-destructive hover:opacity-70 transition-all"

@@ -58,7 +58,7 @@ export async function middleware(request: NextRequest) {
 
         // Проверяем права для управления пользователями
         if (path.startsWith('/api/users')) {
-            if (user.role !== 'root' && user.role !== 'admin') {
+            if (user.role !== 'root' && user.role !== 'admin' && user.role !== 'ld') {
                 console.log('[Middleware] Insufficient permissions for users API')
 
                 try {
@@ -88,7 +88,7 @@ export async function middleware(request: NextRequest) {
             }
 
             if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(request.method)) {
-                if (user.role !== 'root' && user.role !== 'admin') {
+                if (user.role !== 'root' && user.role !== 'admin' && user.role !== 'ld') {
                     try {
                         const ip_address = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip")
                         const user_agent = request.headers.get("user-agent")
@@ -119,7 +119,7 @@ export async function middleware(request: NextRequest) {
 
         // Проверяем права для просмотра логов
         if (path.startsWith('/api/action-logs') && !path.includes('action-logs-internal')) {
-            if (user.role !== 'root' && user.role !== 'admin') {
+            if (user.role !== 'root' && user.role !== 'admin' && user.role !== 'ld') {
                 console.log('[Middleware] Insufficient permissions for action-logs API')
 
                 try {

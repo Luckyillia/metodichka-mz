@@ -12,6 +12,7 @@ export const sidebarItems: SidebarItem[] = [
       { id: "interview", title: "Собеседование", icon: "👥" },
       { id: "medications", title: "Препараты", icon: "💊" },
       { id: "medical-card", title: "Мед.карта", icon: "📋" },
+      { id: "vehicles", title: "Транспорт МЗ", icon: "🚑" },
     ]
   },
   {

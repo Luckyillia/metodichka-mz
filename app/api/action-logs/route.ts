@@ -27,7 +27,6 @@ export async function GET(request: Request) {
         console.log("[Action Logs API] GET request received")
 
         const currentUser = getUserFromHeaders(request)
-
         if (!currentUser) {
             console.log("[Action Logs API] No user found in headers")
             return NextResponse.json({ error: "Не авторизован" }, { status: 401 })
@@ -35,8 +34,8 @@ export async function GET(request: Request) {
 
         console.log("[Action Logs API] User found:", currentUser.game_nick, "Role:", currentUser.role)
 
-        // Только admin и root могут просматривать логи
-        if (currentUser.role !== "admin" && currentUser.role !== "root") {
+        // Только admin, root и ld могут просматривать логи
+        if (currentUser.role !== "admin" && currentUser.role !== "root" && currentUser.role !== "ld") {
             console.log("[Action Logs API] Insufficient permissions")
             return NextResponse.json({ error: "Недостаточно прав" }, { status: 403 })
         }

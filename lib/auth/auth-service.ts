@@ -159,6 +159,11 @@ export class AuthService {
   }
 
   static canAccessSection(user: User | null, sectionId: string): boolean {
+    // Если пользователь не авторизован, доступ запрещен ко всем секциям
+    if (!user) {
+      return false
+    }
+
     const publicSections = [
       "overview",
       "ms-unified-content",
@@ -169,20 +174,19 @@ export class AuthService {
       "interview",
       "medications",
       "medical-card",
+      "vehicles",
     ]
 
     const ccLdSections = [...publicSections, "exam-section", "ss-unified-content", "goss-wave", "announcements", "forum-responses", "report-generator"]
-    const privilegedSections = [...ccLdSections, "user-management", "action-log"]
-
-    if (!user) {
-      return publicSections.includes(sectionId)
-    }
+    const ldSections = [...ccLdSections, "user-management"]
+    const privilegedSections = [...ldSections, "action-log"]
 
     switch (user.role) {
       case "root":
       case "admin":
         return privilegedSections.includes(sectionId)
       case "ld":
+        return ldSections.includes(sectionId)
       case "cc":
         return ccLdSections.includes(sectionId)
       case "user":

@@ -30,14 +30,6 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: "Не авторизован" }, { status: 401 })
     }
 
-    // Только root может окончательно удалять пользователей
-    if (currentUser.role !== "root") {
-      return NextResponse.json(
-        { error: "Только root может окончательно удалять пользователей" },
-        { status: 403 }
-      )
-    }
-
     const { searchParams } = new URL(request.url)
     const userId = searchParams.get("id")
 
@@ -55,6 +47,39 @@ export async function DELETE(request: Request) {
 
     if (fetchError || !existingUser) {
       return NextResponse.json({ error: "Пользователь не найден" }, { status: 404 })
+    }
+
+    // Проверка прав в зависимости от статуса пользователя
+    if (existingUser.status === "request") {
+      // Для отклонения запросов: root, admin и ld могут отклонять запросы
+      if (currentUser.role !== "root" && currentUser.role !== "admin" && currentUser.role !== "ld") {
+        return NextResponse.json(
+          { error: "Недостаточно прав для отклонения запроса" },
+          { status: 403 }
+        )
+      }
+      // Лидер может отклонять только запросы с ролями cc и user
+      if (currentUser.role === "ld" && existingUser.role !== "cc" && existingUser.role !== "user") {
+        return NextResponse.json(
+          { error: "Лидер может отклонять только запросы с ролями CC и User" },
+          { status: 403 }
+        )
+      }
+      // Админ не может отклонять запросы с ролями admin и root (только root создает админов)
+      if (currentUser.role === "admin" && (existingUser.role === "admin" || existingUser.role === "root")) {
+        return NextResponse.json(
+          { error: "Администратор может отклонять только запросы с ролями User, CC и LD" },
+          { status: 403 }
+        )
+      }
+    } else {
+      // Для окончательного удаления деактивированных: только root
+      if (currentUser.role !== "root") {
+        return NextResponse.json(
+          { error: "Только root может окончательно удалять пользователей" },
+          { status: 403 }
+        )
+      }
     }
 
     if (existingUser.role === "root") {

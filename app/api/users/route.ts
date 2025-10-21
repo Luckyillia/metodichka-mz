@@ -38,10 +38,13 @@ export async function GET(request: Request) {
         .select("id, username, game_nick, role, status, created_at")
         .order("created_at", { ascending: false })
 
-    // Admin видит только активных пользователей
+    // Admin видит всех пользователей (фронтенд фильтрует запросы по ролям)
     if (currentUser.role === "admin") {
-      query = query.eq("status", "active")
-      console.log("[Users API] Admin filter: active users only")
+      console.log("[Users API] Admin filter: all users (frontend will filter requests)")
+    }
+    // Лидер видит всех пользователей, но фронтенд фильтрует только cc и user
+    else if (currentUser.role === "ld") {
+      console.log("[Users API] LD filter: all users (frontend will filter cc and user)")
     }
     // Root видит всех пользователей
 
@@ -374,6 +377,16 @@ export async function PATCH(request: Request) {
         return NextResponse.json({ error: "Это не запрос на создание аккаунта" }, { status: 400 })
       }
 
+      // Лидер может одобрять только cc и user
+      if (currentUser.role === "ld" && existingUser.role !== "cc" && existingUser.role !== "user") {
+        return NextResponse.json({ error: "Лидер может одобрять только запросы с ролями CC и User" }, { status: 403 })
+      }
+
+      // Админ не может одобрять запросы с ролями admin и root (только root создает админов)
+      if (currentUser.role === "admin" && (existingUser.role === "admin" || existingUser.role === "root")) {
+        return NextResponse.json({ error: "Администратор может одобрять только запросы с ролями User, CC и LD" }, { status: 403 })
+      }
+
       const { data: approvedUser, error: approveError } = await supabase
           .from("users")
           .update({ status: "active" })
@@ -607,6 +620,14 @@ export async function DELETE(request: Request) {
     if (currentUser.role === "admin" && existingUser.role === "admin") {
       return NextResponse.json(
           { error: "Администраторы не могут деактивировать других администраторов" },
+          { status: 403 }
+      )
+    }
+
+    // Лидер может деактивировать только cc и user
+    if (currentUser.role === "ld" && existingUser.role !== "cc" && existingUser.role !== "user") {
+      return NextResponse.json(
+          { error: "Лидер может деактивировать только пользователей с ролями CC и User" },
           { status: 403 }
       )
     }

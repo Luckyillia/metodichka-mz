@@ -26,6 +26,7 @@ const GossWaveSection = lazy(() => import("@/app/components/Manual/sections/ss/G
 const ReportGenerator = lazy(() => import("@/app/components/Manual/sections/ss/ReportGenerator"))
 const UserManagementSection = lazy(() => import("@/app/components/Manual/sections/admin/UserManagementSection"))
 const ActionLogSection = lazy(() => import("@/app/components/Manual/sections/admin/ActionLogSection"))
+const VehiclesSection = lazy(() => import("@/app/components/Manual/sections/default/VehiclesSection"))
 
 const sectionComponents: Record<string, React.ComponentType> = {
   overview: OverviewSection,
@@ -39,6 +40,7 @@ const sectionComponents: Record<string, React.ComponentType> = {
   "medications": MedicationsSection,
   "medical-card": MedicalCardSection,
   "rp-task": RPTaskSection,
+  vehicles: VehiclesSection,
   announcements: AnnouncementsSection,
   "forum-responses": ForumResponsesSection,
   "goss-wave": GossWaveSection,
@@ -98,14 +100,14 @@ export default function ManualPage() {
             <main className="modern-card min-h-[calc(100vh-8rem)]">
               {!canAccessSection(activeSection) ? (
                   <div className="flex flex-col items-center justify-center py-20 text-center">
-                    <AlertCircle className="w-16 h-16 text-destructive mb-4" />
-                    <h2 className="text-2xl font-bold text-destructive mb-2">Доступ ограничен</h2>
-                    <p className="text-muted-foreground mb-6">У вас нет прав для просмотра этого раздела</p>
+                    <AlertCircle className="w-16 h-16 text-amber-500 mb-4" />
+                    <h2 className="text-2xl font-bold text-foreground mb-2">Требуется авторизация</h2>
+                    <p className="text-muted-foreground mb-6">Чтобы получить доступ к разделам методички, войдите в аккаунт</p>
                     <button
                         onClick={() => router.push("/login")}
                         className="modern-button"
                     >
-                      Войти в систему
+                      Войти в аккаунт
                     </button>
                   </div>
               ) : SectionComponent ? (
