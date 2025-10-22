@@ -188,8 +188,9 @@ export async function middleware(request: NextRequest) {
         headers.set('x-user-role', user.role)
         headers.set('x-user-username', user.username)
         headers.set('x-user-game-nick', user.game_nick)
+        headers.set('x-user-city', user.city || 'CGB-N')
 
-        console.log('[Middleware] User authenticated:', user.username, 'Role:', user.role, 'Path:', path)
+        console.log('[Middleware] User authenticated:', user.username, 'Role:', user.role, 'City:', user.city, 'Path:', path)
 
         return NextResponse.next({
             request: {

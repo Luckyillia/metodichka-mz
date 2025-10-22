@@ -34,8 +34,10 @@ export default function UserManagementSection() {
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
   const [showRoleModal, setShowRoleModal] = useState(false)
+  const [showCityModal, setShowCityModal] = useState(false)
   const [activeTab, setActiveTab] = useState<'active' | 'inactive' | 'requests'>('active')
   const [changingRoleUser, setChangingRoleUser] = useState<UserType | null>(null)
+  const [changingCityUser, setChangingCityUser] = useState<UserType | null>(null)
   const [recentActions, setRecentActions] = useState<ActionLog[]>([])
   const [loadingActions, setLoadingActions] = useState(false)
   const [confirmModal, setConfirmModal] = useState<{
@@ -52,6 +54,7 @@ export default function UserManagementSection() {
     gameNick: "",
     password: "",
     role: "user",
+    city: "CGB-N" as "CGB-N" | "CGB-P" | "OKB-M",
   })
 
   const [editUser, setEditUser] = useState({
@@ -123,12 +126,13 @@ export default function UserManagementSection() {
           formData.username,
           formData.gameNick,
           formData.password,
-          formData.role
+          formData.role,
+          formData.city
       )
 
       setSuccess(`Пользователь ${formData.gameNick} успешно создан`)
       setShowCreateModal(false)
-      setFormData({ username: "", gameNick: "", password: "", role: "user" })
+      setFormData({ username: "", gameNick: "", password: "", role: "user", city: "CGB-N" })
       fetchUsers()
       fetchRecentActions()
     } catch (err: any) {
@@ -184,7 +188,7 @@ export default function UserManagementSection() {
       setSuccess(`Роль пользователя ${changingRoleUser.game_nick} изменена на ${formData.role}`)
       setShowRoleModal(false)
       setChangingRoleUser(null)
-      setFormData({ username: "", gameNick: "", password: "", role: "user" })
+      setFormData({ username: "", gameNick: "", password: "", role: "user", city: "CGB-N" })
       fetchUsers()
       fetchRecentActions()
     } catch (err: any) {
@@ -336,6 +340,13 @@ export default function UserManagementSection() {
     })
   }
 
+  const openCreateModal = () => {
+    // Лидер создает пользователей только для своего города
+    const city = currentUser?.role === "ld" ? currentUser.city : "CGB-N"
+    setFormData({ username: "", gameNick: "", password: "", role: "user", city })
+    setShowCreateModal(true)
+  }
+
   const openEditModal = (u: UserType) => {
     setEditUser({
       id: u.id,
@@ -354,8 +365,42 @@ export default function UserManagementSection() {
       gameNick: user.game_nick,
       password: "",
       role: user.role,
+      city: user.city,
     })
     setShowRoleModal(true)
+  }
+
+  const openCityModal = (user: UserType) => {
+    setChangingCityUser(user)
+    setFormData({
+      username: user.username,
+      gameNick: user.game_nick,
+      password: "",
+      role: user.role,
+      city: user.city,
+    })
+    setShowCityModal(true)
+  }
+
+  const handleChangeCity = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!changingCityUser) return
+
+    setError("")
+    setSuccess("")
+
+    try {
+      await AuthService.updateUserCity(changingCityUser.id, formData.city)
+
+      setSuccess(`Город пользователя ${changingCityUser.game_nick} изменен на ${getCityLabel(formData.city)}`)
+      setShowCityModal(false)
+      setChangingCityUser(null)
+      setFormData({ username: "", gameNick: "", password: "", role: "user", city: "CGB-N" })
+      fetchUsers()
+      fetchRecentActions()
+    } catch (err: any) {
+      setError(err.message || "Не удалось изменить город")
+    }
   }
 
   const getRoleBadgeColor = (role: string) => {
@@ -375,18 +420,32 @@ export default function UserManagementSection() {
     }
   }
 
-  const getRoleLabel = (role: string) => {
+  const getCityLabel = (city: string) => {
+    switch (city) {
+      case "CGB-N":
+        return "ЦГБ-Н"
+      case "CGB-P":
+        return "ЦГБ-П"
+      case "OKB-M":
+        return "ОКБ-М"
+      default:
+        return city
+    }
+  }
+
+  const getRoleLabel = (role: string, city?: string) => {
+    const cityLabel = city ? ` ${getCityLabel(city)}` : ''
     switch (role) {
       case "root":
         return "Суперадмин"
       case "admin":
         return "Администратор"
       case "ld":
-        return "Лидер"
+        return `Лидер${cityLabel}`
       case "cc":
-        return "CC"
+        return `СС${cityLabel}`
       case "user":
-        return "Пользователь"
+        return `Участник${cityLabel}`
       default:
         return role
     }
@@ -427,8 +486,8 @@ export default function UserManagementSection() {
   // Фильтруем пользователей в зависимости от роли текущего пользователя
   const getFilteredUsersByRole = (usersList: UserType[]) => {
     if (currentUser?.role === "ld") {
-      // Лидер видит только cc и user
-      return usersList.filter((u) => u.role === "cc" || u.role === "user")
+      // Лидер видит cc, user и других лидеров (включая себя)
+      return usersList.filter((u) => u.role === "cc" || u.role === "user" || u.role === "ld")
     }
     if (currentUser?.role === "admin") {
       // Админ видит всех активных, но в запросах только cc, user и ld (не admin и root)
@@ -561,7 +620,7 @@ export default function UserManagementSection() {
         {/* Actions */}
         <div className="flex items-center justify-between flex-wrap gap-3">
           <button
-              onClick={() => setShowCreateModal(true)}
+              onClick={openCreateModal}
               className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-all"
           >
             <UserPlus className="w-5 h-5"/>
@@ -675,7 +734,7 @@ export default function UserManagementSection() {
                             user.role
                         )}`}
                     >
-                      {getRoleLabel(user.role)}
+                      {getRoleLabel(user.role, user.city)}
                     </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -767,9 +826,10 @@ export default function UserManagementSection() {
                         {/* Показываем кнопки только для активных пользователей и не для root (кроме случая редактирования себя) */}
                         {user.status === "active" && user.role !== "root" && (
                             <>
-                              {/* Кнопка редактирования: root видит всех, admin видит только себя и не-админов */}
+                              {/* Кнопка редактирования: root видит всех, admin/ld видят себя и подчиненных */}
                               {(currentUser?.role === "root" ||
-                                  (currentUser?.role === "admin" && (currentUser?.id === user.id || user.role !== "admin"))) && (
+                                  (currentUser?.role === "admin" && (currentUser?.id === user.id || user.role !== "admin")) ||
+                                  (currentUser?.role === "ld" && (currentUser?.id === user.id || user.role === "cc" || user.role === "user"))) && (
                                   <button
                                       onClick={() => openEditModal(user)}
                                       className="text-primary hover:opacity-70 transition-all"
@@ -789,6 +849,22 @@ export default function UserManagementSection() {
                                       title="Изменить роль"
                                   >
                                     <Shield className="w-5 h-5"/>
+                                  </button>
+                              )}
+
+                              {/* Кнопка изменения города: только root или admin для не-админов, но не для себя */}
+                              {(currentUser?.role === "root" ||
+                                  (currentUser?.role === "admin" && user.role !== "admin")) &&
+                                  currentUser?.id !== user.id && (
+                                  <button
+                                      onClick={() => openCityModal(user)}
+                                      className="text-blue-600 dark:text-blue-400 hover:opacity-70 transition-all"
+                                      title="Изменить город"
+                                  >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+                                      <circle cx="12" cy="10" r="3"/>
+                                    </svg>
                                   </button>
                               )}
 
@@ -846,7 +922,7 @@ export default function UserManagementSection() {
                   <button
                       onClick={() => {
                         setShowCreateModal(false)
-                        setFormData({username: "", gameNick: "", password: "", role: "user"})
+                        setFormData({username: "", gameNick: "", password: "", role: "user", city: "CGB-N"})
                       }}
                       className="text-muted-foreground hover:text-foreground transition-colors"
                   >
@@ -906,7 +982,10 @@ export default function UserManagementSection() {
                     >
                       <option value="user">Пользователь</option>
                       <option value="cc">CC</option>
-                      <option value="ld">Лидер</option>
+                      {/* Лидер не может создавать других лидеров */}
+                      {currentUser?.role !== "ld" && (
+                        <option value="ld">Лидер</option>
+                      )}
                       {currentUser?.role === "root" && (
                           <>
                             <option value="admin">Администратор</option>
@@ -914,6 +993,30 @@ export default function UserManagementSection() {
                       )}
                     </select>
                   </div>
+
+                  {/* City selector - root/admin can choose, ld sees their city (disabled) */}
+                  {(currentUser?.role === "root" || currentUser?.role === "admin" || currentUser?.role === "ld") && (
+                    <div>
+                      <label className="block text-sm font-medium text-muted-foreground mb-2">
+                        Город
+                      </label>
+                      <select
+                          value={formData.city}
+                          onChange={(e) => setFormData({...formData, city: e.target.value as "CGB-N" | "CGB-P" | "OKB-M"})}
+                          className="w-full px-4 py-2 bg-input border-2 border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-colors"
+                          disabled={currentUser?.role === "ld"}
+                      >
+                        <option value="CGB-N">ЦГБ-Н</option>
+                        <option value="CGB-P">ЦГБ-П</option>
+                        <option value="OKB-M">ОКБ-М</option>
+                      </select>
+                      {currentUser?.role === "ld" && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Вы можете создавать пользователей только для своего города
+                        </p>
+                      )}
+                    </div>
+                  )}
 
                   <div className="flex gap-3 pt-4">
                     <button
@@ -927,7 +1030,7 @@ export default function UserManagementSection() {
                         type="button"
                         onClick={() => {
                           setShowCreateModal(false)
-                          setFormData({username: "", gameNick: "", password: "", role: "user"})
+                          setFormData({username: "", gameNick: "", password: "", role: "user", city: "CGB-N"})
                         }}
                         className="flex-1 px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 transition-all"
                     >
@@ -1035,7 +1138,7 @@ export default function UserManagementSection() {
                       onClick={() => {
                         setShowRoleModal(false)
                         setChangingRoleUser(null)
-                        setFormData({username: "", gameNick: "", password: "", role: "user"})
+                        setFormData({username: "", gameNick: "", password: "", role: "user", city: "CGB-N"})
                       }}
                       className="text-muted-foreground hover:text-foreground transition-colors"
                   >
@@ -1092,7 +1195,81 @@ export default function UserManagementSection() {
                         onClick={() => {
                           setShowRoleModal(false)
                           setChangingRoleUser(null)
-                          setFormData({username: "", gameNick: "", password: "", role: "user"})
+                          setFormData({username: "", gameNick: "", password: "", role: "user", city: "CGB-N"})
+                        }}
+                        className="flex-1 px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 transition-all"
+                    >
+                      Отмена
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+        )}
+
+        {/* City Change Modal */}
+        {showCityModal && changingCityUser && (
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+              <div
+                  className="bg-popover rounded-lg border-2 border-border p-6 max-w-md w-full max-h-[90vh] overflow-y-auto transition-colors">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-semibold text-popover-foreground">
+                    Изменить город: {changingCityUser.game_nick}
+                  </h3>
+                  <button
+                      onClick={() => {
+                        setShowCityModal(false)
+                        setChangingCityUser(null)
+                        setFormData({username: "", gameNick: "", password: "", role: "user", city: "CGB-N"})
+                      }}
+                      className="text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <X className="w-6 h-6"/>
+                  </button>
+                </div>
+
+                <form onSubmit={handleChangeCity} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">
+                      Текущий город
+                    </label>
+                    <div className="px-4 py-3 bg-muted rounded-lg text-foreground">
+                      {getCityLabel(changingCityUser.city)}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">
+                      Новый город
+                    </label>
+                    <select
+                        value={formData.city}
+                        onChange={(e) => setFormData({...formData, city: e.target.value as "CGB-N" | "CGB-P" | "OKB-M"})}
+                        className="w-full px-4 py-3 bg-input border-2 border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-colors"
+                    >
+                      <option value="CGB-N">ЦГБ-Н</option>
+                      <option value="CGB-P">ЦГБ-П</option>
+                      <option value="OKB-M">ОКБ-М</option>
+                    </select>
+                  </div>
+
+                  <div className="flex gap-3 pt-4">
+                    <button
+                        type="submit"
+                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:opacity-90 transition-all"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+                        <circle cx="12" cy="10" r="3"/>
+                      </svg>
+                      Изменить город
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => {
+                          setShowCityModal(false)
+                          setChangingCityUser(null)
+                          setFormData({username: "", gameNick: "", password: "", role: "user", city: "CGB-N"})
                         }}
                         className="flex-1 px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 transition-all"
                     >

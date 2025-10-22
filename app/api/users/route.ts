@@ -8,6 +8,7 @@ function getUserFromHeaders(request: Request) {
   const role = request.headers.get("x-user-role")
   const username = request.headers.get("x-user-username")
   const gameNick = request.headers.get("x-user-game-nick")
+  const city = request.headers.get("x-user-city")
 
   if (!userId || !role || !username || !gameNick) {
     console.log('[Users API] Missing user headers:', { userId, role, username, gameNick })
@@ -19,6 +20,7 @@ function getUserFromHeaders(request: Request) {
     role: role as "root" | "admin" | "ld" | "cc" | "user",
     username: username,
     game_nick: gameNick,
+    city: (city || 'CGB-N') as "CGB-N" | "CGB-P" | "OKB-M",
   }
 }
 
@@ -35,16 +37,17 @@ export async function GET(request: Request) {
 
     let query = supabase
         .from("users")
-        .select("id, username, game_nick, role, status, created_at")
+        .select("id, username, game_nick, role, status, city, created_at")
         .order("created_at", { ascending: false })
 
     // Admin видит всех пользователей (фронтенд фильтрует запросы по ролям)
     if (currentUser.role === "admin") {
       console.log("[Users API] Admin filter: all users (frontend will filter requests)")
     }
-    // Лидер видит всех пользователей, но фронтенд фильтрует только cc и user
+    // Лидер видит только пользователей своего города
     else if (currentUser.role === "ld") {
-      console.log("[Users API] LD filter: all users (frontend will filter cc and user)")
+      console.log("[Users API] LD filter: users from city", currentUser.city)
+      query = query.eq("city", currentUser.city)
     }
     // Root видит всех пользователей
 
@@ -73,12 +76,24 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const { username, gameNick, password, role } = body
+    const { username, gameNick, password, role, city } = body
 
     console.log("[Users API] Creating user:", username, "by:", currentUser.username)
 
     if (!username || !gameNick || !password || !role) {
       return NextResponse.json({ error: "Все поля обязательны для заполнения" }, { status: 400 })
+    }
+
+    // Валидация города
+    const validCities = ['CGB-N', 'CGB-P', 'OKB-M']
+    const userCity = city || currentUser.city || 'CGB-N'
+    if (!validCities.includes(userCity)) {
+      return NextResponse.json({ error: "Некорректный город" }, { status: 400 })
+    }
+
+    // Лидер может создавать пользователей только своего города
+    if (currentUser.role === "ld" && userCity !== currentUser.city) {
+      return NextResponse.json({ error: "Лидер может создавать пользователей только своего города" }, { status: 403 })
     }
 
     if (currentUser.role === "admin" && (role === "admin" || role === "root")) {
@@ -135,10 +150,11 @@ export async function POST(request: Request) {
             password: hashedPassword,
             role,
             status: "active",
+            city: userCity,
             ip_address: "1.1.1.1", // Специальный IP для пользователей, созданных админом
           },
         ])
-        .select("id, username, game_nick, role, status, created_at")
+        .select("id, username, game_nick, role, status, city, created_at")
         .single()
 
     if (error) {
@@ -169,11 +185,13 @@ export async function POST(request: Request) {
             game_nick: gameNick,
             role,
             status: "active",
+            city: userCity,
           },
           metadata: {
             username,
             game_nick: gameNick,
             role,
+            city: userCity,
             created_by: currentUser.game_nick,
           },
         },
@@ -209,7 +227,7 @@ export async function PUT(request: Request) {
 
     const { data: existingUser, error: fetchError } = await supabase
         .from("users")
-        .select("role, username, game_nick, status")
+        .select("role, username, game_nick, status, city")
         .eq("id", userId)
         .single()
 
@@ -219,6 +237,11 @@ export async function PUT(request: Request) {
 
     if (existingUser.role === "root" && currentUser.id !== userId) {
       return NextResponse.json({ error: "Нельзя редактировать root пользователя" }, { status: 403 })
+    }
+
+    // Лидер может редактировать только пользователей своего города
+    if (currentUser.role === "ld" && existingUser.city !== currentUser.city) {
+      return NextResponse.json({ error: "Лидер может редактировать только пользователей своего города" }, { status: 403 })
     }
 
     // Администратор может редактировать свой профиль, но не других администраторов
@@ -283,7 +306,7 @@ export async function PUT(request: Request) {
         .from("users")
         .update(updateData)
         .eq("id", userId)
-        .select("id, username, game_nick, role, status, created_at")
+        .select("id, username, game_nick, role, status, city, created_at")
         .single()
 
     if (updateError) {
@@ -353,7 +376,81 @@ export async function PATCH(request: Request) {
     }
 
     const body = await request.json()
-    const { userId, role, action } = body
+    const { userId, role, city, action } = body
+
+    // Обработка изменения города
+    if (action === "change_city") {
+      console.log("[Users API] Changing city:", userId, "to", city, "by:", currentUser.username)
+
+      if (!userId || !city) {
+        return NextResponse.json({ error: "ID пользователя и город обязательны" }, { status: 400 })
+      }
+
+      // Валидация города
+      const validCities = ['CGB-N', 'CGB-P', 'OKB-M']
+      if (!validCities.includes(city)) {
+        return NextResponse.json({ error: "Некорректный город" }, { status: 400 })
+      }
+
+      const { data: existingUser, error: fetchError } = await supabase
+          .from("users")
+          .select("role, username, game_nick, status, city")
+          .eq("id", userId)
+          .single()
+
+      if (fetchError || !existingUser) {
+        return NextResponse.json({ error: "Пользователь не найден" }, { status: 404 })
+      }
+
+      if (existingUser.role === "root") {
+        return NextResponse.json({ error: "Нельзя изменить город root пользователя" }, { status: 403 })
+      }
+
+      // Только root и admin могут менять город
+      if (currentUser.role !== "root" && currentUser.role !== "admin") {
+        return NextResponse.json({ error: "Недостаточно прав для изменения города" }, { status: 403 })
+      }
+
+      const { data: updatedUser, error: updateError } = await supabase
+          .from("users")
+          .update({ city })
+          .eq("id", userId)
+          .select("id, username, game_nick, role, status, city, created_at")
+          .single()
+
+      if (updateError) {
+        console.error("[Users API] Supabase error:", updateError)
+        return NextResponse.json({ error: "Не удалось обновить город" }, { status: 500 })
+      }
+
+      console.log("[Users API] User city updated successfully")
+
+      // Логируем изменение города
+      try {
+        await supabase.from("action_logs").insert([
+          {
+            user_id: currentUser.id,
+            game_nick: currentUser.game_nick,
+            action: `Изменен город пользователя: ${updatedUser.game_nick}`,
+            action_type: "update",
+            target_type: "user",
+            target_id: userId,
+            target_name: updatedUser.game_nick,
+            details: `Город изменен с "${existingUser.city}" на "${city}"`,
+            previous_state: { city: existingUser.city },
+            new_state: { city },
+            metadata: {
+              changed_by: currentUser.game_nick,
+              username: updatedUser.username,
+            },
+          },
+        ])
+      } catch (logError) {
+        console.error("[Users API] Failed to log city change:", logError)
+      }
+
+      return NextResponse.json(updatedUser)
+    }
 
     // Обработка одобрения запроса на аккаунт
     if (action === "approve") {
@@ -365,7 +462,7 @@ export async function PATCH(request: Request) {
 
       const { data: existingUser, error: fetchError } = await supabase
           .from("users")
-          .select("id, username, game_nick, role, status")
+          .select("id, username, game_nick, role, status, city")
           .eq("id", userId)
           .single()
 
@@ -377,9 +474,14 @@ export async function PATCH(request: Request) {
         return NextResponse.json({ error: "Это не запрос на создание аккаунта" }, { status: 400 })
       }
 
-      // Лидер может одобрять только cc и user
-      if (currentUser.role === "ld" && existingUser.role !== "cc" && existingUser.role !== "user") {
-        return NextResponse.json({ error: "Лидер может одобрять только запросы с ролями CC и User" }, { status: 403 })
+      // Лидер может одобрять только cc и user своего города
+      if (currentUser.role === "ld") {
+        if (existingUser.role !== "cc" && existingUser.role !== "user") {
+          return NextResponse.json({ error: "Лидер може одобрять только запросы с ролями CC и User" }, { status: 403 })
+        }
+        if (existingUser.city !== currentUser.city) {
+          return NextResponse.json({ error: "Лидер может одобрять только запросы из своего города" }, { status: 403 })
+        }
       }
 
       // Админ не может одобрять запросы с ролями admin и root (только root создает админов)
@@ -391,7 +493,7 @@ export async function PATCH(request: Request) {
           .from("users")
           .update({ status: "active" })
           .eq("id", userId)
-          .select("id, username, game_nick, role, status, created_at")
+          .select("id, username, game_nick, role, status, city, created_at")
           .single()
 
       if (approveError) {
@@ -436,7 +538,7 @@ export async function PATCH(request: Request) {
 
       const { data: existingUser, error: fetchError } = await supabase
           .from("users")
-          .select("id, username, game_nick, role, status")
+          .select("id, username, game_nick, role, status, city")
           .eq("id", userId)
           .single()
 
@@ -448,11 +550,16 @@ export async function PATCH(request: Request) {
         return NextResponse.json({ error: "Пользователь уже активен" }, { status: 400 })
       }
 
+      // Лидер может восстанавливать только пользователей своего города
+      if (currentUser.role === "ld" && existingUser.city !== currentUser.city) {
+        return NextResponse.json({ error: "Лидер может восстанавливать только пользователей своего города" }, { status: 403 })
+      }
+
       const { data: restoredUser, error: restoreError } = await supabase
           .from("users")
           .update({ status: "active" })
           .eq("id", userId)
-          .select("id, username, game_nick, role, status, created_at")
+          .select("id, username, game_nick, role, status, city, created_at")
           .single()
 
       if (restoreError) {
@@ -496,7 +603,7 @@ export async function PATCH(request: Request) {
 
     const { data: existingUser, error: fetchError } = await supabase
         .from("users")
-        .select("role, username, game_nick, status")
+        .select("role, username, game_nick, status, city")
         .eq("id", userId)
         .single()
 
@@ -506,6 +613,11 @@ export async function PATCH(request: Request) {
 
     if (existingUser.role === "root") {
       return NextResponse.json({ error: "Нельзя изменить роль root пользователя" }, { status: 403 })
+    }
+
+    // Лидер может изменять роль только пользователям своего города
+    if (currentUser.role === "ld" && existingUser.city !== currentUser.city) {
+      return NextResponse.json({ error: "Лидер может изменять роль только пользователям своего города" }, { status: 403 })
     }
 
     // Нельзя менять свою собственную роль
@@ -536,7 +648,7 @@ export async function PATCH(request: Request) {
         .from("users")
         .update({ role })
         .eq("id", userId)
-        .select("id, username, game_nick, role, status, created_at")
+        .select("id, username, game_nick, role, status, city, created_at")
         .single()
 
     if (updateError) {
@@ -597,7 +709,7 @@ export async function DELETE(request: Request) {
 
     const { data: existingUser, error: fetchError } = await supabase
         .from("users")
-        .select("id, role, username, game_nick, status")
+        .select("id, role, username, game_nick, status, city")
         .eq("id", userId)
         .single()
 
@@ -607,6 +719,11 @@ export async function DELETE(request: Request) {
 
     if (existingUser.role === "root") {
       return NextResponse.json({ error: "Нельзя деактивировать root пользователя" }, { status: 403 })
+    }
+
+    // Лидер может деактивировать только пользователей своего города
+    if (currentUser.role === "ld" && existingUser.city !== currentUser.city) {
+      return NextResponse.json({ error: "Лидер может деактивировать только пользователей своего города" }, { status: 403 })
     }
 
     // Нельзя деактивировать самого себя

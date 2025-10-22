@@ -23,7 +23,7 @@ function getClientIP(request: Request): string {
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { username, gameNick, password, role = "user" } = body
+    const { username, gameNick, password, role = "user", city = "CGB-N" } = body
     const clientIP = getClientIP(request)
 
     console.log("[Account Request API] New account request:", username, "IP:", clientIP)
@@ -52,6 +52,11 @@ export async function POST(request: Request) {
     // Валидация роли
     if (!["user", "cc", "ld"].includes(role)) {
       return NextResponse.json({ error: "Недопустимая роль" }, { status: 400 })
+    }
+
+    // Валидация города
+    if (!["CGB-N", "CGB-P", "OKB-M"].includes(city)) {
+      return NextResponse.json({ error: "Недопустимый город" }, { status: 400 })
     }
 
     // Проверка на существующие запросы с этого IP
@@ -126,11 +131,12 @@ export async function POST(request: Request) {
           game_nick: gameNick,
           password: hashedPassword,
           role,
+          city,
           status: "request",
           ip_address: clientIP,
         },
       ])
-      .select("id, username, game_nick, role, status, created_at")
+      .select("id, username, game_nick, role, city, status, created_at")
       .single()
 
     if (error) {
@@ -159,12 +165,15 @@ export async function POST(request: Request) {
             id: newRequest.id,
             username,
             game_nick: gameNick,
-            role: "user",
+            role,
+            city,
             status: "request",
           },
           metadata: {
             username,
             game_nick: gameNick,
+            role,
+            city,
             request_type: "account_creation",
           },
         },

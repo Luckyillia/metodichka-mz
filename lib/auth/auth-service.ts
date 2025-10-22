@@ -278,12 +278,12 @@ export class AuthService {
     }
   }
 
-  static async createUser(username: string, gameNick: string, password: string, role: string): Promise<User | null> {
+  static async createUser(username: string, gameNick: string, password: string, role: string, city?: string): Promise<User | null> {
     try {
       const response = await this.fetchWithAuth("/api/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, gameNick, password, role }),
+        body: JSON.stringify({ username, gameNick, password, role, city }),
       })
 
       const data = await response.json()
@@ -337,6 +337,27 @@ export class AuthService {
       return data
     } catch (error) {
       console.error("[AuthService] Error updating role:", error)
+      throw error
+    }
+  }
+
+  static async updateUserCity(userId: string, city: string): Promise<User | null> {
+    try {
+      const response = await this.fetchWithAuth("/api/users", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, city, action: "change_city" }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to update city")
+      }
+
+      return data
+    } catch (error) {
+      console.error("[AuthService] Error updating city:", error)
       throw error
     }
   }

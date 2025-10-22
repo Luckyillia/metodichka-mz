@@ -13,6 +13,7 @@ export default function AccountRequestPage() {
     password: "",
     confirmPassword: "",
     role: "user",
+    city: "CGB-N" as "CGB-N" | "CGB-P" | "OKB-M",
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
@@ -47,6 +48,7 @@ export default function AccountRequestPage() {
           gameNick: formData.gameNick,
           password: formData.password,
           role: formData.role,
+          city: formData.city,
         }),
       })
 
@@ -57,7 +59,7 @@ export default function AccountRequestPage() {
       }
 
       setSuccess(true)
-      setFormData({ username: "", gameNick: "", password: "", confirmPassword: "", role: "user" })
+      setFormData({ username: "", gameNick: "", password: "", confirmPassword: "", role: "user", city: "CGB-N" })
     } catch (err: any) {
       setError(err.message || "Произошла ошибка при отправке запроса")
     } finally {
@@ -217,6 +219,25 @@ export default function AccountRequestPage() {
             </select>
             <p className="text-xs text-muted-foreground mt-1">
               Выберите роль, которую хотите получить
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-muted-foreground mb-2">
+              Город
+            </label>
+            <select
+              value={formData.city}
+              onChange={(e) => setFormData({ ...formData, city: e.target.value as "CGB-N" | "CGB-P" | "OKB-M" })}
+              className="w-full px-4 py-3 bg-input border-2 border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-colors"
+              disabled={loading}
+            >
+              <option value="CGB-N">ЦГБ-Н (Центральная Городская Больница - Невский)</option>
+              <option value="CGB-P">ЦГБ-П (Центральная Городская Больница - Приволжский)</option>
+              <option value="OKB-M">ОКБ-М (Окружная Клиническая Больница - Мирный)</option>
+            </select>
+            <p className="text-xs text-muted-foreground mt-1">
+              Выберите город, в котором хотите работать
             </p>
           </div>
 

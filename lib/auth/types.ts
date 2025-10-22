@@ -2,12 +2,15 @@ export type UserRole = "guest" | "user" | "cc" | "ld" | "admin" | "root"
 
 export type UserStatus = "active" | "inactive" | "request"
 
+export type UserCity = "CGB-N" | "CGB-P" | "OKB-M"
+
 export interface User {
   id: string
   username: string
   game_nick: string
   role: "root" | "admin" | "cc" | "ld" | "user"
   status: UserStatus
+  city: UserCity
   ip_address?: string
   created_at: string
 }

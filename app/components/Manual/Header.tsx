@@ -51,13 +51,22 @@ export default function Header() {
     router.push("/")
   }
 
-  const getRoleBadge = (role: string) => {
+  const getCityLabel = (city: string) => {
+    const cities = {
+      "CGB-N": "ЦГБ-Н",
+      "CGB-P": "ЦГБ-П",
+      "OKB-M": "ОКБ-М",
+    }
+    return cities[city as keyof typeof cities] || city
+  }
+
+  const getRoleBadge = (role: string, city?: string) => {
     const badges = {
       root: { label: "Суперадмин", color: "bg-purple-600" },
       admin: { label: "Администратор", color: "bg-red-600" },
-      ld: { label: "Лидер", color: "bg-blue-600" },
-      cc: { label: "CC", color: "bg-blue-600" },
-      user: { label: "Пользователь", color: "bg-green-600" },
+      ld: { label: `Лидер ${city ? getCityLabel(city) : ''}`, color: "bg-pink-600" },
+      cc: { label: `СС ${city ? getCityLabel(city) : ''}`, color: "bg-blue-600" },
+      user: { label: `Участник ${city ? getCityLabel(city) : ''}`, color: "bg-green-600" },
     }
     return badges[role as keyof typeof badges] || { label: role, color: "bg-gray-600" }
   }
@@ -107,8 +116,8 @@ export default function Header() {
                   <Shield className="w-4 h-4 text-muted-foreground"/>
                   <div className="flex flex-col">
                     <span className="text-sm font-medium text-foreground">{user.game_nick}</span>
-                    <span className={`text-xs px-2 py-0.5 rounded ${getRoleBadge(user.role).color} text-white w-fit`}>
-                      {getRoleBadge(user.role).label}
+                    <span className={`text-xs px-2 py-0.5 rounded ${getRoleBadge(user.role, user.city).color} text-white w-fit`}>
+                      {getRoleBadge(user.role, user.city).label}
                     </span>
                   </div>
                 </div>
