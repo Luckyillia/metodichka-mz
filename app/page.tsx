@@ -18,7 +18,6 @@ const MedicalCommissionSection = lazy(() => import("@/app/components/Manual/sect
 const InterviewSection = lazy(() => import("@/app/components/Manual/sections/default/InterviewSection"))
 const MedicationsSection = lazy(() => import("@/app/components/Manual/sections/default/MedicationsSection"))
 const MedicalCardSection = lazy(() => import("@/app/components/Manual/sections/default/MedicalCardSection"))
-const RPTaskSection = lazy(() => import("@/app/components/Manual/sections/default/UnifiedContent/RPTaskSection"))
 const CommandTemplatesSection = lazy(() => import("@/app/components/Manual/sections/default/CommandTemplatesSection"))
 const AnnouncementsSection = lazy(() => import("@/app/components/Manual/sections/ss/AnnouncementsSection"))
 const ForumResponsesSection = lazy(() => import("@/app/components/Manual/sections/ss/ForumResponsesSection"))
@@ -39,7 +38,6 @@ const sectionComponents: Record<string, React.ComponentType> = {
   "interview": InterviewSection,
   "medications": MedicationsSection,
   "medical-card": MedicalCardSection,
-  "rp-task": RPTaskSection,
   vehicles: VehiclesSection,
   announcements: AnnouncementsSection,
   "forum-responses": ForumResponsesSection,

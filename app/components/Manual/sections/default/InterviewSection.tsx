@@ -1,16 +1,60 @@
 import ExamplePhrase from "../../ExamplePhrase"
 import { useAuth } from "@/lib/auth/auth-context"
+import { useState } from "react"
 
 const InterviewSection = () => {
   const { canAccessSection } = useAuth()
+  const [gender, setGender] = useState<'male' | 'female'>('male')
 
   // Проверяем, относится ли пользователь к старшему составу
   const isSeniorStaff = canAccessSection('exam-section') || canAccessSection('goss-wave') || canAccessSection('announcements')
+
+  // Функция адаптации текста под пол
+  const adaptText = (text: string): string => {
+    if (gender === 'female') {
+      return text
+        .replace(/взял/g, 'взяла')
+        .replace(/открыв/g, 'открыв')
+        .replace(/начал/g, 'начала')
+        .replace(/вернул/g, 'вернула')
+    }
+    return text
+  }
 
   return (
     <>
       <div className="warning">
         <strong>⚠️ Важно:</strong> Собеседование на срочную или контрактную службу проводятся только заместителями лидера или лидером. Организация контроля порядка и/или оказание помощи на собеседовании допускается с разрешения проводящего собеседования.
+      </div>
+
+      {/* Gender Selector */}
+      <div className="subsection">
+        <h3>👤 Пол сотрудника</h3>
+        <p className="text-sm text-muted-foreground mb-3">Выберите пол сотрудника для адаптации отыгровок</p>
+        <div className="flex gap-3">
+          <button
+            onClick={() => setGender('male')}
+            className={`flex-1 px-4 py-3 rounded-lg border-2 transition-all font-medium ${
+              gender === 'male'
+                ? 'bg-blue-500 border-blue-500 text-white'
+                : 'bg-secondary border-border text-foreground hover:border-blue-500/50'
+            }`}
+          >
+            <span className="text-2xl mr-2">👨</span>
+            Мужчина
+          </button>
+          <button
+            onClick={() => setGender('female')}
+            className={`flex-1 px-4 py-3 rounded-lg border-2 transition-all font-medium ${
+              gender === 'female'
+                ? 'bg-pink-500 border-pink-500 text-white'
+                : 'bg-secondary border-border text-foreground hover:border-pink-500/50'
+            }`}
+          >
+            <span className="text-2xl mr-2">👩</span>
+            Женщина
+          </button>
+        </div>
       </div>
 
       <div className="subsection">
@@ -34,11 +78,11 @@ const InterviewSection = () => {
           </div>
 
           <div className="mt-4">
-            <ExamplePhrase text="me взял паспорт" />
+            <ExamplePhrase text={adaptText("me взял паспорт")} />
             <ExamplePhrase text="do Паспорт в руке." />
-            <ExamplePhrase text="me открыв паспорт, начал изучать данные" />
+            <ExamplePhrase text={adaptText("me открыв паспорт, начал изучать данные")} />
             <ExamplePhrase text="do Паспорт изучен." />
-            <ExamplePhrase text="me вернул паспорт" />
+            <ExamplePhrase text={adaptText("me вернул паспорт")} />
             <ExamplePhrase text="say Можете забрать" />
           </div>
 
@@ -50,9 +94,9 @@ const InterviewSection = () => {
           </div>
 
           <div className="mt-4">
-            <ExamplePhrase text="me взял диплом и начал его изучать" />
+            <ExamplePhrase text={adaptText("me взял диплом и начал его изучать")} />
             <ExamplePhrase text="do Диплом изучен." />
-            <ExamplePhrase text="me вернул диплом" />
+            <ExamplePhrase text={adaptText("me вернул диплом")} />
             <ExamplePhrase text="say Можете забрать" />
           </div>
 
@@ -64,11 +108,11 @@ const InterviewSection = () => {
           </div>
 
           <div className="mt-4">
-            <ExamplePhrase text="me взял трудовую книжку" />
+            <ExamplePhrase text={adaptText("me взял трудовую книжку")} />
             <ExamplePhrase text="do Трудовая книжка в руке." />
-            <ExamplePhrase text="me открыв трудовую книжку, начал изучать данные" />
+            <ExamplePhrase text={adaptText("me открыв трудовую книжку, начал изучать данные")} />
             <ExamplePhrase text="do Трудовая книжка изучена." />
-            <ExamplePhrase text="me вернул трудовую книжку" />
+            <ExamplePhrase text={adaptText("me вернул трудовую книжку")} />
             <ExamplePhrase text="say Можете забрать" />
           </div>
 
@@ -80,11 +124,11 @@ const InterviewSection = () => {
           </div>
 
           <div className="mt-4">
-            <ExamplePhrase text="me взял Водительское удостоверение" />
+            <ExamplePhrase text={adaptText("me взял Водительское удостоверение")} />
             <ExamplePhrase text="do Водительское удостоверение в руке." />
-            <ExamplePhrase text="me открыв Водительское удостоверение, начал изучать данные" />
+            <ExamplePhrase text={adaptText("me открыв Водительское удостоверение, начал изучать данные")} />
             <ExamplePhrase text="do Водительское удостоверение изучено." />
-            <ExamplePhrase text="me вернул Водительское удостоверение" />
+            <ExamplePhrase text={adaptText("me вернул Водительское удостоверение")} />
             <ExamplePhrase text="say Можете забрать" />
           </div>
 
@@ -96,11 +140,11 @@ const InterviewSection = () => {
           </div>
 
           <div className="mt-4">
-            <ExamplePhrase text="me взял Медицинскую карту" />
+            <ExamplePhrase text={adaptText("me взял Медицинскую карту")} />
             <ExamplePhrase text="do Медицинская карта в руке." />
-            <ExamplePhrase text="me открыв Медицинскую карту, начал изучать данные" />
+            <ExamplePhrase text={adaptText("me открыв Медицинскую карту, начал изучать данные")} />
             <ExamplePhrase text="do Медицинская карта изучена." />
-            <ExamplePhrase text="me вернул Медицинскую карту" />
+            <ExamplePhrase text={adaptText("me вернул Медицинскую карту")} />
             <ExamplePhrase text="say Можете забрать" />
           </div>
 

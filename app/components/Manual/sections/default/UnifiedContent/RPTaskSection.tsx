@@ -1,7 +1,11 @@
 import React from 'react';
 import DropdownMenu from "@/app/components/Manual/DropdownMenu";
 
-const RPTaskSection = () => {
+interface RPTaskSectionProps {
+    gender: 'male' | 'female';
+}
+
+const RPTaskSection: React.FC<RPTaskSectionProps> = ({ gender }) => {
     const RpTask = [
         "Влажная уборка",
         "Установка антивируса",
@@ -128,17 +132,80 @@ const RPTaskSection = () => {
             "do Шкаф закрыт."
         ]
     };
+
+    // Функция для адаптации текста под пол
+    const adaptTextForGender = (text: string): string => {
+        if (gender === 'female') {
+            return text
+                .replace(/открыл/g, 'открыла')
+                .replace(/взял/g, 'взяла')
+                .replace(/выкинула/g, 'выкинула')
+                .replace(/закончила/g, 'закончила')
+                .replace(/сел/g, 'села')
+                .replace(/включил/g, 'включила')
+                .replace(/зашёл/g, 'зашла')
+                .replace(/написал/g, 'написала')
+                .replace(/нажал/g, 'нажала')
+                .replace(/запустил/g, 'запустила')
+                .replace(/выключил/g, 'выключила')
+                .replace(/взял\(а\)/g, 'взяла')
+                .replace(/вынул\(а\)/g, 'вынула')
+                .replace(/положил\(а\)/g, 'положила')
+                .replace(/положил/g, 'положила')
+                .replace(/повернул/g, 'повернула')
+                .replace(/достал/g, 'достала')
+                .replace(/открутил/g, 'открутила')
+                .replace(/осмотрел/g, 'осмотрела')
+                .replace(/ослабил/g, 'ослабила')
+                .replace(/поправил/g, 'поправила')
+                .replace(/Нажал/g, 'Нажала')
+                .replace(/прикрутил/g, 'прикрутила')
+                .replace(/нашел/g, 'нашла')
+                .replace(/наполнил/g, 'наполнила')
+                .replace(/закончил/g, 'закончила')
+                .replace(/закрыл/g, 'закрыла')
+                .replace(/вынул/g, 'вынула')
+                .replace(/открывает/g, 'открывает')
+                .replace(/достает/g, 'достает')
+                .replace(/протирает/g, 'протирает')
+                .replace(/выкидывает/g, 'выкидывает')
+                .replace(/раскручивает/g, 'раскручивает')
+                .replace(/закручивает/g, 'закручивает')
+                .replace(/проверяет/g, 'проверяет')
+                .replace(/разбирает/g, 'разбирает')
+                .replace(/раскладывает/g, 'раскладывает')
+                .replace(/кладет/g, 'кладет')
+                .replace(/моет/g, 'моет');
+        }
+        return text;
+    };
+
+    // Адаптируем контент под выбранный пол
+    const getAdaptedContent = () => {
+        const adapted: typeof RpTaskContent = {} as typeof RpTaskContent;
+        Object.keys(RpTaskContent).forEach((key) => {
+            adapted[key as keyof typeof RpTaskContent] = RpTaskContent[key as keyof typeof RpTaskContent].map(adaptTextForGender);
+        });
+        return adapted;
+    };
+
+    const adaptedContent = getAdaptedContent();
     
     return (
         <>
             <div className="subsection">
                 <h3>📋 Список общих RP заданий для Министерства Здравоохранения</h3>
+            </div>
+
+            <div className="subsection">
+                <h3>📚 Доступные задания</h3>
                 <div className="schedule-grid-1">
                     {RpTask.map((event) => (
                         <DropdownMenu
+                            key={event}
                             title={event}
                             icon={RpTaskIcon[event as keyof typeof RpTaskIcon]}
-                            items={RpTaskContent[event as keyof typeof RpTaskContent] || ["Содержание будет добавлено позже"]}
+                            items={adaptedContent[event as keyof typeof RpTaskContent] || ["Содержание будет добавлено позже"]}
                         />
                     ))}
                 </div>
