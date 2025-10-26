@@ -34,6 +34,7 @@ export default function ActionLogSection() {
         isOpen: boolean
         title: string
         message: string
+        type?: 'danger' | 'info' | 'warning'
         onConfirm: () => void
     }>({ isOpen: false, title: '', message: '', onConfirm: () => {} })
 
@@ -139,6 +140,7 @@ export default function ActionLogSection() {
             isOpen: true,
             title: 'Отмена действия',
             message: 'Вы уверены, что хотите отменить это действие?',
+            type: 'warning',
             onConfirm: async () => {
                 setConfirmModal({ ...confirmModal, isOpen: false })
                 setError("")
@@ -165,7 +167,7 @@ export default function ActionLogSection() {
 
     const DetailModal = ({ log, onClose }: { log: ActionLog; onClose: () => void }) => (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-popover rounded-lg border-2 border-border max-w-3xl w-full max-h-[90vh] overflow-y-auto transition-colors">
+            <div className="bg-popover rounded-lg border-2 border-border max-w-3xl w-full max-h-[90vh] overflow-y-auto transition-colors custom-scrollbar">
                 <div className="sticky top-0 bg-popover border-b-2 border-border p-6">
                     <div className="flex items-center justify-between">
                         <h3 className="text-xl font-bold text-popover-foreground">Детали записи</h3>

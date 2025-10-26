@@ -5,7 +5,8 @@ export const sidebarItems: SidebarItem[] = [
     id: "ms-group",
     title: "Младший состав",
     items: [
-      { id: "overview", title: "Содержание", icon: "📋" },
+      { id: "overview", title: "Главная", icon: "🏠" },
+      { id: "positions", title: "Должности МЗ", icon: "👔" },
       { id: "ms-unified-content", title: "РП сценарии", icon: "🔗" },
       { id: "commands", title: "Команды и отыгровки", icon: "💬" },
       { id: "medical-commission", title: "Мед.комиссия для срочной службы", icon: "🏥" },

@@ -10,6 +10,7 @@ import OverviewSection from "@/app/components/Manual/sections/default/OverviewSe
 import { useAuth } from "@/lib/auth/auth-context"
 import { AlertCircle } from "lucide-react"
 
+const PositionsSection = lazy(() => import("@/app/components/Manual/sections/default/PositionsSection"))
 const MSUnifiedContentSection = lazy(() => import("@/app/components/Manual/sections/default/MSUnifiedContentSection"))
 const SSUnifiedContentSection = lazy(() => import("@/app/components/Manual/sections/ss/SSUnifiedContentSection"))
 const ExamSection = lazy(() => import("@/app/components/Manual/sections/ss/ExamSection"))
@@ -29,6 +30,7 @@ const VehiclesSection = lazy(() => import("@/app/components/Manual/sections/defa
 
 const sectionComponents: Record<string, React.ComponentType> = {
   overview: OverviewSection,
+  positions: PositionsSection,
   "ss-unified-content": SSUnifiedContentSection,
   "ms-unified-content": MSUnifiedContentSection,
   "commands": CommandTemplatesSection,
@@ -116,7 +118,11 @@ export default function ManualPage() {
                       </h1>
                       <div className="w-20 h-1 bg-primary rounded-full"></div>
                     </div>
-                    <SectionComponent />
+                    {activeSection === "overview" ? (
+                      <OverviewSection setActiveSection={setActiveSection} />
+                    ) : (
+                      <SectionComponent />
+                    )}
                   </Suspense>
               ) : (
                   <div className="text-center py-20">

@@ -286,6 +286,36 @@
     scrollbar-color: var(--sidebar-primary) transparent;
   }
 
+  /* Custom scrollbar for modal windows and other elements */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 12px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 4px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: var(--primary);
+    border-radius: 4px;
+    transition: background 0.3s ease;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in srgb, var(--primary) 80%, white);
+    background-clip: padding-box;
+  }
+
+  /* Firefox scrollbar */
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary) transparent;
+    scrollbar-gutter: stable;
+  }
+
   /* Navigation - solid background, strict border */
   .modern-nav {
     border-bottom: 2px solid var(--border);

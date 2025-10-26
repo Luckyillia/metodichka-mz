@@ -175,6 +175,7 @@ export class AuthService {
       "medications",
       "medical-card",
       "vehicles",
+      "positions",
     ]
 
     const ccLdSections = [...publicSections, "exam-section", "ss-unified-content", "goss-wave", "announcements", "forum-responses", "report-generator"]

@@ -16,7 +16,7 @@ const MedicalCommissionSection = () => {
         .replace(/внес/g, 'внесла')
         .replace(/указал/g, 'указала')
         .replace(/поставил/g, 'поставила')
-        .replace(/передала/g, 'передала')
+        .replace(/передал/g, 'передала')
     }
     return text
   }
@@ -131,7 +131,7 @@ const MedicalCommissionSection = () => {
         </div>
         <ExamplePhrase text={adaptText("me взял со стола в руки медкнижку")} />
         <ExamplePhrase text="do Медкнижка в руке." />
-        <ExamplePhrase text={adaptText("me передала медкнижку человеку напротив")} />
+        <ExamplePhrase text={adaptText("me передал медкнижку человеку напротив")} />
 
         <ExamplePhrase text="say Желаю Вам удачной службы. Не болейте. Всего доброго!" />
 
