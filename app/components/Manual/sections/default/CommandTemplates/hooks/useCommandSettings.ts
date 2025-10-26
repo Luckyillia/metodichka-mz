@@ -25,7 +25,16 @@ export const useCommandSettings = () => {
         departments: {
             fromDepartment: 'ОКБ-М',
             toDepartment: 'МВД',
-            reason: 'неадекватные граждане'
+            reason: 'неадекватные граждане',
+            // Для запроса наряда МВД
+            mvdDepartment: 'МВД',
+            mvdLocation: 'здание ОКБ-М',
+            mvdReason: 'неадекватные граждане',
+            // Для разрешения на посадку
+            landingDepartment: 'МЧС',
+            landingReason: 'экстренная транспортировка пациента',
+            // Для начала движения колонной
+            columnDepartment: 'РЖД'
         },
         shift: {
             // Нет локальных настроек

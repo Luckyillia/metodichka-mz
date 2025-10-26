@@ -98,20 +98,24 @@ const MedicalCommissionSection = () => {
         <ExamplePhrase text="say Сейчас я Вам буду показывать буквы, а Вы будете их называть." />
         <ExamplePhrase text="do Указка лежит на столе." />
         <ExamplePhrase text={adaptText("me взял указку в правую руку")} />
-        <ExamplePhrase text="say Закройте левый глаз!" />
+        <ExamplePhrase text="say Закройте правый глаз!" />
         <div className="note">
-            <strong>📌 Примечание:</strong> Ждем пока напишет отыгровки.
+            <strong>📌 Примечание:</strong> Ждём пока напишет отыгровки.
         </div>
-        <ExamplePhrase text={adaptText('me указал на букву "М"')} />
-        <ExamplePhrase text={adaptText('me указал на букву "З"')} />
-        <ExamplePhrase text={adaptText('me указал на букву "П"')} />
+        <ExamplePhrase text={adaptText('me указал указкой на букву "Б"')} />
+        <div className="note">
+            <strong>📌 Примечание:</strong> Повторяем это 3 раза меняя буквы.
+        </div>
+        <ExamplePhrase text="say Хорошо, откройте правый глаз и закройте левый!" />
+        <div className="note">
+            <strong>📌 Примечание:</strong> Ждём пока напишет отыгровки.
+        </div>
+        <ExamplePhrase text={adaptText('me указал указкой на букву "Ф"')} />
+        <div className="note">
+            <strong>📌 Примечание:</strong> Повторяем это 3 раза меняя буквы.
+        </div>
         <ExamplePhrase text={adaptText("me положил указку на стол")} />
-
-        <div className="note">
-            <strong>📌 Примечание:</strong> Ждём несколько секунд.
-        </div>
         <ExamplePhrase text="say Открывайте глаз." />
-
         <div className="note">
             <strong>📌 Примечание:</strong> Ждём несколько секунд.
         </div>

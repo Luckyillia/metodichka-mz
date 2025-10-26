@@ -23,6 +23,15 @@ export interface DepartmentsSettings {
     fromDepartment: string;
     toDepartment: string;
     reason: string;
+    // Для запроса наряда МВД
+    mvdDepartment: string;
+    mvdLocation: string;
+    mvdReason: string;
+    // Для разрешения на посадку
+    landingDepartment: string;
+    landingReason: string;
+    // Для начала движения колонной
+    columnDepartment: string;
 }
 
 export interface ShiftSettings {
