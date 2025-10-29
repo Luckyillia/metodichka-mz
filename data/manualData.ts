@@ -29,6 +29,13 @@ export const sidebarItems: SidebarItem[] = [
     ]
   },
   {
+    id: "leader-group",
+    title: "Лидер",
+    items: [
+      { id: "leader-report-generator", title: "Генератор отчета лидера", icon: "📊" },
+    ]
+  },
+  {
     id: "admin-group",
     title: "Администрирование",
     items: [

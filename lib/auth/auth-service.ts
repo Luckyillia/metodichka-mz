@@ -179,7 +179,7 @@ export class AuthService {
     ]
 
     const ccLdSections = [...publicSections, "exam-section", "ss-unified-content", "goss-wave", "announcements", "forum-responses", "report-generator"]
-    const ldSections = [...ccLdSections, "user-management"]
+    const ldSections = [...ccLdSections, "leader-report-generator", "user-management"]
     const privilegedSections = [...ldSections, "action-log"]
 
     switch (user.role) {

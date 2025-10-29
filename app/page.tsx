@@ -24,6 +24,7 @@ const AnnouncementsSection = lazy(() => import("@/app/components/Manual/sections
 const ForumResponsesSection = lazy(() => import("@/app/components/Manual/sections/ss/ForumResponsesSection"))
 const GossWaveSection = lazy(() => import("@/app/components/Manual/sections/ss/GossWaveSection"))
 const ReportGenerator = lazy(() => import("@/app/components/Manual/sections/ss/ReportGenerator"))
+const LeaderReportGenerator = lazy(() => import("@/app/components/Manual/sections/leader/LeaderReportGenerator"))
 const UserManagementSection = lazy(() => import("@/app/components/Manual/sections/admin/UserManagementSection"))
 const ActionLogSection = lazy(() => import("@/app/components/Manual/sections/admin/ActionLogSection"))
 const VehiclesSection = lazy(() => import("@/app/components/Manual/sections/default/VehiclesSection"))
@@ -45,6 +46,7 @@ const sectionComponents: Record<string, React.ComponentType> = {
   "forum-responses": ForumResponsesSection,
   "goss-wave": GossWaveSection,
   "report-generator": ReportGenerator,
+  "leader-report-generator": LeaderReportGenerator,
   "user-management": UserManagementSection,
   "action-log": ActionLogSection,
 }

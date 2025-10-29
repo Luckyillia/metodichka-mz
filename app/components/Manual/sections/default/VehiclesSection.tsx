@@ -9,6 +9,15 @@ interface Vehicle {
   minRank: number
   rankName: string
   description?: string
+  specs?: {
+    maxSpeed?: string
+    acceleration100?: string
+    accelerationMax?: string
+    seats?: string
+    ceiling?: string
+    climbRate?: string
+  }
+  purpose?: string
 }
 
 const vehicles: Vehicle[] = [
@@ -17,28 +26,52 @@ const vehicles: Vehicle[] = [
     imageUrl: "https://i.imgur.com/7lWdyl4.png",
     minRank: 3,
     rankName: "Лаборант",
-    description: "Стандартная машина скорой помощи"
+    description: "Стандартная машина скорой помощи",
+    specs: {
+      maxSpeed: "129 км/ч",
+      acceleration100: "15 секунд",
+      accelerationMax: "25.5 секунд"
+    },
+    purpose: "Используется для дежурства на мобильных постах, патрулирования Республики и города, выезда на вызовы."
   },
   {
     name: "ГАЗель NEXT (Луидор 2250с4 Реанимация)",
     imageUrl: "https://i.imgur.com/O4U1jTu.png",
     minRank: 3,
     rankName: "Лаборант",
-    description: "Реанимобиль для экстренных случаев"
+    description: "Реанимобиль для экстренных случаев",
+    specs: {
+      maxSpeed: "129 км/ч",
+      acceleration100: "15 секунд",
+      accelerationMax: "25.5 секунд"
+    },
+    purpose: "Используется для выезда на экстренные вызовы."
   },
   {
     name: "ПАЗ-32053",
     imageUrl: "https://i.imgur.com/rmY52HP.png",
     minRank: 8,
     rankName: "Заведующий Отделением",
-    description: "Автобус для массовых перевозок"
+    description: "Автобус для массовых перевозок",
+    specs: {
+      maxSpeed: "90 км/ч",
+      accelerationMax: "24.3 секунды",
+      seats: "40 мест"
+    },
+    purpose: "Используется для массовой транспортировки сотрудников больниц."
   },
   {
-    name: "Вертолет RF-29011",
+    name: "Вертолет Bell-206",
     imageUrl: "https://i.imgur.com/z22lycc.png",
     minRank: 7,
     rankName: "Пилот Санитарной Авиации",
-    description: "Санитарная авиация для срочной эвакуации"
+    description: "Санитарная авиация для срочной эвакуации",
+    specs: {
+      maxSpeed: "120 км/ч",
+      ceiling: "4155 метров",
+      climbRate: "6.5 м/c"
+    },
+    purpose: "Используется для вылета в патрулирование Республики, вылета на срочные и труднодоступные вызовы."
   }
 ]
 
@@ -87,6 +120,61 @@ export default function VehiclesSection() {
                 </div>
               </div>
             </div>
+
+            {/* Технические характеристики */}
+            {vehicle.specs && (
+              <div className="mt-4 p-3 bg-muted/30 rounded-lg border border-border">
+                <h4 className="text-xs font-semibold text-muted-foreground mb-2 uppercase">Технические характеристики</h4>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  {vehicle.specs.maxSpeed && (
+                    <div>
+                      <span className="text-muted-foreground">Макс. скорость:</span>
+                      <p className="font-medium text-foreground">{vehicle.specs.maxSpeed}</p>
+                    </div>
+                  )}
+                  {vehicle.specs.acceleration100 && (
+                    <div>
+                      <span className="text-muted-foreground">Разгон до 100:</span>
+                      <p className="font-medium text-foreground">{vehicle.specs.acceleration100}</p>
+                    </div>
+                  )}
+                  {vehicle.specs.accelerationMax && (
+                    <div>
+                      <span className="text-muted-foreground">Разгон до макс:</span>
+                      <p className="font-medium text-foreground">{vehicle.specs.accelerationMax}</p>
+                    </div>
+                  )}
+                  {vehicle.specs.seats && (
+                    <div>
+                      <span className="text-muted-foreground">Мест:</span>
+                      <p className="font-medium text-foreground">{vehicle.specs.seats}</p>
+                    </div>
+                  )}
+                  {vehicle.specs.ceiling && (
+                    <div>
+                      <span className="text-muted-foreground">Потолок:</span>
+                      <p className="font-medium text-foreground">{vehicle.specs.ceiling}</p>
+                    </div>
+                  )}
+                  {vehicle.specs.climbRate && (
+                    <div>
+                      <span className="text-muted-foreground">Скороподъемность:</span>
+                      <p className="font-medium text-foreground">{vehicle.specs.climbRate}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Предназначение */}
+            {vehicle.purpose && (
+              <div className="mt-3 p-3 bg-blue-500/5 rounded-lg border border-blue-500/20">
+                <h4 className="text-xs font-semibold text-blue-400 mb-1 uppercase flex items-center gap-1">
+                  <span>🎯</span> Предназначение
+                </h4>
+                <p className="text-sm text-foreground/80">{vehicle.purpose}</p>
+              </div>
+            )}
 
             <div className="mt-4">
               <button
