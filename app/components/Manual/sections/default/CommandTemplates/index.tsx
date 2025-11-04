@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useCommandSettings } from './hooks/useCommandSettings';
 import { TabType } from './types';
-import { tagAbbreviations, doctorTags, hospitalAbbreviations } from './constants';
+import { tagAbbreviations, doctorTags, hospitalAbbreviations, otherAbbreviations } from './constants';
 
 // Импорт вкладок
 import CallsTab from './tabs/CallsTab';
@@ -10,6 +10,8 @@ import PostsTab from './tabs/PostsTab';
 import ShiftTab from './tabs/ShiftTab';
 import DepartmentsTab from './tabs/DepartmentsTab';
 import BindsTab from './tabs/BindsTab';
+import SATab from './tabs/SATab';
+import GVMUTab from './tabs/GVMUTab';
 
 const CommandTemplatesSection = () => {
     const {
@@ -46,11 +48,19 @@ const CommandTemplatesSection = () => {
         handleTabSettingChange('binds', key, value);
     };
 
+    const handleSASettingChange = (key: keyof typeof tabSettings.sa, value: string) => {
+        handleTabSettingChange('sa', key, value);
+    };
+
+    const handleGVMUSettingChange = (key: keyof typeof tabSettings.gvmu, value: string) => {
+        handleTabSettingChange('gvmu', key, value);
+    };
+
     return (
         <>
             <div className="subsection">
-                <h3>💬 Настраиваемые команды и отыгровки</h3>
-                <p>Настройте команды локально для каждой секции и копируйте готовые шаблоны.</p>
+                <h3>💬 Бинды и доклады</h3>
+                <p>Настройте команды и доклады для каждой категории и копируйте готовые шаблоны.</p>
             </div>
 
             {/* Глобальные настройки */}
@@ -153,6 +163,26 @@ const CommandTemplatesSection = () => {
                 >
                     🎯 Бинды
                 </button>
+                <button
+                    onClick={() => setActiveTab('sa')}
+                    className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                        activeTab === 'sa'
+                            ? 'bg-primary text-primary-foreground shadow-md'
+                            : 'bg-card text-card-foreground hover:bg-accent hover:text-accent-foreground'
+                    }`}
+                >
+                    🚁 СА
+                </button>
+                <button
+                    onClick={() => setActiveTab('gvmu')}
+                    className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                        activeTab === 'gvmu'
+                            ? 'bg-primary text-primary-foreground shadow-md'
+                            : 'bg-card text-card-foreground hover:bg-accent hover:text-accent-foreground'
+                    }`}
+                >
+                    ⚔️ ГВМУ
+                </button>
             </div>
 
             {/* Контент вкладок */}
@@ -204,6 +234,22 @@ const CommandTemplatesSection = () => {
                         onSettingChange={handleBindsSettingChange}
                     />
                 )}
+
+                {activeTab === 'sa' && (
+                    <SATab
+                        settings={tabSettings.sa}
+                        globalSettings={globalSettings}
+                        onSettingChange={handleSASettingChange}
+                    />
+                )}
+
+                {activeTab === 'gvmu' && (
+                    <GVMUTab
+                        settings={tabSettings.gvmu}
+                        globalSettings={globalSettings}
+                        onSettingChange={handleGVMUSettingChange}
+                    />
+                )}
             </div>
 
             {/* Расшифровки аббревиатур */}
@@ -225,6 +271,16 @@ const CommandTemplatesSection = () => {
                     <h4 className="text-lg font-medium mb-3">🏥 Названия больниц</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {Object.entries(hospitalAbbreviations).map(([abbr, fullName]) => (
+                            <div key={abbr} className="p-3 border border-border rounded-lg">
+                                <span className="font-medium">{abbr}</span> - {fullName}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+                <div>
+                    <h4 className="text-lg font-medium mb-3">🏥 Другие аббревиатуры</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {Object.entries(otherAbbreviations).map(([abbr, fullName]) => (
                             <div key={abbr} className="p-3 border border-border rounded-lg">
                                 <span className="font-medium">{abbr}</span> - {fullName}
                             </div>

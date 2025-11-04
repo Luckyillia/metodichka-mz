@@ -195,7 +195,15 @@ const MedicalCardSection = () => {
           <p><strong>💰 Стоимость:</strong> 2249 рублей</p>
         </div>
       </div>
-
+      <div className="subsection">
+        <h3>📂 Материалы для Выдачи медкарты</h3>
+        <p>Материалы для Выдачи медкарты были взяты с форума: <a
+            href="https://forum.gtaprovince.ru/topic/489132-informacionnyy-razdel/"
+            className="document-link" target="_blank" rel="noopener noreferrer">Открыть документ</a></p>
+        <div className="warning mt-4">
+            <strong>⚠️ Важно:</strong> Если найдете ошибку прошу собщить лидеру.
+        </div>
+      </div>
     </>
   )
 }

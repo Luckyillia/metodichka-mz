@@ -44,6 +44,20 @@ export const useCommandSettings = () => {
             firstName: 'Имя',
             lastName: 'Фамилия',
             position: 'Должность'
+        },
+        sa: {
+            callNumber: '1',
+            crewNames: 'Имя_Фамилия',
+            location: 'МВД',
+            patrolLocation: 'г. Мирный',
+            patrolStatus: 'Стабильное',
+            position: '',
+            fullName: ''
+        },
+        gvmu: {
+            rank: 'Лейтенант медицинской службы',
+            position: 'Военный врач-терапевт',
+            fullName: 'Иванов Иван Иванович'
         }
     });
 

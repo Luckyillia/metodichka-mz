@@ -8,7 +8,7 @@ export const sidebarItems: SidebarItem[] = [
       { id: "overview", title: "Главная", icon: "🏠" },
       { id: "positions", title: "Должности МЗ", icon: "👔" },
       { id: "ms-unified-content", title: "РП сценарии", icon: "🔗" },
-      { id: "commands", title: "Команды и отыгровки", icon: "💬" },
+      { id: "commands", title: "Бинды и доклады", icon: "💬" },
       { id: "medical-commission", title: "Мед.комиссия для срочной службы", icon: "🏥" },
       { id: "interview", title: "Собеседование", icon: "👥" },
       { id: "medications", title: "Препараты", icon: "💊" },

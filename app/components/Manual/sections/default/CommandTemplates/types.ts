@@ -45,6 +45,22 @@ export interface BindsSettings {
     position: string;
 }
 
+export interface SASettings {
+    callNumber: string;
+    crewNames: string;
+    location: string;
+    patrolLocation: string;
+    patrolStatus: string;
+    position: string;
+    fullName: string;
+}
+
+export interface GVMUSettings {
+    rank: string;
+    position: string;
+    fullName: string;
+}
+
 export interface TabSettings {
     calls: CallsSettings;
     patrol: PatrolSettings;
@@ -52,9 +68,11 @@ export interface TabSettings {
     departments: DepartmentsSettings;
     shift: ShiftSettings;
     binds: BindsSettings;
+    sa: SASettings;
+    gvmu: GVMUSettings;
 }
 
-export type TabType = 'calls' | 'patrol' | 'posts' | 'departments' | 'shift' | 'binds';
+export type TabType = 'calls' | 'patrol' | 'posts' | 'departments' | 'shift' | 'binds' | 'sa' | 'gvmu';
 
 export interface CommandGroup {
     [commandName: string]: string[];

@@ -12,7 +12,7 @@ const ExamplePhrase: React.FC<ExamplePhraseProps> = ({
                                                          text,
                                                          type = "ms",
                                                          messageType = "multiline",
-                                                         maxLength = 80
+                                                         maxLength = 160
                                                      }) => {
     const [copied, setCopied] = useState(false);
 
