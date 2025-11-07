@@ -12,9 +12,83 @@ interface Order {
   tags: string[]
 }
 
+interface OrderSettings {
+  position: string
+  hospital: string
+  city: string
+  myName: string
+  targetName: string
+}
+
 const AnnouncementsSection = () => {
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("all")
+  
+  // Настройки для персонализации приказов
+  const [settings, setSettings] = useState<OrderSettings>({
+    position: 'ГВ',
+    hospital: 'ОКБ',
+    city: 'Мирный',
+    myName: '',
+    targetName: ''
+  })
+
+  const positions = [
+    { value: 'ГВ', label: 'Главный Врач' },
+    { value: 'ГЗГВ', label: 'Главный Заместитель Главного Врача' },
+    { value: 'ЗГВ', label: 'Заместитель Главного Врача' },
+    { value: 'Зав.ВО', label: 'Заведующий отделением Всеми Отделениями' },
+    { value: 'Зав.ОТХ', label: 'Заведующий отделением Отделения терапии и хирургии' },
+    { value: 'Зав.ОЛД', label: 'Заведующий отделением Отделения лабораторной диагностики' },
+    { value: 'Зав.ММУ', label: 'Заведующий отделением Мирнинского медицинского университета' },
+    { value: 'Зав.ПМУ', label: 'Заведующий отделением Приволжского медицинского университета' },
+    { value: 'Зав.НМУ', label: 'Заведующий отделением Невского медицинского университета' }
+  ]
+
+  const hospitals = [
+    { value: 'ОКБ', label: 'ОКБ (Областная клиническая больница)' },
+    { value: 'ЦГБ', label: 'ЦГБ (Центральная городская больница)' }
+  ]
+
+  const cities = [
+    { value: 'Мирный', label: 'Мирный' },
+    { value: 'Приволжск', label: 'Приволжск' },
+    { value: 'Невский', label: 'Невский' }
+  ]
+
+  const onSettingChange = (key: keyof OrderSettings, value: string) => {
+    setSettings(prev => ({ ...prev, [key]: value }))
+  }
+
+  // Функция для получения полного названия должности
+  const getPositionTitle = () => {
+    const position = positions.find(p => p.value === settings.position)
+    return position ? position.label : settings.position
+  }
+
+  // Функция для замены переменных в тексте приказа
+  const replaceVariables = (content: string) => {
+    let result = content
+    
+    // Замена должности и больницы в заголовке
+    const positionTitle = getPositionTitle()
+    const hospitalName = settings.hospital === 'ОКБ' 
+      ? 'Областной Клинической Больницы' 
+      : 'Центральной Городской Больницы'
+    
+    result = result.replace(
+      /\[.*?\]/g,
+      `[${positionTitle} по ${hospitalName} города ${settings.city} | ${settings.myName}]`
+    )
+
+    // Замена имени целевого сотрудника, если указано
+    if (settings.targetName) {
+      // Ищем первое упоминание имени в формате Имя_Фамилия
+      result = result.replace(/\b[A-Z][a-z]+_[A-Z][a-z]+\b/, settings.targetName)
+    }
+
+    return result
+  }
 
   // Массив всех приказов
   const orders: Order[] = [
@@ -413,6 +487,74 @@ Daniel_Manarskiy восстанавливается в Отдел Лаборат
           <p><strong>📌 Примечание:</strong> Используйте поиск для быстрого нахождения нужного приказа. Все шаблоны адаптированы для МЗ.</p>
         </div>
 
+        {/* Настройки персонализации */}
+        <div className="mb-6 p-5 bg-muted/50 rounded-lg border-2 border-border">
+          <h4 className="text-lg font-semibold mb-4 text-foreground">⚙️ Настройки приказов</h4>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2 text-foreground">Должность:</label>
+              <select
+                value={settings.position}
+                onChange={(e) => onSettingChange('position', e.target.value)}
+                className="w-full px-3 py-2 border-2 border-border rounded-lg bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+              >
+                {positions.map(pos => (
+                  <option key={pos.value} value={pos.value}>{pos.label}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2 text-foreground">Больница:</label>
+              <select
+                value={settings.hospital}
+                onChange={(e) => onSettingChange('hospital', e.target.value)}
+                className="w-full px-3 py-2 border-2 border-border rounded-lg bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+              >
+                {hospitals.map(hosp => (
+                  <option key={hosp.value} value={hosp.value}>{hosp.label}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2 text-foreground">Город:</label>
+              <select
+                value={settings.city}
+                onChange={(e) => onSettingChange('city', e.target.value)}
+                className="w-full px-3 py-2 border-2 border-border rounded-lg bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+              >
+                {cities.map(city => (
+                  <option key={city.value} value={city.value}>{city.value}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="md:col-span-2 lg:col-span-1">
+              <label className="block text-sm font-medium mb-2 text-foreground">Ваше имя:</label>
+              <input
+                type="text"
+                value={settings.myName}
+                onChange={(e) => onSettingChange('myName', e.target.value)}
+                placeholder="Имя Фамилия"
+                className="w-full px-3 py-2 border-2 border-border rounded-lg bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+              />
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium mb-2 text-foreground">Имя сотрудника:</label>
+              <input
+                type="text"
+                value={settings.targetName}
+                onChange={(e) => onSettingChange('targetName', e.target.value)}
+                placeholder="Имя_Фамилия"
+                className="w-full px-3 py-2 border-2 border-border rounded-lg bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+              />
+            </div>
+          </div>
+        </div>
+
         {/* Поисковая строка */}
         <div className="mb-6">
           <div className="relative mb-4">
@@ -475,7 +617,7 @@ Daniel_Manarskiy восстанавливается в Отдел Лаборат
                     {order.category}
                   </span>
                 </div>
-                <ExamplePhrase text={order.content} messageType="multiline" type="ss" />
+                <ExamplePhrase text={replaceVariables(order.content)} messageType="multiline" type="ss" />
                 <div className="mt-3 flex flex-wrap gap-2">
                   {order.tags.map((tag, idx) => (
                     <span
