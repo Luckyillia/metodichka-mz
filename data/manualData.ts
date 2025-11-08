@@ -39,6 +39,7 @@ export const sidebarItems: SidebarItem[] = [
     id: "admin-group",
     title: "Администрирование",
     items: [
+      { id: "gs-report-generator", title: "Генератор отчета ГС", icon: "🗂️" },
       { id: "user-management", title: "Управление пользователями", icon: "👥" },
       { id: "action-log", title: "Журнал действий", icon: "📋" },
     ]
