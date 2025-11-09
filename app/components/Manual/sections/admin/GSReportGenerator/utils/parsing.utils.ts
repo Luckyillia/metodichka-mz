@@ -43,8 +43,11 @@ export const extractEventItems = (section: string): EventItem[] => {
         const trimmedLine = line.trim();
         if (!trimmedLine || trimmedLine === '-' || /^\d+\)/.test(trimmedLine)) return;
         
-        // Паттерн 1: "1. Название - ссылка"
-        const match1 = trimmedLine.match(/^\d+\.?\d*\s*(.+?)\s*-\s*(https?:\/\/[^\s]+)/);
+        // Пропускаем заголовки секций
+        if (/^(Лекции:|Тренировки:|Мероприятия:|Проведение)/i.test(trimmedLine)) return;
+        
+        // Паттерн 1: Лекция "Название": ссылка
+        const match1 = trimmedLine.match(/^(?:Лекция|Тренировка|Мероприятие)\s+"(.+?)":\s*(https?:\/\/[^\s]+)/i);
         if (match1) {
             items.push({
                 name: match1[1].trim(),
@@ -53,30 +56,43 @@ export const extractEventItems = (section: string): EventItem[] => {
             return;
         }
         
-        // Паттерн 2: "Название ссылка" (без дефиса, без номера)
-        const match2 = trimmedLine.match(/^(?:\d+\.?\d*)?\s*(.+?)\s+(https?:\/\/[^\s]+)$/);
+        // Паттерн 2: "Название - ссылка" (универсальный, работает для любого формата)
+        const match2 = trimmedLine.match(/^(?:\d+\.?\d*\s*)?(.+?)\s*-\s*(https?:\/\/[^\s]+)/);
         if (match2) {
             const name = match2[1].trim();
-            // Исключаем случаи, где "название" это просто номер или цифра с точкой
-            if (!/^[\d.]+$/.test(name)) {
+            // Убираем префиксы "Лекция", "Тренировка", "Мероприятие" если есть
+            const cleanName = name.replace(/^(?:Лекция|Тренировка|Мероприятие)\s+/i, '').replace(/^["'](.+)["']$/, '$1');
+            items.push({
+                name: cleanName,
+                link: match2[2].trim()
+            });
+            return;
+        }
+        
+        // Паттерн 3: "Название ссылка" (без дефиса)
+        const match3 = trimmedLine.match(/^(?:\d+\.?\d*\s*)?(?:Лекция|Тренировка|Мероприятие)?\s*["']?(.+?)["']?\s+(https?:\/\/[^\s]+)$/i);
+        if (match3) {
+            const name = match3[1].trim();
+            // Исключаем случаи, где "название" это просто номер
+            if (!/^[\d.]+$/.test(name) && name.length > 0) {
                 items.push({
                     name: name,
-                    link: match2[2].trim()
+                    link: match3[2].trim()
                 });
                 return;
             }
         }
         
-        // Паттерн 3: "1. ссылка" или "1.1 ссылка" (только ссылка с номером)
-        const match3 = trimmedLine.match(/^[\d.]+\s+(https?:\/\/[^\s]+)/);
-        if (match3) {
+        // Паттерн 4: "1. ссылка" (только ссылка с номером)
+        const match4 = trimmedLine.match(/^[\d.]+\s+(https?:\/\/[^\s]+)/);
+        if (match4) {
             items.push({
-                link: match3[1].trim()
+                link: match4[1].trim()
             });
             return;
         }
         
-        // Паттерн 4: просто ссылка в строке
+        // Паттерн 5: просто ссылка
         if (/^https?:\/\//.test(trimmedLine)) {
             items.push({
                 link: trimmedLine
