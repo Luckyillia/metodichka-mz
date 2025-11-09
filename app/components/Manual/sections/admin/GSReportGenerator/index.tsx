@@ -29,7 +29,7 @@ const GSReportGenerator: React.FC = () => {
     const {
         cities,
         setCities,
-        addCity,
+        //addCity,
         removeCity,
         updateCity,
         updateParsedData,
@@ -50,8 +50,8 @@ const GSReportGenerator: React.FC = () => {
     // Обработчики для списков
     const handleAddItem = (cityIndex: number, field: string, template: any) => {
         const newCities = [...cities];
-        newCities[cityIndex].parsedData[field] = [
-            ...newCities[cityIndex].parsedData[field], 
+        (newCities[cityIndex].parsedData as any)[field] = [
+            ...(newCities[cityIndex].parsedData as any)[field], 
             template
         ];
         setCities(newCities);
@@ -59,7 +59,7 @@ const GSReportGenerator: React.FC = () => {
 
     const handleRemoveItem = (cityIndex: number, field: string, itemIndex: number) => {
         const newCities = [...cities];
-        newCities[cityIndex].parsedData[field].splice(itemIndex, 1);
+        (newCities[cityIndex].parsedData as any)[field].splice(itemIndex, 1);
         setCities(newCities);
     };
 
@@ -71,7 +71,7 @@ const GSReportGenerator: React.FC = () => {
         value: string
     ) => {
         const newCities = [...cities];
-        newCities[cityIndex].parsedData[field][itemIndex][itemField] = value;
+        (newCities[cityIndex].parsedData as any)[field][itemIndex][itemField] = value;
         setCities(newCities);
     };
 
