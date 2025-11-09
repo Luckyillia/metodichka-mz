@@ -332,22 +332,38 @@ export const parseLeaderReport = (text: any): ParsedData => {
     data.fundPaid = extractNumber(textStr, FIELD_PATTERNS.fundPaid);
     data.fundBalance = extractFundBalance(textStr);
 
-    // Лекции - УЛУЧШЕНО
-    const lecturesSection = textStr.match(SECTION_PATTERNS.lectures);
-    if (lecturesSection) {
-        data.lectures = extractEventItems(lecturesSection[0]);
-    }
-
-    // Тренировки - УЛУЧШЕНО
-    const trainingsSection = textStr.match(SECTION_PATTERNS.trainings);
-    if (trainingsSection) {
-        data.trainings = extractEventItems(trainingsSection[0]);
-    }
-
-    // Мероприятия - УЛУЧШЕНО
-    const eventsSection = textStr.match(SECTION_PATTERNS.events);
-    if (eventsSection) {
-        data.events = extractEventItems(eventsSection[0]);
+    // Получаем весь пункт 9
+    const allEventsSection = textStr.match(SECTION_PATTERNS.allEvents);
+    
+    if (allEventsSection) {
+        const section9Text = allEventsSection[0];
+        
+        // Извлекаем лекции - все строки с "Лекция"
+        const lectureLines = section9Text.split('\n').filter(line => 
+            /Лекция/i.test(line) && /https?:\/\//.test(line)
+        );
+        lectureLines.forEach(line => {
+            const extracted = extractEventItems(line);
+            data.lectures.push(...extracted);
+        });
+        
+        // Извлекаем тренировки - все строки с "Тренировка"
+        const trainingLines = section9Text.split('\n').filter(line => 
+            /Тренировка/i.test(line) && /https?:\/\//.test(line)
+        );
+        trainingLines.forEach(line => {
+            const extracted = extractEventItems(line);
+            data.trainings.push(...extracted);
+        });
+        
+        // Извлекаем мероприятия - все строки с "Мероприятие"
+        const eventLines = section9Text.split('\n').filter(line => 
+            /Мероприятие/i.test(line) && /https?:\/\//.test(line)
+        );
+        eventLines.forEach(line => {
+            const extracted = extractEventItems(line);
+            data.events.push(...extracted);
+        });
     }
 
     // Мероприятия от филиалов (пункт 10)
@@ -374,7 +390,7 @@ export const parseLeaderReport = (text: any): ParsedData => {
         });
     }
 
-    // Оценка старшего состава (пункт 13) - УЛУЧШЕНО
+    // Оценка старшего состава (пункт 12 или 13) - УЛУЧШЕНО
     const evaluationsSection = textStr.match(SECTION_PATTERNS.evaluations);
     if (evaluationsSection) {
         data.staffEvaluations = extractEvaluations(evaluationsSection[0]);

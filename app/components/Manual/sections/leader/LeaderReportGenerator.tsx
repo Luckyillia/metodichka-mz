@@ -1,7 +1,6 @@
 "use client"
 
 import React, { useState } from 'react';
-import "@/app/styles/reportGenerator.css";
 
 const LeaderReportGenerator = () => {
     // Основные данные
@@ -41,8 +40,14 @@ const LeaderReportGenerator = () => {
     const [fundPaid, setFundPaid] = useState('');
     const [fundBalance, setFundBalance] = useState('');
 
-    // 9. Лекции/тренировки
+    // 9. Лекции (отдельно)
     const [lectures, setLectures] = useState([{ name: '', link: '' }]);
+
+    // 9. Тренировки (отдельно)
+    const [trainings, setTrainings] = useState([{ name: '', link: '' }]);
+
+    // 9. Мероприятия (отдельно)
+    const [events, setEvents] = useState([{ name: '', link: '' }]);
 
     // 10. Мероприятия от филиалов
     const [branchEvents, setBranchEvents] = useState([{ name: '', link: '' }]);
@@ -52,6 +57,9 @@ const LeaderReportGenerator = () => {
 
     // 12. Оценка старшего состава
     const [staffEvaluations, setStaffEvaluations] = useState([{ nickname: '', rating: '', comment: '' }]);
+
+    // 13. Построения (НОВОЕ)
+    const [formations, setFormations] = useState([{ link: '' }]);
 
     // Вспомогательные функции
     const handleAddItem = (setter: Function, currentItems: any[], template: any) => {
@@ -135,13 +143,44 @@ const LeaderReportGenerator = () => {
         report += `Выплачено - ${fundPaid || 'xx'}\n`;
         report += `Остаток - ${fundBalance || 'xx'}\n\n`;
 
-        // 9. Лекции/тренировки
+        // 9. Лекции/тренировки/мероприятия (РАЗДЕЛЕНО)
         report += `9) Список проведенных во фракции лекций, тренировок, RP мероприятий и т.п.\n`;
+        
         report += `Лекции:\n`;
         const hasLectures = lectures.some(item => item.name || item.link);
         if (hasLectures) {
             let counter = 1;
             lectures.forEach((item) => {
+                if (item.name || item.link) {
+                    report += `${counter}. ${item.name || 'Название'} - ${item.link || 'Ссылка'}\n`;
+                    counter++;
+                }
+            });
+        } else {
+            report += `-\n`;
+        }
+        report += `\n`;
+
+        report += `Тренировки:\n`;
+        const hasTrainings = trainings.some(item => item.name || item.link);
+        if (hasTrainings) {
+            let counter = 1;
+            trainings.forEach((item) => {
+                if (item.name || item.link) {
+                    report += `${counter}. ${item.name || 'Название'} - ${item.link || 'Ссылка'}\n`;
+                    counter++;
+                }
+            });
+        } else {
+            report += `-\n`;
+        }
+        report += `\n`;
+
+        report += `Мероприятия:\n`;
+        const hasEvents = events.some(item => item.name || item.link);
+        if (hasEvents) {
+            let counter = 1;
+            events.forEach((item) => {
                 if (item.name || item.link) {
                     report += `${counter}. ${item.name || 'Название'} - ${item.link || 'Ссылка'}\n`;
                     counter++;
@@ -191,6 +230,22 @@ const LeaderReportGenerator = () => {
             staffEvaluations.forEach((item) => {
                 if (item.nickname || item.rating || item.comment) {
                     report += `${item.nickname || 'Nick_Name'} - ${item.rating || '0/10'} ${item.comment || 'комментарий'}.\n`;
+                }
+            });
+        } else {
+            report += `-\n`;
+        }
+        report += `\n`;
+
+        // 13. Построения (НОВОЕ)
+        report += `13) Проведение двух построений состава.\n`;
+        const hasFormations = formations.some(item => item.link);
+        if (hasFormations) {
+            let counter = 1;
+            formations.forEach((item) => {
+                if (item.link) {
+                    report += `${counter}. ${item.link}\n`;
+                    counter++;
                 }
             });
         } else {
@@ -509,16 +564,16 @@ const LeaderReportGenerator = () => {
                 </div>
             </div>
 
-            {/* 9. Лекции/тренировки */}
+            {/* 9. Лекции (отдельно) */}
             <div className="modern-card p-6">
-                <h3 className="text-lg font-semibold mb-4">9. Лекции, тренировки, RP мероприятия</h3>
+                <h3 className="text-lg font-semibold mb-4">9. Лекции</h3>
                 {lectures.map((item, index) => (
                     <div key={index} className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2">
                         <input
                             type="text"
                             value={item.name}
                             onChange={(e) => handleItemChange(setLectures, lectures, index, 'name', e.target.value)}
-                            placeholder="Название"
+                            placeholder="Название лекции"
                             className="px-3 py-2 border border-input rounded-md bg-background"
                         />
                         <div className="flex gap-2">
@@ -542,7 +597,81 @@ const LeaderReportGenerator = () => {
                     onClick={() => handleAddItem(setLectures, lectures, { name: '', link: '' })}
                     className="mt-2 px-4 py-2 bg-primary/20 text-primary rounded-md hover:bg-primary/30"
                 >
-                    + Добавить лекцию/тренировку
+                    + Добавить лекцию
+                </button>
+            </div>
+
+            {/* 9. Тренировки (отдельно) */}
+            <div className="modern-card p-6">
+                <h3 className="text-lg font-semibold mb-4">9. Тренировки</h3>
+                {trainings.map((item, index) => (
+                    <div key={index} className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2">
+                        <input
+                            type="text"
+                            value={item.name}
+                            onChange={(e) => handleItemChange(setTrainings, trainings, index, 'name', e.target.value)}
+                            placeholder="Название тренировки"
+                            className="px-3 py-2 border border-input rounded-md bg-background"
+                        />
+                        <div className="flex gap-2">
+                            <input
+                                type="text"
+                                value={item.link}
+                                onChange={(e) => handleItemChange(setTrainings, trainings, index, 'link', e.target.value)}
+                                placeholder="Ссылка"
+                                className="flex-1 px-3 py-2 border border-input rounded-md bg-background"
+                            />
+                            <button
+                                onClick={() => handleRemoveItem(setTrainings, trainings, index)}
+                                className="px-3 py-2 bg-red-500/20 text-red-500 rounded-md hover:bg-red-500/30"
+                            >
+                                ✕
+                            </button>
+                        </div>
+                    </div>
+                ))}
+                <button
+                    onClick={() => handleAddItem(setTrainings, trainings, { name: '', link: '' })}
+                    className="mt-2 px-4 py-2 bg-primary/20 text-primary rounded-md hover:bg-primary/30"
+                >
+                    + Добавить тренировку
+                </button>
+            </div>
+
+            {/* 9. Мероприятия (отдельно) */}
+            <div className="modern-card p-6">
+                <h3 className="text-lg font-semibold mb-4">9. Мероприятия</h3>
+                {events.map((item, index) => (
+                    <div key={index} className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2">
+                        <input
+                            type="text"
+                            value={item.name}
+                            onChange={(e) => handleItemChange(setEvents, events, index, 'name', e.target.value)}
+                            placeholder="Название мероприятия"
+                            className="px-3 py-2 border border-input rounded-md bg-background"
+                        />
+                        <div className="flex gap-2">
+                            <input
+                                type="text"
+                                value={item.link}
+                                onChange={(e) => handleItemChange(setEvents, events, index, 'link', e.target.value)}
+                                placeholder="Ссылка"
+                                className="flex-1 px-3 py-2 border border-input rounded-md bg-background"
+                            />
+                            <button
+                                onClick={() => handleRemoveItem(setEvents, events, index)}
+                                className="px-3 py-2 bg-red-500/20 text-red-500 rounded-md hover:bg-red-500/30"
+                            >
+                                ✕
+                            </button>
+                        </div>
+                    </div>
+                ))}
+                <button
+                    onClick={() => handleAddItem(setEvents, events, { name: '', link: '' })}
+                    className="mt-2 px-4 py-2 bg-primary/20 text-primary rounded-md hover:bg-primary/30"
+                >
+                    + Добавить мероприятие
                 </button>
             </div>
 
@@ -664,6 +793,35 @@ const LeaderReportGenerator = () => {
                 </button>
             </div>
 
+            {/* 13. Построения (НОВОЕ) */}
+            <div className="modern-card p-6 border-2 border-green-500/30">
+                <h3 className="text-lg font-semibold mb-4">13. Проведение двух построений состава</h3>
+                <p className="text-sm text-muted-foreground mb-4">Добавьте ссылки на проведенные построения</p>
+                {formations.map((item, index) => (
+                    <div key={index} className="flex gap-2 mb-2">
+                        <input
+                            type="text"
+                            value={item.link}
+                            onChange={(e) => handleItemChange(setFormations, formations, index, 'link', e.target.value)}
+                            placeholder="Ссылка на построение"
+                            className="flex-1 px-3 py-2 border border-input rounded-md bg-background"
+                        />
+                        <button
+                            onClick={() => handleRemoveItem(setFormations, formations, index)}
+                            className="px-3 py-2 bg-red-500/20 text-red-500 rounded-md hover:bg-red-500/30"
+                        >
+                            ✕
+                        </button>
+                    </div>
+                ))}
+                <button
+                    onClick={() => handleAddItem(setFormations, formations, { link: '' })}
+                    className="mt-2 px-4 py-2 bg-primary/20 text-primary rounded-md hover:bg-primary/30"
+                >
+                    + Добавить построение
+                </button>
+            </div>
+
             {/* Кнопка копирования */}
             <div className="modern-card p-6 bg-primary/5 border-primary/20">
                 <div className="flex items-center justify-between">
@@ -683,7 +841,7 @@ const LeaderReportGenerator = () => {
             {/* Предпросмотр отчета */}
             <div className="modern-card p-6">
                 <h3 className="text-lg font-semibold mb-4">Предпросмотр отчета</h3>
-                <pre className="bg-muted p-4 rounded-lg text-sm whitespace-pre-wrap font-mono overflow-x-auto">
+                <pre className="bg-muted p-4 rounded-lg text-sm whitespace-pre-wrap font-mono overflow-x-auto max-h-96 overflow-y-auto">
                     {generateReport()}
                 </pre>
             </div>
