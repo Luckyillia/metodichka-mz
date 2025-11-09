@@ -29,7 +29,6 @@ const GSReportGenerator: React.FC = () => {
     const {
         cities,
         setCities,
-        //addCity,
         removeCity,
         updateCity,
         updateParsedData,
@@ -45,7 +44,7 @@ const GSReportGenerator: React.FC = () => {
     } = useLeaderReports(cities, setCities);
 
     // Генерация отчета
-    const { copyReport } = useReportGeneration();
+    const { copyReport, downloadDocxReport } = useReportGeneration();
 
     // Обработчики для списков
     const handleAddItem = (cityIndex: number, field: string, template: any) => {
@@ -81,7 +80,6 @@ const GSReportGenerator: React.FC = () => {
         setCities(newCities);
     };
 
-    // ИСПРАВЛЕННЫЙ ОБРАБОТЧИК - теперь он правильно вызывает parseAndMergeLeaderReport
     const handleReportPaste = (cityIndex: number, reportIndex: number, text: string) => {
         console.log('handleReportPaste called:', { cityIndex, reportIndex, textLength: text.length });
         parseAndMergeLeaderReport(text, cityIndex, reportIndex);
@@ -168,6 +166,15 @@ const GSReportGenerator: React.FC = () => {
             <CopyButton
                 cities={cities}
                 onCopy={() => copyReport(
+                    gsNickname,
+                    organization,
+                    dateFrom,
+                    dateTo,
+                    cities,
+                    grpEvents,
+                    generalInfo
+                )}
+                onDownloadDocx={() => downloadDocxReport(
                     gsNickname,
                     organization,
                     dateFrom,

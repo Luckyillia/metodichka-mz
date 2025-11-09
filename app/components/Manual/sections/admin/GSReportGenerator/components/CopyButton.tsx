@@ -10,9 +10,10 @@ import {
 interface CopyButtonProps {
     cities: CityData[];
     onCopy: () => void;
+    onDownloadDocx: () => void;
 }
 
-export const CopyButton: React.FC<CopyButtonProps> = ({ cities, onCopy }) => {
+export const CopyButton: React.FC<CopyButtonProps> = ({ cities, onCopy, onDownloadDocx }) => {
     const totalInterviews = calculateTotalInterviews(cities);
     const totalHired = calculateTotalHired(cities);
     const totalWarnings = calculateTotalWarnings(cities);
@@ -29,12 +30,20 @@ export const CopyButton: React.FC<CopyButtonProps> = ({ cities, onCopy }) => {
                         Выговоров: {totalWarnings}
                     </p>
                 </div>
-                <button
-                    onClick={onCopy}
-                    className={BUTTON_CLASSES.primary}
-                >
-                    📋 Скопировать отчет ГС
-                </button>
+                <div className="flex flex-col sm:flex-row gap-3">
+                    <button
+                        onClick={onDownloadDocx}
+                        className="px-8 py-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all font-semibold text-lg shadow-lg"
+                    >
+                        📥 Скачать .docx
+                    </button>
+                    <button
+                        onClick={onCopy}
+                        className={BUTTON_CLASSES.primary}
+                    >
+                        📋 Копировать текст
+                    </button>
+                </div>
             </div>
         </div>
     );

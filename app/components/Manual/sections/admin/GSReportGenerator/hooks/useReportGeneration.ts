@@ -1,4 +1,4 @@
-import { generateReport } from '../utils';
+import { generateReport, generateDocxReport } from '../utils';
 import { CityData } from '../types';
 
 export const useReportGeneration = () => {
@@ -24,5 +24,31 @@ export const useReportGeneration = () => {
         alert('Отчет ГС скопирован в буфер обмена!');
     };
 
-    return { copyReport };
+    const downloadDocxReport = async (
+        gsNickname: string,
+        organization: string,
+        dateFrom: string,
+        dateTo: string,
+        cities: CityData[],
+        grpEvents: string,
+        generalInfo: string
+    ) => {
+        try {
+            await generateDocxReport(
+                gsNickname,
+                organization,
+                dateFrom,
+                dateTo,
+                cities,
+                grpEvents,
+                generalInfo
+            );
+            alert('Отчет ГС успешно скачан!');
+        } catch (error) {
+            console.error('Ошибка при создании документа:', error);
+            alert('Ошибка при создании документа. Попробуйте снова.');
+        }
+    };
+
+    return { copyReport, downloadDocxReport };
 };
