@@ -6,6 +6,7 @@ import "./styles/globals.css"
 import { Suspense } from "react"
 import { AuthProvider } from "@/lib/auth/auth-context"
 import type { Metadata } from "next"
+import { AppFooter } from "@/app/components/common/AppFooter"
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" })
 const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair" })
@@ -40,8 +41,9 @@ export default function RootLayout({
       <Suspense fallback={null}>
         <AuthProvider>
           {children}
+          <AppFooter />
           <Analytics />
-            <SpeedInsights />
+          <SpeedInsights />
         </AuthProvider>
       </Suspense>
       </body>

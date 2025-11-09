@@ -40,10 +40,16 @@ export default function Header() {
   }, [showThemeMenu])
 
   const changeTheme = (theme: Theme) => {
-    setCurrentTheme(theme)
-    localStorage.setItem('theme', theme)
-    document.documentElement.className = theme
-    setShowThemeMenu(false)
+    setCurrentTheme(theme);
+    localStorage.setItem('theme', theme);
+    document.documentElement.className = theme;
+    
+    // Dispatch a custom event when theme changes
+    window.dispatchEvent(new CustomEvent('theme-changed', {
+      detail: { theme }
+    }));
+    
+    setShowThemeMenu(false);
   }
 
   const handleLogout = () => {
