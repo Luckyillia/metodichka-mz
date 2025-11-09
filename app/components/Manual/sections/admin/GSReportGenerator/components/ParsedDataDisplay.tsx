@@ -28,19 +28,35 @@ export const ParsedDataDisplay: React.FC<ParsedDataDisplayProps> = ({
             </h4>
             
             <div className="space-y-4">
-                {/* Статистика */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    <StatCard label="Принято" value={data.totalHired} />
-                    <StatCard label="Уволено ПСЖ" value={data.firedPSJ} />
-                    <StatCard label="Обзвонов" value={data.callsPerWeek} />
-                    <StatCard label="Выговоров" value={data.warnings.length} />
+                {/* Основная статистика */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+                    <StatCard label="Принято всего" value={data.totalHired} />
+                    <StatCard label="Принято с обзвона" value={data.callsAccepted} />
+                    <StatCard label="Обзвонов проведено" value={data.callsPerWeek} />
+                    <StatCard label="Выговоров выдано" value={data.warnings.length} />
                 </div>
 
-                {/* Состав */}
+                {/* Статистика увольнений */}
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-4 p-3 bg-white/5 rounded-lg border border-green-500/20">
+                    <div>
+                        <h5 className="text-xs text-purple-300 mb-1">Уволено ПСЖ</h5>
+                        <div className="text-xl font-bold text-white">{data.firedPSJ}</div>
+                    </div>
+                    <div>
+                        <h5 className="text-xs text-purple-300 mb-1">Уволено с ОЧС</h5>
+                        <div className="text-xl font-bold text-white">{data.firedOCS}</div>
+                    </div>
+                    <div>
+                        <h5 className="text-xs text-purple-300 mb-1">Всего уволено</h5>
+                        <div className="text-xl font-bold text-white">{data.firedPSJ + data.firedOCS}</div>
+                    </div>
+                </div>
+
+                {/* Состав сотрудников */}
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                     {['firstRanks', 'middleStaff', 'seniorStaff', 'managementStaff', 'totalStaff'].map((field, idx) => (
-                        <div key={field}>
-                            <label className="block text-xs text-purple-300 mb-1">
+                        <div key={field} className="space-y-1">
+                            <label className="block text-xs text-purple-300">
                                 {['Младший', 'Средний', 'Старший', 'Руководящий', 'Всего'][idx]}
                             </label>
                             <input
