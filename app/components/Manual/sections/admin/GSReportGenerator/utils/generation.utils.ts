@@ -69,13 +69,18 @@ export const generateReport = (
     });
     sections.push('');
     
+
     // 5) Состав сотрудников
     sections.push(`5) Количество сотрудников во фракции на момент сдачи отчета — первые ранги, младший состав, средний состав, старший состав, общее количество.\n`);
     cities.forEach(city => {
+        const seniorStaffNum = parseInt(city.parsedData.seniorStaff || '0');
+        const managementStaffNum = parseInt(city.parsedData.managementStaff || '0');
+        const combinedSeniorStaff = seniorStaffNum + managementStaffNum;
+        
         sections.push(`${city.name || 'Город'}:`);
         sections.push(`Младший состав - ${city.parsedData.firstRanks || '0'}`);
         sections.push(`Средний состав - ${city.parsedData.middleStaff || '0'}`);
-        sections.push(`Старший состав - ${city.parsedData.seniorStaff || '0'}`);
+        sections.push(`Старший состав - ${combinedSeniorStaff}`);
         sections.push(`Общее количество - ${city.parsedData.totalStaff || '0'}`);
         sections.push('');
     });

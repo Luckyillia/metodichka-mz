@@ -86,10 +86,14 @@ export const generateDocxReport = async (
     // 5) Состав сотрудников
     addSectionHeader(`5) Количество сотрудников во фракции на момент сдачи отчета — первые ранги, младший состав, средний состав, старший состав, общее количество.`);
     cities.forEach(city => {
+        const seniorStaffNum = parseInt(city.parsedData.seniorStaff || '0');
+        const managementStaffNum = parseInt(city.parsedData.managementStaff || '0');
+        const combinedSeniorStaff = seniorStaffNum + managementStaffNum;
+        
         addText(`${city.name || 'Город'}:`);
         addText(`Младший состав - ${city.parsedData.firstRanks || '0'}`);
         addText(`Средний состав - ${city.parsedData.middleStaff || '0'}`);
-        addText(`Старший состав - ${city.parsedData.seniorStaff || '0'}`);
+        addText(`Старший состав - ${combinedSeniorStaff}`);
         addText(`Общее количество - ${city.parsedData.totalStaff || '0'}`);
         addEmptyLine();
     });
