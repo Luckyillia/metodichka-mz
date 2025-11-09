@@ -81,6 +81,12 @@ const GSReportGenerator: React.FC = () => {
         setCities(newCities);
     };
 
+    // ИСПРАВЛЕННЫЙ ОБРАБОТЧИК - теперь он правильно вызывает parseAndMergeLeaderReport
+    const handleReportPaste = (cityIndex: number, reportIndex: number, text: string) => {
+        console.log('handleReportPaste called:', { cityIndex, reportIndex, textLength: text.length });
+        parseAndMergeLeaderReport(text, cityIndex, reportIndex);
+    };
+
     const report = generateReport(
         gsNickname,
         organization,
@@ -120,7 +126,7 @@ const GSReportGenerator: React.FC = () => {
                     onClearData={clearCityData}
                     onRemoveCity={removeCity}
                     onReportChange={handleReportChange}
-                    onReportPaste={parseAndMergeLeaderReport}
+                    onReportPaste={handleReportPaste}
                     onAddReport={addLeaderReportField}
                     onRemoveReport={removeLeaderReportField}
                     onUnlockReport={unlockLeaderReport}
@@ -129,16 +135,6 @@ const GSReportGenerator: React.FC = () => {
                     onItemChange={handleItemChange}
                 />
             ))}
-
-            {/* Кнопка добавления города - ВРЕМЕННО ОТКЛЮЧЕНА */}
-            {/* 
-            <button
-                onClick={addCity}
-                className="w-full py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl hover:from-purple-600 hover:to-pink-600 transition-all font-semibold text-lg shadow-lg"
-            >
-                ➕ Добавить еще один город
-            </button>
-            */}
 
             {/* ГРП мероприятия */}
             <div className="bg-gray-900/80 backdrop-blur-lg rounded-2xl p-6 border border-gray-700/50 shadow-xl">

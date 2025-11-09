@@ -1,3 +1,4 @@
+// Исправленный LeaderReportInput.tsx
 import React from 'react';
 import { INPUT_CLASSES, BUTTON_CLASSES } from '../constants';
 
@@ -20,6 +21,28 @@ export const LeaderReportInput: React.FC<LeaderReportInputProps> = ({
     onRemoveReport,
     onUnlock
 }) => {
+    const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>, reportIndex: number) => {
+        const isParsed = reports[reportIndex].trim().length > 50;
+        if (isParsed) return;
+        
+        e.preventDefault();
+        const pastedText = e.clipboardData.getData('text');
+        
+        console.log('Paste event triggered:', {
+            cityIndex,
+            reportIndex,
+            textLength: pastedText.length,
+            preview: pastedText.substring(0, 100)
+        });
+        
+        if (!pastedText.trim()) {
+            console.log('Empty paste, ignoring');
+            return;
+        }
+        
+        onReportPaste(cityIndex, reportIndex, pastedText);
+    };
+
     return (
         <div className="bg-gradient-to-r from-gray-800/30 to-gray-800/10 border border-gray-700/40 rounded-xl p-4">
             <h4 className="text-lg font-semibold text-blue-300 mb-3">
@@ -54,13 +77,7 @@ export const LeaderReportInput: React.FC<LeaderReportInputProps> = ({
                             placeholder={`Вставьте сюда отчет лидера за неделю ${reportIndex + 1}. Данные автоматически суммируются с другими отчетами.`}
                             rows={10}
                             className={`${INPUT_CLASSES.textarea} ${isParsed ? INPUT_CLASSES.textareaParsed : INPUT_CLASSES.textareaActive}`}
-                            onPaste={(e) => {
-                                if (isParsed) return;
-                                const pastedText = e.clipboardData.getData('text');
-                                if (!pastedText.trim()) return;
-                                onReportPaste(cityIndex, reportIndex, pastedText);
-                                e.preventDefault();
-                            }}
+                            onPaste={(e) => handlePaste(e, reportIndex)}
                         />
                         {isParsed && (
                             <button

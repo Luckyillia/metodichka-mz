@@ -10,14 +10,37 @@ export const useLeaderReports = (
         cityIndex: number,
         reportIndex: number
     ) => {
-        const newCities = [...cities];
-        const parsedData = parseLeaderReport(text);
-        newCities[cityIndex].parsedData = mergeData(
-            newCities[cityIndex].parsedData,
-            parsedData
-        );
-        newCities[cityIndex].leaderReports[reportIndex] = text;
-        setCities(newCities);
+        console.log('parseAndMergeLeaderReport started:', {
+            cityIndex,
+            reportIndex,
+            textLength: text.length,
+            citiesLength: cities.length
+        });
+
+        try {
+            const newCities = [...cities];
+            
+            console.log('Parsing report...');
+            const parsedData = parseLeaderReport(text);
+            console.log('Parsed data:', parsedData);
+            
+            console.log('Current parsed data before merge:', newCities[cityIndex].parsedData);
+            
+            newCities[cityIndex].parsedData = mergeData(
+                newCities[cityIndex].parsedData,
+                parsedData
+            );
+            
+            console.log('Merged data:', newCities[cityIndex].parsedData);
+            
+            newCities[cityIndex].leaderReports[reportIndex] = text;
+            
+            console.log('Setting new cities state');
+            setCities(newCities);
+            console.log('State updated successfully');
+        } catch (error) {
+            console.error('Error in parseAndMergeLeaderReport:', error);
+        }
     };
 
     const addLeaderReportField = (cityIndex: number) => {
