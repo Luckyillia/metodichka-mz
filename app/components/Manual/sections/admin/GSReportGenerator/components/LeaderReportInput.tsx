@@ -37,15 +37,14 @@ export const LeaderReportInput: React.FC<LeaderReportInputProps> = ({
         
         if (!pastedText.trim()) {
             console.log('Empty paste, ignoring');
-            return;
         }
         
         onReportPaste(cityIndex, reportIndex, pastedText);
     };
 
     return (
-        <div className="bg-gradient-to-r from-gray-800/30 to-gray-800/10 border border-gray-700/40 rounded-xl p-4">
-            <h4 className="text-lg font-semibold text-blue-300 mb-3">
+        <div className="bg-card/50 border-2 border-border rounded-xl p-4">
+            <h4 className="text-lg font-semibold text-primary mb-3">
                 📋 Вставьте отчеты лидера (за разные недели)
             </h4>
             {reports.map((report, reportIndex) => {
@@ -53,10 +52,10 @@ export const LeaderReportInput: React.FC<LeaderReportInputProps> = ({
                 return (
                     <div key={reportIndex} className="mb-4">
                         <div className="flex items-center justify-between mb-2">
-                            <label className="text-sm font-medium text-blue-200 flex items-center gap-2">
+                            <label className="text-sm font-medium text-foreground flex items-center gap-2">
                                 Отчет #{reportIndex + 1}
                                 {isParsed && (
-                                    <span className="text-xs bg-green-500/20 text-green-300 px-2 py-0.5 rounded border border-green-500/30">
+                                    <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded border border-primary/30">
                                         ✓ Распарсен
                                     </span>
                                 )}
@@ -64,7 +63,7 @@ export const LeaderReportInput: React.FC<LeaderReportInputProps> = ({
                             {reports.length > 1 && (
                                 <button
                                     onClick={() => onRemoveReport(cityIndex, reportIndex)}
-                                    className="px-3 py-1 bg-red-500/20 text-red-300 rounded-lg hover:bg-red-500/30 text-sm border border-red-500/30"
+                                    className="px-3 py-1 bg-destructive/20 text-destructive rounded-lg hover:bg-destructive/30 text-sm border border-destructive/30"
                                 >
                                     ✕ Удалить
                                 </button>
@@ -82,7 +81,7 @@ export const LeaderReportInput: React.FC<LeaderReportInputProps> = ({
                         {isParsed && (
                             <button
                                 onClick={() => onUnlock(cityIndex, reportIndex)}
-                                className="mt-2 px-3 py-1 bg-orange-500/20 text-orange-300 rounded-lg hover:bg-orange-500/30 text-xs border border-orange-500/30"
+                                className="mt-2 px-3 py-1 bg-accent/20 text-accent-foreground rounded-lg hover:bg-accent/30 text-xs border border-accent/30"
                             >
                                 🔓 Разблокировать для редактирования
                             </button>
@@ -96,7 +95,7 @@ export const LeaderReportInput: React.FC<LeaderReportInputProps> = ({
             >
                 ➕ Добавить еще один отчет лидера
             </button>
-            <p className="text-xs text-blue-300 mt-3 leading-relaxed">
+            <p className="text-xs text-muted-foreground mt-3 leading-relaxed">
                 💡 Совет: Вставляйте каждый недельный отчет лидера в отдельное поле. Программа автоматически:
                 <br />• Суммирует принятых/уволенных/обзвоны/фонды
                 <br />• Объединяет собеседования/лекции/мероприятия без дубликатов

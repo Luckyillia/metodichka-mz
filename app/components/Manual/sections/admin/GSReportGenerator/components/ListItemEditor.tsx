@@ -1,6 +1,5 @@
 import React from 'react';
 import { ItemType } from '../types';
-import { INPUT_CLASSES, BUTTON_CLASSES } from '../constants';
 
 interface ListItemEditorProps {
     items: any[];
@@ -21,7 +20,7 @@ export const ListItemEditor: React.FC<ListItemEditorProps> = ({
     cityIndex,
     field
 }) => {
-    const getTemplate = () => {
+    const getTemplate = (): any => {
         switch (itemType) {
             case 'link':
                 return { link: '' };
@@ -29,6 +28,8 @@ export const ListItemEditor: React.FC<ListItemEditorProps> = ({
                 return { name: '', link: '' };
             case 'warning':
                 return { nickname: '', reason: '' };
+            default:
+                return {};
         }
     };
 
@@ -39,13 +40,21 @@ export const ListItemEditor: React.FC<ListItemEditorProps> = ({
                     {items.map((item, idx) => (
                         <div key={idx} className="flex gap-2 items-center">
                             {itemType === 'link' && (
-                                <input
-                                    type="text"
-                                    value={item.link}
-                                    onChange={(e) => onChange(cityIndex, field, idx, 'link', e.target.value)}
-                                    placeholder="https://..."
-                                    className={INPUT_CLASSES.listItem}
-                                />
+                                <>
+                                    <input
+                                        type="text"
+                                        value={item.link}
+                                        onChange={(e) => onChange(cityIndex, field, idx, 'link', e.target.value)}
+                                        className="flex-1 px-3 py-2 bg-green-500/10 border border-green-500/30 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                                    />
+                                    <button
+                                        onClick={() => onRemove(cityIndex, field, idx)}
+                                        className="px-2 py-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition-colors text-xs border border-red-500/30 flex-shrink-0"
+                                        title="Удалить"
+                                    >
+                                        ✕
+                                    </button>
+                                </>
                             )}
                             {itemType === 'nameLink' && (
                                 <>
@@ -54,15 +63,22 @@ export const ListItemEditor: React.FC<ListItemEditorProps> = ({
                                         value={item.name}
                                         onChange={(e) => onChange(cityIndex, field, idx, 'name', e.target.value)}
                                         placeholder="Название"
-                                        className={INPUT_CLASSES.listItem}
+                                        className="flex-1 px-3 py-2 bg-green-500/10 border border-green-500/30 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
                                     />
                                     <input
                                         type="text"
                                         value={item.link}
                                         onChange={(e) => onChange(cityIndex, field, idx, 'link', e.target.value)}
                                         placeholder="https://..."
-                                        className={INPUT_CLASSES.listItem}
+                                        className="flex-1 px-3 py-2 bg-green-500/10 border border-green-500/30 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
                                     />
+                                    <button
+                                        onClick={() => onRemove(cityIndex, field, idx)}
+                                        className="px-2 py-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition-colors text-xs border border-red-500/30 flex-shrink-0"
+                                        title="Удалить"
+                                    >
+                                        ✕
+                                    </button>
                                 </>
                             )}
                             {itemType === 'warning' && (
@@ -71,37 +87,39 @@ export const ListItemEditor: React.FC<ListItemEditorProps> = ({
                                         type="text"
                                         value={item.nickname}
                                         onChange={(e) => onChange(cityIndex, field, idx, 'nickname', e.target.value)}
-                                        placeholder="Nick_Name"
-                                        className={INPUT_CLASSES.listItem}
+                                        placeholder="Никнейм"
+                                        className="flex-1 px-3 py-2 bg-green-500/10 border border-green-500/30 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
                                     />
                                     <input
                                         type="text"
                                         value={item.reason}
                                         onChange={(e) => onChange(cityIndex, field, idx, 'reason', e.target.value)}
                                         placeholder="Причина"
-                                        className={INPUT_CLASSES.listItem}
+                                        className="flex-1 px-3 py-2 bg-green-500/10 border border-green-500/30 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
                                     />
+                                    <button
+                                        onClick={() => onRemove(cityIndex, field, idx)}
+                                        className="px-2 py-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition-colors text-xs border border-red-500/30 flex-shrink-0"
+                                        title="Удалить"
+                                    >
+                                        ✕
+                                    </button>
                                 </>
                             )}
-                            <button
-                                onClick={() => onRemove(cityIndex, field, idx)}
-                                className="px-2 py-2 bg-gray-800/70 text-gray-200 rounded-lg hover:bg-gray-700/70 transition-colors text-xs border border-gray-600/50 flex-shrink-0 hover:border-gray-500/50"
-                                title="Удалить"
-                            >
-                                ✕
-                            </button>
                         </div>
                     ))}
                 </div>
             ) : (
-                <p className="text-sm text-gray-400 py-2">Нет данных</p>
+                <p className="text-sm text-muted-foreground py-2">Нет данных</p>
             )}
             <button
                 onClick={() => onAdd(cityIndex, field, getTemplate())}
-                className={BUTTON_CLASSES.add}
+                className="mt-2 px-3 py-1.5 bg-green-500/10 text-green-400 rounded-lg hover:bg-green-500/20 transition-colors text-xs border border-green-500/30 font-medium flex items-center gap-1"
             >
                 + Добавить
             </button>
         </div>
     );
 };
+
+export default ListItemEditor;

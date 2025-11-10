@@ -135,8 +135,8 @@ const GSReportGenerator: React.FC = () => {
             ))}
 
             {/* ГРП мероприятия */}
-            <div className="bg-gray-900/80 backdrop-blur-lg rounded-2xl p-6 border border-gray-700/50 shadow-xl">
-                <h3 className="text-xl font-semibold text-white mb-4">
+            <div className="bg-card backdrop-blur-lg rounded-2xl p-6 border-2 border-border shadow-xl">
+                <h3 className="text-xl font-semibold text-foreground mb-4">
                     16. Мероприятия с ГРП (для всей организации)
                 </h3>
                 <textarea
@@ -144,13 +144,13 @@ const GSReportGenerator: React.FC = () => {
                     onChange={(e) => setGrpEvents(e.target.value)}
                     placeholder="Описание мероприятий при непосредственном участии администрации (ГРП) для всех городов..."
                     rows={4}
-                    className="w-full px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all"
+                    className="w-full px-4 py-2 bg-card border-2 border-border rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-all"
                 />
             </div>
 
             {/* Общее положение дел */}
-            <div className="bg-gray-900/80 backdrop-blur-lg rounded-2xl p-6 border border-gray-700/50 shadow-xl">
-                <h3 className="text-xl font-semibold text-white mb-4">
+            <div className="bg-card backdrop-blur-lg rounded-2xl p-6 border-2 border-border shadow-xl">
+                <h3 className="text-xl font-semibold text-foreground mb-4">
                     17. Общее положение дел во фракции
                 </h3>
                 <textarea
@@ -158,7 +158,7 @@ const GSReportGenerator: React.FC = () => {
                     onChange={(e) => setGeneralInfo(e.target.value)}
                     placeholder="Изменения в работе фракции, стабильность, качество состава, трудности, планы..."
                     rows={4}
-                    className="w-full px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all"
+                    className="w-full px-4 py-2 bg-card border-2 border-border rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-all"
                 />
             </div>
 

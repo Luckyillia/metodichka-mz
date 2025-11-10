@@ -23,13 +23,13 @@ export const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
     onDateToChange
 }) => {
     return (
-        <div className="bg-gray-900/80 backdrop-blur-lg rounded-2xl p-6 border border-gray-700/50 shadow-xl">
-            <h3 className="text-xl font-semibold text-white mb-4 border-b border-gray-600/40 pb-2">
+        <div className="bg-card backdrop-blur-lg rounded-2xl p-6 border-2 border-border shadow-xl">
+            <h3 className="text-xl font-semibold text-foreground mb-4 border-b border-border pb-2">
                 Основная информация
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">Никнейм ГС</label>
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">Никнейм ГС</label>
                     <input
                         type="text"
                         value={gsNickname}
@@ -39,7 +39,7 @@ export const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
                     />
                 </div>
                 <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">Организация</label>
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">Организация</label>
                     <input
                         type="text"
                         value={organization}
@@ -49,7 +49,7 @@ export const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
                     />
                 </div>
                 <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">Период с</label>
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">Период с</label>
                     <input
                         type="text"
                         value={dateFrom}
@@ -59,7 +59,7 @@ export const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
                     />
                 </div>
                 <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">Период по</label>
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">Период по</label>
                     <input
                         type="text"
                         value={dateTo}

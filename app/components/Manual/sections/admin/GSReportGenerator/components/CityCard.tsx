@@ -41,14 +41,14 @@ export const CityCard: React.FC<CityCardProps> = ({
     onItemChange
 }) => {
     return (
-        <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 shadow-xl">
+        <div className="bg-card backdrop-blur-lg rounded-2xl p-6 border-2 border-border shadow-xl">
             <div className="flex items-center justify-between mb-6">
                 <div>
-                    <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+                    <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
                         <span className="text-2xl">🏥</span>
                         {city.name || `Город #${cityIndex + 1}`}
                     </h2>
-                    <p className="text-sm text-gray-300 mt-1">
+                    <p className="text-sm text-muted-foreground mt-1">
                         📋 Вставлено отчетов: {city.leaderReports.filter(r => r.trim()).length} | 
                         📊 Собеседований: {city.parsedData.interviews.length} | 
                         👥 Принято: {city.parsedData.totalHired} | 
@@ -77,7 +77,7 @@ export const CityCard: React.FC<CityCardProps> = ({
             <div className="space-y-6">
                 {/* Название города */}
                 <div>
-                    <label className="block text-sm font-medium text-purple-200 mb-2">Название города</label>
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">Название города</label>
                     <input
                         type="text"
                         value={city.name}
