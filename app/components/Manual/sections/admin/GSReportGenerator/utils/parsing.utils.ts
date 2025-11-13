@@ -127,6 +127,26 @@ export const extractEventItems = (section: string): EventItem[] => {
         
         const link = cleanLink(linkMatch[0]);
         
+        // Паттерн 0: "- Лекция "Название" - ссылка" (начинается с дефиса)
+        const match0 = trimmedLine.match(/^-\s*(?:Лекция|Тренировка|Мероприятие)\s+["']([^"']+)["']\s*[-:]/i);
+        if (match0) {
+            items.push({
+                name: cleanText(match0[1]),
+                link: link
+            });
+            return;
+        }
+        
+        // Паттерн 0.1: "- Лекция "Название": ссылка" (с двоеточием вместо тире)
+        const match0_1 = trimmedLine.match(/^-\s*(?:Лекция|Тренировка|Мероприятие)\s+["']([^"']+)["']\s*:\s*https?/i);
+        if (match0_1) {
+            items.push({
+                name: cleanText(match0_1[1]),
+                link: link
+            });
+            return;
+        }
+        
         // Паттерн 1: "Лекция "Название" - ссылка" или "1. Лекция "Название" - ссылка"
         const match1 = trimmedLine.match(/^(?:\d+\.?\d*\.?\s*)?(?:Лекция|Тренировка|Мероприятие)\s+["']([^"']+)["']\s*[-:]/i);
         if (match1) {
