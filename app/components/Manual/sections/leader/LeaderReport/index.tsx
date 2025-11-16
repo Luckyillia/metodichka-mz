@@ -10,6 +10,7 @@ import { NamedLinkList } from './components/NamedLinkList';
 import { WarningList } from './components/WarningList';
 import { EvaluationList } from './components/EvaluationList';
 import { SectionCard } from './components/SectionCard';
+import { SSReportParser, ParsedSSData } from './components/SSReportParser';
 
 const LeaderReport: React.FC = () => {
   const [reportData, setReportData] = useState<ReportData>({
@@ -47,6 +48,53 @@ const LeaderReport: React.FC = () => {
     setReportData(prev => ({ ...prev, [field]: value }));
   };
 
+  const handleSSReportParse = (parsed: ParsedSSData) => {
+    console.log('Получены данные из парсера:', parsed);
+    
+    setReportData(prev => {
+      // Функция для фильтрации пустых элементов
+      const filterEmpty = <T extends { link?: string; name?: string }>(items: T[]): T[] => {
+        return items.filter(item => {
+          if ('name' in item && 'link' in item) {
+            return item.name?.trim() || item.link?.trim();
+          }
+          if ('link' in item) {
+            return item.link?.trim();
+          }
+          return false;
+        });
+      };
+
+      // Объединяем собеседования
+      const existingInterviews = filterEmpty(prev.interviews);
+      const newInterviews = [...existingInterviews, ...parsed.interviews];
+      console.log('Собеседования:', newInterviews);
+
+      // Объединяем лекции
+      const existingLectures = filterEmpty(prev.lectures);
+      const newLectures = [...existingLectures, ...parsed.lectures];
+      console.log('Лекции:', newLectures);
+
+      // Объединяем тренировки
+      const existingTrainings = filterEmpty(prev.trainings);
+      const newTrainings = [...existingTrainings, ...parsed.trainings];
+      console.log('Тренировки:', newTrainings);
+
+      // Объединяем мероприятия
+      const existingEvents = filterEmpty(prev.events);
+      const newEvents = [...existingEvents, ...parsed.events];
+      console.log('Мероприятия:', newEvents);
+
+      return {
+        ...prev,
+        interviews: newInterviews.length > 0 ? newInterviews : [{ link: '' }],
+        lectures: newLectures.length > 0 ? newLectures : [{ name: '', link: '' }],
+        trainings: newTrainings.length > 0 ? newTrainings : [{ name: '', link: '' }],
+        events: newEvents.length > 0 ? newEvents : [{ name: '', link: '' }],
+      };
+    });
+  };
+
   const copyReport = () => {
     const report = generateReport(reportData);
     navigator.clipboard.writeText(report);
@@ -64,6 +112,9 @@ const LeaderReport: React.FC = () => {
           <p className="text-sm text-muted-foreground">Заполните все поля для формирования отчета</p>
         </div>
       </div>
+
+      {/* Парсер отчетов СС */}
+      <SSReportParser onParse={handleSSReportParse} />
 
       <SectionCard title="Основная информация">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -132,34 +183,56 @@ const LeaderReport: React.FC = () => {
         </div>
       </SectionCard>
 
-      <SectionCard title="9. Лекции">
-        <NamedLinkList 
-          items={reportData.lectures} 
-          onChange={(v) => updateField('lectures', v)}
-          namePlaceholder="Название лекции"
-          linkPlaceholder="Ссылка"
-          addButtonText="+ Добавить лекцию"
-        />
-      </SectionCard>
+      <SectionCard title="9. Лекции, тренировки и мероприятия во фракции">
+        <div className="space-y-6">
+          <div>
+            <h4 className="text-md font-semibold mb-3 flex items-center gap-2">
+              📚 Лекции
+              <span className="text-xs text-muted-foreground font-normal">
+                ({reportData.lectures.filter(l => l.name || l.link).length})
+              </span>
+            </h4>
+            <NamedLinkList 
+              items={reportData.lectures} 
+              onChange={(v) => updateField('lectures', v)}
+              namePlaceholder="Название лекции"
+              linkPlaceholder="Ссылка"
+              addButtonText="+ Добавить лекцию"
+            />
+          </div>
 
-      <SectionCard title="9. Тренировки">
-        <NamedLinkList 
-          items={reportData.trainings} 
-          onChange={(v) => updateField('trainings', v)}
-          namePlaceholder="Название тренировки"
-          linkPlaceholder="Ссылка"
-          addButtonText="+ Добавить тренировку"
-        />
-      </SectionCard>
+          <div className="border-t pt-6">
+            <h4 className="text-md font-semibold mb-3 flex items-center gap-2">
+              🏃 Тренировки
+              <span className="text-xs text-muted-foreground font-normal">
+                ({reportData.trainings.filter(t => t.name || t.link).length})
+              </span>
+            </h4>
+            <NamedLinkList 
+              items={reportData.trainings} 
+              onChange={(v) => updateField('trainings', v)}
+              namePlaceholder="Название тренировки"
+              linkPlaceholder="Ссылка"
+              addButtonText="+ Добавить тренировку"
+            />
+          </div>
 
-      <SectionCard title="9. Мероприятия">
-        <NamedLinkList 
-          items={reportData.events} 
-          onChange={(v) => updateField('events', v)}
-          namePlaceholder="Название мероприятия"
-          linkPlaceholder="Ссылка"
-          addButtonText="+ Добавить мероприятие"
-        />
+          <div className="border-t pt-6">
+            <h4 className="text-md font-semibold mb-3 flex items-center gap-2">
+              🎉 Мероприятия
+              <span className="text-xs text-muted-foreground font-normal">
+                ({reportData.events.filter(e => e.name || e.link).length})
+              </span>
+            </h4>
+            <NamedLinkList 
+              items={reportData.events} 
+              onChange={(v) => updateField('events', v)}
+              namePlaceholder="Название мероприятия"
+              linkPlaceholder="Ссылка"
+              addButtonText="+ Добавить мероприятие"
+            />
+          </div>
+        </div>
       </SectionCard>
 
       <SectionCard title="10. Мероприятия от всех филиалов организации">
