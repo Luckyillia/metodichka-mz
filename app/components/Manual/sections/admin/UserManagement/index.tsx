@@ -17,7 +17,7 @@ import { AuthService } from "@/lib/auth/auth-service"
 import type { User as UserType } from "@/lib/auth/types"
 import { getCityLabel } from "./utils/userHelpers"
 
-export default function UserManagementSection() {
+const UserManagement: React.FC = () => {
   const {
     users,
     loading,
@@ -377,4 +377,5 @@ export default function UserManagementSection() {
       <ConfirmModal {...confirmModal} />
     </div>
   )
-}
+};
+export default UserManagement;
