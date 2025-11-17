@@ -616,8 +616,26 @@ export async function PATCH(request: Request) {
     }
 
     // Лидер может изменять роль только пользователям своего города
-    if (currentUser.role === "ld" && existingUser.city !== currentUser.city) {
-      return NextResponse.json({ error: "Лидер может изменять роль только пользователям своего города" }, { status: 403 })
+    if (currentUser.role === "ld") {
+      if (existingUser.city !== currentUser.city) {
+        return NextResponse.json({ 
+          error: "Лидер может изменять роль только пользователям своего города" 
+        }, { status: 403 })
+      }
+      
+      // Лидер может назначать только user и cc
+      if (role !== "user" && role !== "cc") {
+        return NextResponse.json({ 
+          error: "Лидер может назначать только роли User и CC" 
+        }, { status: 403 })
+      }
+      
+      // Лидер может изменять роль только у user и cc
+      if (existingUser.role !== "user" && existingUser.role !== "cc") {
+        return NextResponse.json({ 
+          error: "Лидер может изменять роль только пользователям с ролями User и CC" 
+        }, { status: 403 })
+      }
     }
 
     // Нельзя менять свою собственную роль

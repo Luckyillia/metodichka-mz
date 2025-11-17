@@ -1,3 +1,5 @@
+
+// app/components/Manual/sections/admin/UserManagement/hooks/useUserFilters.ts (обновлённый)
 import { useMemo } from "react"
 import type { User as UserType } from "@/lib/auth/types"
 import type { UserTab } from "../types"
@@ -5,7 +7,9 @@ import type { UserTab } from "../types"
 export const useUserFilters = (
   users: UserType[],
   currentUserRole: string | undefined,
-  activeTab: UserTab
+  activeTab: UserTab,
+  filterRole: string,
+  filterCity: string
 ) => {
   const activeUsers = useMemo(() => users.filter((u) => u.status === "active"), [users])
   const inactiveUsers = useMemo(() => users.filter((u) => u.status === "inactive"), [users])
@@ -24,6 +28,22 @@ export const useUserFilters = (
     return usersList
   }
 
+  const applyFilters = (usersList: UserType[]): UserType[] => {
+    let filtered = usersList
+
+    // Фильтр по роли
+    if (filterRole !== "all") {
+      filtered = filtered.filter((u) => u.role === filterRole)
+    }
+
+    // Фильтр по городу
+    if (filterCity !== "all") {
+      filtered = filtered.filter((u) => u.city === filterCity)
+    }
+
+    return filtered
+  }
+
   const filteredUsers = useMemo(() => {
     const usersList = activeTab === 'active' 
       ? activeUsers
@@ -31,8 +51,9 @@ export const useUserFilters = (
       ? inactiveUsers
       : requestUsers
     
-    return getFilteredUsersByRole(usersList)
-  }, [activeTab, activeUsers, inactiveUsers, requestUsers, currentUserRole])
+    const roleFiltered = getFilteredUsersByRole(usersList)
+    return applyFilters(roleFiltered)
+  }, [activeTab, activeUsers, inactiveUsers, requestUsers, currentUserRole, filterRole, filterCity])
 
   const stats = useMemo(() => ({
     total: users.length,

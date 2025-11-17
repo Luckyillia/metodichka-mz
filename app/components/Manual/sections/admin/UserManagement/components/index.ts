@@ -1,7 +1,9 @@
+// app/components/Manual/sections/admin/UserManagement/components/index.ts (обновлённый)
 export * from './UserStats'
 export * from './UserActions'
 export * from './UserTabs'
 export * from './UserTable'
+export * from './UserFilters'
 export * from './modals/CreateUserModal'
 export * from './modals/EditUserModal'
 export * from './modals/ChangeRoleModal'

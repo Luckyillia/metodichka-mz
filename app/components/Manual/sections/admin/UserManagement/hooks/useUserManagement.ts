@@ -1,3 +1,4 @@
+// app/components/Manual/sections/admin/UserManagement/hooks/useUserManagement.ts (обновлённый)
 import { useState, useEffect, useCallback } from "react"
 import { useAuth } from "@/lib/auth/auth-context"
 import { AuthService } from "@/lib/auth/auth-service"
@@ -13,6 +14,10 @@ export const useUserManagement = () => {
   const [activeTab, setActiveTab] = useState<UserTab>('active')
   const [recentActions, setRecentActions] = useState<ActionLog[]>([])
   const [loadingActions, setLoadingActions] = useState(false)
+  
+  // Состояния фильтров
+  const [filterRole, setFilterRole] = useState<string>("all")
+  const [filterCity, setFilterCity] = useState<string>("all")
 
   // Modal states
   const [showCreateModal, setShowCreateModal] = useState(false)
@@ -187,6 +192,8 @@ export const useUserManagement = () => {
     currentUser,
     recentActions,
     loadingActions,
+    filterRole,
+    filterCity,
 
     // Modal states
     showCreateModal,
@@ -213,6 +220,8 @@ export const useUserManagement = () => {
     setEditUser,
     setChangingRoleUser,
     setChangingCityUser,
+    setFilterRole,
+    setFilterCity,
 
     // Actions
     fetchUsers,

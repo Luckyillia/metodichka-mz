@@ -1,3 +1,4 @@
+// app/components/Manual/sections/admin/UserManagement/components/UserTable.tsx (обновлённая)
 import React from "react"
 import type { User as UserType } from "@/lib/auth/types"
 import { CheckCircle, X, AlertCircle, Edit, Shield, Trash2, RotateCcw } from "lucide-react"
@@ -41,10 +42,21 @@ export const UserTable: React.FC<UserTableProps> = ({
 
   const canChangeRole = (user: UserType): boolean => {
     if (!currentUser || currentUser.id === user.id) return false
-    return (
-      currentUser.role === "root" ||
-      (currentUser.role === "admin" && user.role !== "admin")
-    )
+    
+    if (currentUser.role === "root") {
+      return user.role !== "root"
+    }
+    
+    if (currentUser.role === "admin") {
+      return user.role !== "admin" && user.role !== "root"
+    }
+    
+    // Лидер может изменять роль между user и cc
+    if (currentUser.role === "ld") {
+      return (user.role === "user" || user.role === "cc") && user.city === currentUser.city
+    }
+    
+    return false
   }
 
   const canDeactivate = (user: UserType): boolean => {
@@ -83,6 +95,9 @@ export const UserTable: React.FC<UserTableProps> = ({
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 Роль
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                Город
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 Статус
@@ -134,6 +149,10 @@ export const UserTable: React.FC<UserTableProps> = ({
                   >
                     {getRoleLabel(user.role, user.city)}
                   </span>
+                </td>
+
+                <td className="px-6 py-4 whitespace-nowrap text-muted-foreground">
+                  {user.city === "CGB-N" ? "ЦГБ-Н" : user.city === "CGB-P" ? "ЦГБ-П" : "ОКБ-М"}
                 </td>
 
                 <td className="px-6 py-4 whitespace-nowrap">
@@ -205,7 +224,7 @@ export const UserTable: React.FC<UserTableProps> = ({
                           </button>
                         )}
 
-                        {canChangeRole(user) && (
+                        {(currentUser?.role === "root" || currentUser?.role === "admin") && (
                           <button
                             onClick={() => onChangeCity(user)}
                             className="text-blue-600 dark:text-blue-400 hover:opacity-70 transition-all"

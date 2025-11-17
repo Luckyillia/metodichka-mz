@@ -1,3 +1,4 @@
+// app/components/Manual/sections/admin/UserManagement/components/modals/ChangeRoleModal.tsx (обновлённая)
 import React from "react"
 import { X, Shield } from "lucide-react"
 import type { User as UserType } from "@/lib/auth/types"
@@ -26,6 +27,42 @@ export const ChangeRoleModal: React.FC<ChangeRoleModalProps> = ({
   if (!isOpen || !user) return null
 
   const isRoot = currentUserRole === "root"
+  const isAdmin = currentUserRole === "admin"
+  const isLeader = currentUserRole === "ld"
+
+  // Определяем доступные роли в зависимости от текущей роли пользователя
+  const getAvailableRoles = () => {
+    if (isRoot) {
+      // Root может назначать любые роли кроме root
+      return [
+        { value: "user", label: "Пользователь" },
+        { value: "cc", label: "CC" },
+        { value: "ld", label: "Лидер" },
+        { value: "admin", label: "Администратор" }
+      ]
+    }
+    
+    if (isAdmin) {
+      // Админ может назначать user, cc, ld
+      return [
+        { value: "user", label: "Пользователь" },
+        { value: "cc", label: "CC" },
+        { value: "ld", label: "Лидер" }
+      ]
+    }
+    
+    if (isLeader) {
+      // Лидер может переключать между user и cc
+      return [
+        { value: "user", label: "Пользователь" },
+        { value: "cc", label: "CC" }
+      ]
+    }
+
+    return []
+  }
+
+  const availableRoles = getAvailableRoles()
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -67,11 +104,18 @@ export const ChangeRoleModal: React.FC<ChangeRoleModalProps> = ({
               onChange={(e) => onChange({ role: e.target.value })}
               className="w-full px-4 py-2 bg-input border-2 border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-colors"
             >
-              <option value="user">Пользователь</option>
-              <option value="cc">CC</option>
-              <option value="ld">Лидер</option>
-              {isRoot && <option value="admin">Администратор</option>}
+              {availableRoles.map(role => (
+                <option key={role.value} value={role.value}>
+                  {role.label}
+                </option>
+              ))}
             </select>
+            
+            {isLeader && (
+              <p className="text-xs text-muted-foreground mt-2">
+                Вы можете назначать только роли Пользователь и CC
+              </p>
+            )}
           </div>
 
           <div className="flex gap-3 pt-4">

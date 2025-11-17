@@ -8,6 +8,7 @@ import { UserStats } from "./components/UserStats"
 import { UserActions } from "./components/UserActions"
 import { UserTabs } from "./components/UserTabs"
 import { UserTable } from "./components/UserTable"
+import { UserFilters } from "./components/UserFilters"
 import { CreateUserModal } from "./components/modals/CreateUserModal"
 import { EditUserModal } from "./components/modals/EditUserModal"
 import { ChangeRoleModal } from "./components/modals/ChangeRoleModal"
@@ -15,7 +16,6 @@ import { ChangeCityModal } from "./components/modals/ChangeCityModal"
 import { ConfirmModal } from "./components/modals/ConfirmModal"
 import { AuthService } from "@/lib/auth/auth-service"
 import type { User as UserType } from "@/lib/auth/types"
-import { getCityLabel } from "./utils/userHelpers"
 
 const UserManagement: React.FC = () => {
   const {
@@ -34,6 +34,8 @@ const UserManagement: React.FC = () => {
     editUser,
     changingRoleUser,
     changingCityUser,
+    filterRole,
+    filterCity,
     setError,
     setSuccess,
     setActiveTab,
@@ -45,6 +47,8 @@ const UserManagement: React.FC = () => {
     setEditUser,
     setChangingRoleUser,
     setChangingCityUser,
+    setFilterRole,
+    setFilterCity,
     fetchUsers,
     fetchRecentActions,
     handleCreateUser,
@@ -58,7 +62,9 @@ const UserManagement: React.FC = () => {
   const { filteredUsers, getFilteredUsersByRole, stats } = useUserFilters(
     users,
     currentUser?.role,
-    activeTab
+    activeTab,
+    filterRole,
+    filterCity
   )
 
   const openCreateModal = () => {
@@ -186,11 +192,9 @@ const UserManagement: React.FC = () => {
           await AuthService.approveAccountRequest(userId)
           setSuccess(`Запрос на аккаунт для ${gameNick} одобрен`)
           const updatedUsers = await AuthService.getUsers()
-          // Используем внешний fetchUsers для обновления состояния
           fetchUsers()
           fetchRecentActions()
           
-          // Проверяем, остались ли доступные запросы
           const remainingRequests = getFilteredUsersByRole(
             updatedUsers.filter((u) => u.status === "request")
           )
@@ -222,7 +226,6 @@ const UserManagement: React.FC = () => {
           fetchUsers()
           fetchRecentActions()
           
-          // Проверяем, остались ли доступные запросы
           const remainingRequests = getFilteredUsersByRole(
             updatedUsers.filter((u) => u.status === "request")
           )
@@ -321,6 +324,15 @@ const UserManagement: React.FC = () => {
         }
       />
 
+      {/* Filters */}
+      <UserFilters
+        filterRole={filterRole}
+        filterCity={filterCity}
+        onFilterRoleChange={setFilterRole}
+        onFilterCityChange={setFilterCity}
+        currentUserRole={currentUser?.role}
+      />
+
       {/* Users Table */}
       <UserTable
         users={filteredUsers}
@@ -377,5 +389,6 @@ const UserManagement: React.FC = () => {
       <ConfirmModal {...confirmModal} />
     </div>
   )
-};
-export default UserManagement;
+}
+
+export default UserManagement
