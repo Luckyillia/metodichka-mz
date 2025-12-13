@@ -3,8 +3,10 @@
 import type React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { AlertCircle, Loader2 } from "lucide-react"
+import { AlertCircle, Loader2, XCircle, AlertTriangle, Info } from "lucide-react"
 import { useAuth } from "@/lib/auth/auth-context"
+
+type ErrorType = 'default' | 'deactivated' | 'pending' | 'server_error'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -12,11 +14,13 @@ export default function LoginPage() {
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
+  const [errorType, setErrorType] = useState<ErrorType>('default')
   const [isLoading, setIsLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
+    setErrorType('default')
     setIsLoading(true)
 
     try {
@@ -26,18 +30,63 @@ export default function LoginPage() {
         router.push("/")
       } else {
         setError("Неверное имя пользователя или пароль")
+        setErrorType('default')
       }
     } catch (err: any) {
-      // Проверяем, есть ли конкретная информация об ошибке
-      if (err.message) {
-        setError(err.message)
+      // Определяем тип ошибки по тексту сообщения
+      const errorMessage = err.message || "Произошла ошибка при входе"
+      
+      if (errorMessage.includes("деактивирован")) {
+        setErrorType('deactivated')
+      } else if (errorMessage.includes("не одобрен") || errorMessage.includes("ожидает")) {
+        setErrorType('pending')
+      } else if (errorMessage.includes("Ошибка") || errorMessage.includes("ошибка")) {
+        setErrorType('server_error')
       } else {
-        setError("Произошла ошибка при входе")
+        setErrorType('default')
       }
+      
+      setError(errorMessage)
     } finally {
       setIsLoading(false)
     }
   }
+
+  // Функция для получения стилей в зависимости от типа ошибки
+  const getErrorStyles = () => {
+    switch (errorType) {
+      case 'deactivated':
+        // Серый - аккаунт деактивирован (информационное сообщение)
+        return {
+          container: "bg-slate-500/10 dark:bg-slate-400/10 border-slate-500/30 dark:border-slate-400/30",
+          text: "text-slate-700 dark:text-slate-300",
+          icon: <XCircle className="w-5 h-5 flex-shrink-0" />
+        }
+      case 'pending':
+        // Желтый - ожидание одобрения (требуется действие)
+        return {
+          container: "bg-yellow-500/10 border-yellow-500/30",
+          text: "text-yellow-600 dark:text-yellow-400",
+          icon: <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+        }
+      case 'server_error':
+        // Оранжевый - ошибка сервера
+        return {
+          container: "bg-orange-500/10 border-orange-500/30",
+          text: "text-orange-600 dark:text-orange-400",
+          icon: <AlertCircle className="w-5 h-5 flex-shrink-0" />
+        }
+      default:
+        // Красный по умолчанию - неверные учетные данные
+        return {
+          container: "bg-destructive/10 border-destructive/30",
+          text: "text-destructive",
+          icon: <Info className="w-5 h-5 flex-shrink-0" />
+        }
+    }
+  }
+
+  const errorStyles = getErrorStyles()
 
   return (
     <div className="min-h-screen bg-background">
@@ -55,9 +104,11 @@ export default function LoginPage() {
           <div className="modern-card">
             <form onSubmit={handleSubmit} className="space-y-6">
               {error && (
-                <div className="flex items-center gap-2 p-4 bg-destructive/10 border-2 border-destructive/30 rounded-lg text-destructive">
-                  <AlertCircle className="w-5 h-5 flex-shrink-0" />
-                  <span className="text-sm">{error}</span>
+                <div className={`flex items-center gap-2 p-4 border-2 rounded-lg ${errorStyles.container} transition-all`}>
+                  <div className={errorStyles.text}>
+                    {errorStyles.icon}
+                  </div>
+                  <span className={`text-sm ${errorStyles.text}`}>{error}</span>
                 </div>
               )}
 

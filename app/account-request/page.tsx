@@ -3,7 +3,9 @@
 
 import React, { useState } from "react"
 import { useRouter } from "next/navigation"
-import { UserPlus, Loader2, CheckCircle, AlertCircle, Eye, EyeOff, Gamepad } from "lucide-react"
+import { UserPlus, Loader2, CheckCircle, AlertCircle, Eye, EyeOff, Gamepad, XCircle, AlertTriangle, Info } from "lucide-react"
+
+type ErrorType = 'default' | 'duplicate' | 'deactivated' | 'validation' | 'server_error'
 
 export default function AccountRequestPage() {
   const router = useRouter()
@@ -17,6 +19,7 @@ export default function AccountRequestPage() {
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [errorType, setErrorType] = useState<ErrorType>('default')
   const [success, setSuccess] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
@@ -24,17 +27,20 @@ export default function AccountRequestPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
+    setErrorType('default')
     setLoading(true)
 
-    // Валидация
+    // Валидация на клиенте
     if (formData.password !== formData.confirmPassword) {
       setError("Пароли не совпадают")
+      setErrorType('validation')
       setLoading(false)
       return
     }
 
     if (formData.password.length < 6) {
       setError("Пароль должен содержать минимум 6 символов")
+      setErrorType('validation')
       setLoading(false)
       return
     }
@@ -55,17 +61,79 @@ export default function AccountRequestPage() {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || "Не удалось отправить запрос")
+        const errorMessage = data.error || "Не удалось отправить запрос"
+        
+        // Определяем тип ошибки по содержимому сообщения
+        if (errorMessage.includes("уже существует") || 
+            errorMessage.includes("уже занят") || 
+            errorMessage.includes("уже отправили") ||
+            errorMessage.includes("уже создан")) {
+          setErrorType('duplicate')
+        } else if (errorMessage.includes("деактивирован")) {
+          setErrorType('deactivated')
+        } else if (errorMessage.includes("Ошибка") || errorMessage.includes("ошибка")) {
+          setErrorType('server_error')
+        } else {
+          setErrorType('default')
+        }
+        
+        setError(errorMessage)
+        setLoading(false)
+        return
       }
 
       setSuccess(true)
       setFormData({ username: "", gameNick: "", password: "", confirmPassword: "", role: "user", city: "CGB-N" })
     } catch (err: any) {
       setError(err.message || "Произошла ошибка при отправке запроса")
+      setErrorType('server_error')
     } finally {
       setLoading(false)
     }
   }
+
+  // Функция для получения стилей в зависимости от типа ошибки
+  const getErrorStyles = () => {
+    switch (errorType) {
+      case 'duplicate':
+        // Фиолетовый - данные уже существуют
+        return {
+          container: "bg-purple-500/15 border-2 border-purple-500/40",
+          text: "text-purple-700 dark:text-purple-300",
+          icon: <AlertCircle className="w-5 h-5 flex-shrink-0" />
+        }
+      case 'deactivated':
+        // Синий - аккаунт деактивирован
+        return {
+          container: "bg-blue-500/15 border-2 border-blue-500/40",
+          text: "text-blue-700 dark:text-blue-300",
+          icon: <XCircle className="w-5 h-5 flex-shrink-0" />
+        }
+      case 'validation':
+        // Желтый - ошибка валидации
+        return {
+          container: "bg-yellow-500/15 border-2 border-yellow-500/40",
+          text: "text-yellow-700 dark:text-yellow-300",
+          icon: <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+        }
+      case 'server_error':
+        // Оранжевый - ошибка сервера
+        return {
+          container: "bg-orange-500/15 border-2 border-orange-500/40",
+          text: "text-orange-700 dark:text-orange-300",
+          icon: <AlertCircle className="w-5 h-5 flex-shrink-0" />
+        }
+      default:
+        // Красный по умолчанию
+        return {
+          container: "bg-red-500/15 border-2 border-red-500/40",
+          text: "text-red-700 dark:text-red-300",
+          icon: <Info className="w-5 h-5 flex-shrink-0" />
+        }
+    }
+  }
+
+  const errorStyles = getErrorStyles()
 
   if (success) {
     return (
@@ -108,9 +176,11 @@ export default function AccountRequestPage() {
         </div>
 
         {error && (
-          <div className="mb-6 p-4 bg-destructive/10 border-2 border-destructive/30 rounded-lg flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
-            <span className="text-destructive text-sm">{error}</span>
+          <div className={`mb-6 p-4 rounded-lg flex items-start gap-3 transition-all ${errorStyles.container}`}>
+            <div className={errorStyles.text}>
+              {errorStyles.icon}
+            </div>
+            <span className={`text-sm ${errorStyles.text}`}>{error}</span>
           </div>
         )}
 

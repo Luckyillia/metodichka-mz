@@ -5,44 +5,50 @@ import { ENCRYPTION_KEY, AUTH_STORAGE_KEY, SESSION_DURATION } from "./constants"
 
 export class AuthService {
   static async login(username: string, password: string): Promise<User | null> {
-    try {
-      console.log('[AuthService] Attempting login for:', username)
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
-      })
+  try {
+    console.log('[AuthService] Attempting login for:', username)
+    console.log('[AuthService] Password length:', password.length)
+    console.log('[AuthService] Username length:', username.length)
+    
+    const response = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password }),
+    })
 
-      if (!response.ok) {
-        console.error('[AuthService] Login failed with status:', response.status)
-        
-        // Пытаемся получить сообщение об ошибке от сервера
-        try {
-          const errorData = await response.json()
-          if (errorData.error) {
-            // Выбрасываем ошибку с сообщением от сервера
-            throw new Error(errorData.error)
-          }
-        } catch (parseError) {
-          // Если не удалось распарсить JSON, используем стандартное сообщение
-        }
-        
-        return null
+    console.log('[AuthService] Response status:', response.status)
+    console.log('[AuthService] Response ok:', response.ok)
+
+    if (!response.ok) {
+      console.error('[AuthService] Login failed with status:', response.status)
+      
+      const errorData = await response.json()
+      console.log('[AuthService] Error data from server:', errorData)
+
+      if (errorData.error) {
+        throw new Error(errorData.error)  // ← Ошибка улетает наружу
       }
-
-      const user = await response.json()
-      console.log('[AuthService] Login successful, user:', user.username, 'role:', user.role)
-
-      const authToken = this.createAuthToken(user)
-      this.saveEncryptedUser(authToken)
-
-      return user
-    } catch (error) {
-      console.error("[AuthService] Login error:", error)
-      // Пробрасываем ошибку дальше, чтобы UI мог показать сообщение
-      throw error
+      
+      return null
     }
+
+    const user = await response.json()
+    console.log('[AuthService] Login successful, user:', user.username, 'role:', user.role)
+    console.log('[AuthService] Full user object:', user)
+
+    const authToken = this.createAuthToken(user)
+    console.log('[AuthService] Auth token created')
+    
+    this.saveEncryptedUser(authToken)
+    console.log('[AuthService] Token saved to localStorage')
+
+    return user
+  } catch (error) {
+    console.error("[AuthService] Login error:", error)
+    // Пробрасываем ошибку дальше, чтобы UI мог показать сообщение
+    throw error
   }
+}
 
   static createAuthToken(user: User): string {
     const tokenData = {

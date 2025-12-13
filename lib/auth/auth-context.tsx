@@ -44,9 +44,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (username: string, password: string): Promise<boolean> => {
     try {
+      console.log('[AuthContext] Login called with username:', username)
+      
       const user = await AuthService.login(username, password)
+      console.log('[AuthContext] AuthService.login returned:', user)
 
       if (user) {
+        console.log('[AuthContext] Setting user in state:', user)
         setState({
           user,
           isAuthenticated: true,
@@ -55,8 +59,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return true
       }
 
+      console.log('[AuthContext] No user returned, login failed')
       return false
     } catch (error) {
+      console.error('[AuthContext] Login error:', error)
       // Пробрасываем ошибку дальше, чтобы компонент мог её обработать
       throw error
     }
