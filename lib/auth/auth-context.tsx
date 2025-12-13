@@ -43,18 +43,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [state.isAuthenticated])
 
   const login = async (username: string, password: string): Promise<boolean> => {
-    const user = await AuthService.login(username, password)
+    try {
+      const user = await AuthService.login(username, password)
 
-    if (user) {
-      setState({
-        user,
-        isAuthenticated: true,
-        isLoading: false,
-      })
-      return true
+      if (user) {
+        setState({
+          user,
+          isAuthenticated: true,
+          isLoading: false,
+        })
+        return true
+      }
+
+      return false
+    } catch (error) {
+      // Пробрасываем ошибку дальше, чтобы компонент мог её обработать
+      throw error
     }
-
-    return false
   }
 
   const logout = () => {

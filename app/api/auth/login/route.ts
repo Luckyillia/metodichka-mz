@@ -50,83 +50,14 @@ export async function POST(request: Request) {
         console.error("[Login API] Failed to log failed attempt:", logError)
       }
 
+      // ОБЩЕЕ СООБЩЕНИЕ - не раскрываем, существует ли аккаунт
       return NextResponse.json(
           { error: "Неверное имя пользователя или пароль" },
           { status: 401 }
       )
     }
 
-    // Проверяем статус пользователя
-    if (user.status === "inactive") {
-      console.log("[Login API] Account is deactivated:", username)
-
-      // Логируем попытку входа в деактивированный аккаунт
-      try {
-        const ip_address = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip")
-        const user_agent = request.headers.get("user-agent")
-
-        await supabase.from("action_logs").insert([
-          {
-            user_id: user.id,
-            game_nick: user.game_nick,
-            action: `Попытка входа в деактивированный аккаунт`,
-            action_type: "login",
-            target_type: "system",
-            details: `Пользователь "${username}" пытался войти, но аккаунт деактивирован`,
-            metadata: {
-              username,
-              reason: "account_deactivated",
-            },
-            ip_address,
-            user_agent,
-          },
-        ])
-      } catch (logError) {
-        console.error("[Login API] Failed to log deactivated login attempt:", logError)
-      }
-
-      return NextResponse.json(
-          { error: "Ваш аккаунт деактивирован. Обратитесь к администратору для восстановления доступа." },
-          { status: 403 }
-      )
-    }
-
-    // Проверяем, что это не запрос на создание аккаунта
-    if (user.status === "request") {
-      console.log("[Login API] Account request pending:", username)
-
-      // Логируем попытку входа в незавершенный запрос
-      try {
-        const ip_address = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip")
-        const user_agent = request.headers.get("user-agent")
-
-        await supabase.from("action_logs").insert([
-          {
-            user_id: user.id,
-            game_nick: user.game_nick,
-            action: `Попытка входа в незавершенный запрос`,
-            action_type: "login",
-            target_type: "system",
-            details: `Пользователь "${username}" пытался войти, но запрос еще не одобрен`,
-            metadata: {
-              username,
-              reason: "account_request_pending",
-            },
-            ip_address,
-            user_agent,
-          },
-        ])
-      } catch (logError) {
-        console.error("[Login API] Failed to log request login attempt:", logError)
-      }
-
-      return NextResponse.json(
-          { error: "Ваш запрос на создание аккаунта еще не одобрен. Дождитесь подтверждения администратора." },
-          { status: 403 }
-      )
-    }
-
-    // Проверяем пароль с помощью bcrypt
+    // Проверяем пароль
     const isPasswordValid = await bcrypt.compare(password, user.password)
 
     if (!isPasswordValid) {
@@ -157,18 +88,101 @@ export async function POST(request: Request) {
         console.error("[Login API] Failed to log failed attempt:", logError)
       }
 
+      // ОБЩЕЕ СООБЩЕНИЕ - не раскрываем, что пользователь существует
       return NextResponse.json(
           { error: "Неверное имя пользователя или пароль" },
           { status: 401 }
       )
     }
 
-    // Возвращаем пользователя БЕЗ пароля
-    const { password: _, ...safeUser } = user
-    console.log("[v0] Login API: Login successful for user:", safeUser.username)
+    // ПАРОЛЬ ВЕРНЫЙ - теперь проверяем статус и показываем конкретные сообщения
+    
+    // Проверка: аккаунт деактивирован
+    if (user.status === "inactive") {
+      console.log("[Login API] Account is deactivated:", username)
 
-    // Логируем вход для admin и root
-    if (user.role === "admin" || user.role === "root") {
+      // Логируем попытку входа в деактивированный аккаунт
+      try {
+        const ip_address = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip")
+        const user_agent = request.headers.get("user-agent")
+
+        await supabase.from("action_logs").insert([
+          {
+            user_id: user.id,
+            game_nick: user.game_nick,
+            action: `Попытка входа в деактивированный аккаунт`,
+            action_type: "login",
+            target_type: "system",
+            details: `Пользователь "${username}" пытался войти с правильным паролем, но аккаунт деактивирован`,
+            metadata: {
+              username,
+              reason: "account_deactivated",
+              password_correct: true,
+            },
+            ip_address,
+            user_agent,
+          },
+        ])
+      } catch (logError) {
+        console.error("[Login API] Failed to log deactivated login attempt:", logError)
+      }
+
+      // КОНКРЕТНОЕ СООБЩЕНИЕ - пользователь подтвердил владение аккаунтом
+      return NextResponse.json(
+          { 
+            error: "Ваш аккаунт деактивирован. Обратитесь к администратору для восстановления доступа.",
+            errorType: "deactivated" // Для фронтенда, чтобы показать дополнительную информацию
+          },
+          { status: 403 }
+      )
+    }
+
+    // Проверка: запрос на аккаунт не одобрен
+    if (user.status === "request") {
+      console.log("[Login API] Account request pending:", username)
+
+      // Логируем попытку входа в незавершенный запрос
+      try {
+        const ip_address = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip")
+        const user_agent = request.headers.get("user-agent")
+
+        await supabase.from("action_logs").insert([
+          {
+            user_id: user.id,
+            game_nick: user.game_nick,
+            action: `Попытка входа в незавершенный запрос`,
+            action_type: "login",
+            target_type: "system",
+            details: `Пользователь "${username}" пытался войти с правильным паролем, но запрос еще не одобрен`,
+            metadata: {
+              username,
+              reason: "account_request_pending",
+              password_correct: true,
+            },
+            ip_address,
+            user_agent,
+          },
+        ])
+      } catch (logError) {
+        console.error("[Login API] Failed to log request login attempt:", logError)
+      }
+
+      // КОНКРЕТНОЕ СООБЩЕНИЕ - пользователь подтвердил владение аккаунтом
+      return NextResponse.json(
+          { 
+            error: "Ваш запрос на создание аккаунта еще не одобрен. Дождитесь подтверждения администратора.",
+            errorType: "pending" // Для фронтенда
+          },
+          { status: 403 }
+      )
+    }
+
+    // ВСЁ ХОРОШО - разрешаем вход
+    const { password: _, ...safeUser } = user
+    console.log("[Login API] Login successful for user:", safeUser.username)
+
+    // Логируем успешный вход для admin, root и ld
+    if (user.role === "admin" || user.role === "root" || user.role === "ld") {
       try {
         const ip_address = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip")
         const user_agent = request.headers.get("user-agent")
@@ -185,7 +199,7 @@ export async function POST(request: Request) {
           },
         ])
       } catch (logError) {
-        console.error("[v0] Login API: Failed to log action:", logError)
+        console.error("[Login API] Failed to log action:", logError)
       }
     }
 

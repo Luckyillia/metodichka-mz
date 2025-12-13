@@ -15,6 +15,18 @@ export class AuthService {
 
       if (!response.ok) {
         console.error('[AuthService] Login failed with status:', response.status)
+        
+        // Пытаемся получить сообщение об ошибке от сервера
+        try {
+          const errorData = await response.json()
+          if (errorData.error) {
+            // Выбрасываем ошибку с сообщением от сервера
+            throw new Error(errorData.error)
+          }
+        } catch (parseError) {
+          // Если не удалось распарсить JSON, используем стандартное сообщение
+        }
+        
         return null
       }
 
@@ -27,7 +39,8 @@ export class AuthService {
       return user
     } catch (error) {
       console.error("[AuthService] Login error:", error)
-      return null
+      // Пробрасываем ошибку дальше, чтобы UI мог показать сообщение
+      throw error
     }
   }
 

@@ -27,8 +27,13 @@ export default function LoginPage() {
       } else {
         setError("Неверное имя пользователя или пароль")
       }
-    } catch (err) {
-      setError("Произошла ошибка при входе")
+    } catch (err: any) {
+      // Проверяем, есть ли конкретная информация об ошибке
+      if (err.message) {
+        setError(err.message)
+      } else {
+        setError("Произошла ошибка при входе")
+      }
     } finally {
       setIsLoading(false)
     }
