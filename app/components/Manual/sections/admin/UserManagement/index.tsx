@@ -40,6 +40,8 @@ const UserManagement: React.FC = () => {
     transferNewCity,   // ДОБАВЛЕНО
     filterRole,
     filterCity,
+    filterOrder,
+    sortOrder,
     setError,
     setSuccess,
     setActiveTab,
@@ -56,6 +58,8 @@ const UserManagement: React.FC = () => {
     setTransferNewCity,   // ДОБАВЛЕНО
     setFilterRole,
     setFilterCity,
+    setFilterOrder,
+    setSortOrder,
     fetchUsers,
     fetchRecentActions,
     handleCreateUser,
@@ -72,7 +76,9 @@ const UserManagement: React.FC = () => {
     currentUser?.role,
     activeTab,
     filterRole,
-    filterCity
+    filterCity,
+    filterOrder,
+    sortOrder,
   )
 
   const openTransferModal = (user: UserType) => {
@@ -349,8 +355,12 @@ const UserManagement: React.FC = () => {
       <UserFilters
         filterRole={filterRole}
         filterCity={filterCity}
+        filterOrder={filterOrder}
+        sortOrder={sortOrder}
         onFilterRoleChange={setFilterRole}
         onFilterCityChange={setFilterCity}
+        onFilterOrderChange={setFilterOrder}
+        onSortOrderChange={setSortOrder}
         currentUserRole={currentUser?.role}
       />
 

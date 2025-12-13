@@ -3,18 +3,26 @@ import { Filter } from "lucide-react"
 import type { UserCity } from "@/lib/auth/types"
 
 interface UserFiltersProps {
-  filterRole: string
-  filterCity: string
-  onFilterRoleChange: (role: string) => void
-  onFilterCityChange: (city: string) => void
-  currentUserRole?: string
+  filterRole: string;
+  filterCity: string;
+  filterOrder: string;
+  sortOrder: 'asc' | 'desc'; // Добавить
+  onFilterRoleChange: (role: string) => void;
+  onFilterCityChange: (city: string) => void;
+  onFilterOrderChange: (order: string) => void;
+  onSortOrderChange: (order: 'asc' | 'desc') => void; // Добавить
+  currentUserRole?: string;
 }
 
 export const UserFilters: React.FC<UserFiltersProps> = ({
   filterRole,
   filterCity,
+  filterOrder,
+  sortOrder,
   onFilterRoleChange,
   onFilterCityChange,
+  onFilterOrderChange,
+  onSortOrderChange,
   currentUserRole
 }) => {
   const isLeader = currentUserRole === "ld"
@@ -26,7 +34,7 @@ export const UserFilters: React.FC<UserFiltersProps> = ({
         <h3 className="text-lg font-semibold text-foreground">Фильтры</h3>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Фильтр по роли */}
         <div>
           <label className="block text-sm font-medium text-muted-foreground mb-2">
@@ -62,10 +70,39 @@ export const UserFilters: React.FC<UserFiltersProps> = ({
             <option value="OKB-M">ОКБ-М</option>
           </select>
         </div>
+        {/* Сортировка */}
+        <div className="flex items-end gap-2">
+          <div className="flex-grow">
+            <label className="block text-sm font-medium text-muted-foreground mb-2">
+              Сортировка по
+            </label>
+            <select
+              value={filterOrder}
+              onChange={(e) => onFilterOrderChange(e.target.value)}
+              className="w-full px-4 py-2 bg-input border-2 border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-colors"
+            >
+              <option value="all">Нет сортировки</option>
+              <option value="created_at">Дата создания</option>
+              <option value="game_nick">Никнейм</option>
+              <option value="role">Роль</option>
+              <option value="city">Город</option>
+            </select>
+          </div>
+          {/* Сортировка по возрастанию/убыванию */}
+          {filterOrder !== "all" && (
+            <button
+              onClick={() => onSortOrderChange(sortOrder === 'asc' ? 'desc' : 'asc')}
+              className="px-3 py-2 bg-input border-2 border-border rounded-lg text-foreground hover:bg-muted transition-colors"
+              title={sortOrder === 'asc' ? "По возрастанию" : "По убыванию"}
+            >
+              {sortOrder === 'asc' ? '↑' : '↓'}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Индикатор активных фильтров */}
-      {(filterRole !== "all" || filterCity !== "all") && (
+      {(filterRole !== "all" || filterCity !== "all" || filterOrder !== "all") && (
         <div className="mt-3 flex items-center gap-2 flex-wrap">
           <span className="text-xs text-muted-foreground">Активные фильтры:</span>
           {filterRole !== "all" && (
@@ -90,10 +127,34 @@ export const UserFilters: React.FC<UserFiltersProps> = ({
               </button>
             </span>
           )}
+          {filterOrder !== "all" && (
+            <span className="inline-flex items-center gap-1 px-2 py-1 bg-primary/20 text-primary rounded text-xs">
+              Сортировка: {filterOrder}
+              <button
+                onClick={() => onFilterOrderChange("all")}
+                className="hover:opacity-70"
+              >
+                ✕
+              </button>
+            </span>
+          )}
+          {sortOrder !== "asc" && (
+            <span className="inline-flex items-center gap-1 px-2 py-1 bg-primary/20 text-primary rounded text-xs">
+              Сортировка: {sortOrder}
+              <button
+                onClick={() => onSortOrderChange("asc")}
+                className="hover:opacity-70"
+              >
+                ✕
+              </button>
+            </span>
+          )}
           <button
             onClick={() => {
               onFilterRoleChange("all");
               onFilterCityChange("all");
+              onFilterOrderChange("all");
+              onSortOrderChange('asc');
             }}
             className="text-xs text-muted-foreground hover:text-foreground underline"
           >

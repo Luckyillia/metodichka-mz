@@ -18,6 +18,8 @@ export const useUserManagement = () => {
   // Состояния фильтров
   const [filterRole, setFilterRole] = useState<string>("all")
   const [filterCity, setFilterCity] = useState<string>("all")
+  const [filterOrder, setFilterOrder] = useState<string>("all")
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
   // Modal states
   const [showCreateModal, setShowCreateModal] = useState(false)
@@ -220,6 +222,8 @@ const handleTransferCity = useCallback(async (e: React.FormEvent) => {
     loadingActions,
     filterRole,
     filterCity,
+    filterOrder,
+    sortOrder,
 
     // Modal states
     showCreateModal,
@@ -251,6 +255,8 @@ const handleTransferCity = useCallback(async (e: React.FormEvent) => {
     setChangingCityUser,
     setFilterRole,
     setFilterCity,
+    setFilterOrder,
+    setSortOrder,
 
     // Actions
     fetchUsers,
