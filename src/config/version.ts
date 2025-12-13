@@ -1,12 +1,12 @@
-export const APP_VERSION = '1.0.6';
+export const APP_VERSION = '1.0.7';
 
 // Changelog
 export const CHANGELOG = [
   {
-    version: '1.0.6',
+    version: '1.0.7',
     date: '2025-12-13',
     changes: [
-      'Добавление функции перемещения пользователя'
+      'Добавлена проверка на деактивированый аккаунт'
     ]
   }
 ];

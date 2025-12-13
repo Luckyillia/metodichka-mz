@@ -59,14 +59,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Недопустимый город" }, { status: 400 })
     }
 
-    // Проверка на существующие запросы с этого IP
     console.log("[Account Request API] Checking for existing requests from IP:", clientIP)
     
     const { data: existingIPRequests, error: ipCheckError } = await supabase
       .from("users")
       .select("id, username, game_nick, status, created_at, ip_address")
       .eq("ip_address", clientIP)
-      .in("status", ["request", "active"])
+      .in("status", ["request", "active", "inactive"])
       .order("created_at", { ascending: false })
       .limit(1)
 
@@ -87,8 +86,13 @@ export async function POST(request: Request) {
       }
       if (existingIPRequest.status === "active") {
         return NextResponse.json({ 
-          error: `С вашего IP уже создан аккаунт (${existingIPRequest.game_nick}). Если это не вы, обратитесь к администратору.` 
+          error: `С вашего IP уже создан активный аккаунт (${existingIPRequest.game_nick}). Если это не вы, обратитесь к администратору.` 
         }, { status: 400 })
+      }
+      if (existingIPRequest.status === "inactive") {
+        return NextResponse.json({ 
+          error: `Ваш аккаунт (${existingIPRequest.game_nick}) был деактивирован. Обратитесь к администратору для восстановления доступа. Создание нового аккаунта невозможно.` 
+        }, { status: 403 })
       }
     }
 
@@ -97,12 +101,15 @@ export async function POST(request: Request) {
       .from("users")
       .select("id, status")
       .eq("username", username)
-      .in("status", ["active", "request"])
+      .in("status", ["active", "request", "inactive"])
       .single()
 
     if (existingUsername) {
       if (existingUsername.status === "request") {
         return NextResponse.json({ error: "Запрос с таким логином уже существует и ожидает одобрения" }, { status: 400 })
+      }
+      if (existingUsername.status === "inactive") {
+        return NextResponse.json({ error: "Аккаунт с таким логином деактивирован. Обратитесь к администратору для восстановления." }, { status: 403 })
       }
       return NextResponse.json({ error: "Имя пользователя уже существует" }, { status: 400 })
     }
@@ -111,12 +118,15 @@ export async function POST(request: Request) {
       .from("users")
       .select("id, status")
       .eq("game_nick", gameNick)
-      .in("status", ["active", "request"])
+      .in("status", ["active", "request", "inactive"])
       .single()
 
     if (existingGameNick) {
       if (existingGameNick.status === "request") {
         return NextResponse.json({ error: "Запрос с таким игровым ником уже существует и ожидает одобрения" }, { status: 400 })
+      }
+      if (existingGameNick.status === "inactive") {
+        return NextResponse.json({ error: "Аккаунт с таким игровым ником деактивирован. Обратитесь к администратору для восстановления." }, { status: 403 })
       }
       return NextResponse.json({ error: "Игровой ник уже занят" }, { status: 400 })
     }
