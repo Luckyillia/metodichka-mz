@@ -111,7 +111,26 @@ export class AuthService {
       return null
     }
   }
+  static async transferUserCity(userId: string, newCity: string): Promise<User | null> {
+    try {
+      const response = await this.fetchWithAuth("/api/users/transfer-city", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, newCity }),
+      })
 
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to transfer user")
+      }
+
+      return data.user
+    } catch (error) {
+      console.error("[AuthService] Error transferring user:", error)
+      throw error
+    }
+  }
   static getAuthToken(): string | null {
     if (typeof window === "undefined") {
       return null

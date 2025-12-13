@@ -13,6 +13,7 @@ import { CreateUserModal } from "./components/modals/CreateUserModal"
 import { EditUserModal } from "./components/modals/EditUserModal"
 import { ChangeRoleModal } from "./components/modals/ChangeRoleModal"
 import { ChangeCityModal } from "./components/modals/ChangeCityModal"
+import { TransferCityModal } from "./components/modals/TransferCityModal"
 import { ConfirmModal } from "./components/modals/ConfirmModal"
 import { AuthService } from "@/lib/auth/auth-service"
 import type { User as UserType } from "@/lib/auth/types"
@@ -29,11 +30,14 @@ const UserManagement: React.FC = () => {
     showEditModal,
     showRoleModal,
     showCityModal,
+    showTransferModal,  // ДОБАВЛЕНО
     confirmModal,
     formData,
     editUser,
     changingRoleUser,
     changingCityUser,
+    transferringUser,  // ДОБАВЛЕНО
+    transferNewCity,   // ДОБАВЛЕНО
     filterRole,
     filterCity,
     setError,
@@ -43,10 +47,13 @@ const UserManagement: React.FC = () => {
     setShowEditModal,
     setShowRoleModal,
     setShowCityModal,
+    setShowTransferModal,  // ДОБАВЛЕНО
     setFormData,
     setEditUser,
     setChangingRoleUser,
     setChangingCityUser,
+    setTransferringUser,  // ДОБАВЛЕНО
+    setTransferNewCity,   // ДОБАВЛЕНО
     setFilterRole,
     setFilterCity,
     fetchUsers,
@@ -55,6 +62,7 @@ const UserManagement: React.FC = () => {
     handleEditUser,
     handleChangeRole,
     handleChangeCity,
+    handleTransferCity,  // ДОБАВЛЕНО
     showConfirm,
     hideConfirm,
   } = useUserManagement()
@@ -66,6 +74,19 @@ const UserManagement: React.FC = () => {
     filterRole,
     filterCity
   )
+
+  const openTransferModal = (user: UserType) => {
+    setTransferringUser(user)
+    setTransferNewCity("")
+    setShowTransferModal(true)
+  }
+
+  const handleCloseTransferModal = () => {
+    setShowTransferModal(false)
+    setTransferringUser(null)
+    setTransferNewCity("")
+  }
+
 
   const openCreateModal = () => {
     const city = currentUser?.role === "ld" ? currentUser.city : "CGB-N"
@@ -340,6 +361,7 @@ const UserManagement: React.FC = () => {
         onEdit={openEditModal}
         onChangeRole={openRoleModal}
         onChangeCity={openCityModal}
+        onTransferCity={openTransferModal}  // ДОБАВЛЕНО
         onDeactivate={handleDeactivateUser}
         onRestore={handleRestoreUser}
         onPermanentDelete={handlePermanentDelete}
@@ -384,6 +406,17 @@ const UserManagement: React.FC = () => {
         user={changingCityUser}
         formData={formData}
         onChange={(data) => setFormData({ ...formData, ...data })}
+      />
+
+      {/* НОВЫЙ МОДАЛЬ для перемещения */}
+      <TransferCityModal
+        isOpen={showTransferModal}
+        onClose={handleCloseTransferModal}
+        onSubmit={handleTransferCity}
+        user={transferringUser}
+        newCity={transferNewCity}
+        onChange={setTransferNewCity}
+        currentUserRole={currentUser?.role}
       />
 
       <ConfirmModal {...confirmModal} />

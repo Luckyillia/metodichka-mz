@@ -16,6 +16,11 @@ export interface EditUserData {
   role: "root" | "admin" | "ld" | "cc" | "user"
 }
 
+export interface TransferCityData {
+  userId: string
+  newCity: "CGB-N" | "CGB-P" | "OKB-M"
+}
+
 export interface ConfirmModalState {
   isOpen: boolean
   title: string

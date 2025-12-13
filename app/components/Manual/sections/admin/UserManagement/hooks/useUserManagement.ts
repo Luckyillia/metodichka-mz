@@ -182,6 +182,32 @@ export const useUserManagement = () => {
     setConfirmModal((prev) => ({ ...prev, isOpen: false }))
   }, [])
 
+const [showTransferModal, setShowTransferModal] = useState(false)
+const [transferringUser, setTransferringUser] = useState<UserType | null>(null)
+const [transferNewCity, setTransferNewCity] = useState<string>("")
+
+const handleTransferCity = useCallback(async (e: React.FormEvent) => {
+  e.preventDefault()
+  if (!transferringUser || !transferNewCity) return
+
+  setError("")
+  setSuccess("")
+
+  try {
+    await AuthService.transferUserCity(transferringUser.id, transferNewCity)
+
+    const action = currentUser?.role === "ld" ? " (необратимо)" : ""
+    setSuccess(`Игрок ${transferringUser.game_nick} успешно перемещен в ${transferNewCity}${action}`)
+    setShowTransferModal(false)
+    setTransferringUser(null)
+    setTransferNewCity("")
+    fetchUsers()
+    fetchRecentActions()
+  } catch (err: any) {
+    setError(err.message || "Не удалось переместить игрока")
+  }
+}, [transferringUser, transferNewCity, currentUser, fetchUsers, fetchRecentActions])
+
   return {
     // State
     users,
@@ -201,12 +227,15 @@ export const useUserManagement = () => {
     showRoleModal,
     showCityModal,
     confirmModal,
+    showTransferModal,
 
     // Form data
     formData,
     editUser,
     changingRoleUser,
     changingCityUser,
+    transferringUser,
+    transferNewCity,
 
     // Setters
     setError,
@@ -232,5 +261,10 @@ export const useUserManagement = () => {
     handleChangeCity,
     showConfirm,
     hideConfirm,
+
+    setShowTransferModal,
+    setTransferringUser,
+    setTransferNewCity,
+    handleTransferCity,
   }
 }

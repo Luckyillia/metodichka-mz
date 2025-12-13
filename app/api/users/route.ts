@@ -24,7 +24,7 @@ function getUserFromHeaders(request: Request) {
   }
 }
 
-// GET - Fetch users (admin видит только активных, root видит всех)
+// GET - Fetch users (LD видит только свой город)
 export async function GET(request: Request) {
   try {
     const currentUser = getUserFromHeaders(request)
@@ -40,16 +40,12 @@ export async function GET(request: Request) {
         .select("id, username, game_nick, role, status, city, created_at")
         .order("created_at", { ascending: false })
 
-    // Admin видит всех пользователей (фронтенд фильтрует запросы по ролям)
-    if (currentUser.role === "admin") {
-      console.log("[Users API] Admin filter: all users (frontend will filter requests)")
-    }
     // Лидер видит только пользователей своего города
-    else if (currentUser.role === "ld") {
+    if (currentUser.role === "ld") {
       console.log("[Users API] LD filter: users from city", currentUser.city)
       query = query.eq("city", currentUser.city)
     }
-    // Root видит всех пользователей
+    // Admin и Root видят всех пользователей
 
     const { data: users, error } = await query
 

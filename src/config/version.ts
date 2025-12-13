@@ -1,13 +1,12 @@
-export const APP_VERSION = '1.0.5';
+export const APP_VERSION = '1.0.6';
 
 // Changelog
 export const CHANGELOG = [
   {
-    version: '1.0.5',
-    date: '2025-11-09',
+    version: '1.0.6',
+    date: '2025-12-13',
     changes: [
-      'Новые лекции тренеровки',
-      'Так же новые поля для шаблонов в ДО'
+      'Добавление функции перемещения пользователя'
     ]
   }
 ];

@@ -1,5 +1,3 @@
-
-// app/components/Manual/sections/admin/UserManagement/hooks/useUserFilters.ts (обновлённый)
 import { useMemo } from "react"
 import type { User as UserType } from "@/lib/auth/types"
 import type { UserTab } from "../types"
@@ -11,23 +9,6 @@ export const useUserFilters = (
   filterRole: string,
   filterCity: string
 ) => {
-  const activeUsers = useMemo(() => users.filter((u) => u.status === "active"), [users])
-  const inactiveUsers = useMemo(() => users.filter((u) => u.status === "inactive"), [users])
-  const requestUsers = useMemo(() => users.filter((u) => u.status === "request"), [users])
-
-  const getFilteredUsersByRole = (usersList: UserType[]): UserType[] => {
-    if (currentUserRole === "ld") {
-      return usersList.filter((u) => u.role === "cc" || u.role === "user" || u.role === "ld")
-    }
-    if (currentUserRole === "admin") {
-      if (usersList === requestUsers) {
-        return usersList.filter((u) => u.role === "cc" || u.role === "user" || u.role === "ld")
-      }
-      return usersList
-    }
-    return usersList
-  }
-
   const applyFilters = (usersList: UserType[]): UserType[] => {
     let filtered = usersList
 
@@ -44,27 +25,72 @@ export const useUserFilters = (
     return filtered
   }
 
+  const getFilteredUsersByRole = (usersList: UserType[]): UserType[] => {
+    // Лидер видит только user, cc и ld своего города
+    if (currentUserRole === "ld") {
+      return usersList.filter((u) => 
+        (u.role === "cc" || u.role === "user" || u.role === "ld")
+      )
+    }
+    // Админ видит всех, кроме других админов и root в запросах
+    if (currentUserRole === "admin") {
+      if (usersList.some(u => u.status === "request")) {
+        return usersList.filter((u) => 
+          u.role === "cc" || u.role === "user" || u.role === "ld"
+        )
+      }
+      return usersList
+    }
+    // Root видит всех
+    return usersList
+  }
+
+  const activeUsers = useMemo(() => 
+    applyFilters(getFilteredUsersByRole(users.filter((u) => u.status === "active"))), 
+    [users, currentUserRole, filterRole, filterCity]
+  )
+  
+  const inactiveUsers = useMemo(() => 
+    applyFilters(getFilteredUsersByRole(users.filter((u) => u.status === "inactive"))), 
+    [users, currentUserRole, filterRole, filterCity]
+  )
+  
+  const requestUsers = useMemo(() => 
+    applyFilters(getFilteredUsersByRole(users.filter((u) => u.status === "request"))), 
+    [users, currentUserRole, filterRole, filterCity]
+  )
+
   const filteredUsers = useMemo(() => {
-    const usersList = activeTab === 'active' 
+    return activeTab === 'active' 
       ? activeUsers
       : activeTab === 'inactive' 
       ? inactiveUsers
       : requestUsers
-    
-    const roleFiltered = getFilteredUsersByRole(usersList)
-    return applyFilters(roleFiltered)
-  }, [activeTab, activeUsers, inactiveUsers, requestUsers, currentUserRole, filterRole, filterCity])
+  }, [activeTab, activeUsers, inactiveUsers, requestUsers])
 
-  const stats = useMemo(() => ({
-    total: users.length,
-    active: activeUsers.length,
-    inactive: inactiveUsers.length,
-    requests: getFilteredUsersByRole(requestUsers).length,
-    admins: users.filter((u) => (u.role === "admin" || u.role === "root") && u.status === "active").length,
-    leaders: users.filter((u) => u.role === "ld" && u.status === "active").length,
-    cc: users.filter((u) => u.role === "cc" && u.status === "active").length,
-    regularUsers: users.filter((u) => u.role === "user" && u.status === "active").length,
-  }), [users, activeUsers, inactiveUsers, requestUsers, currentUserRole])
+  const stats = useMemo(() => {
+    const allUsers = users.filter(u => {
+      if (currentUserRole === "ld") {
+        return u.role === "cc" || u.role === "user" || u.role === "ld"
+      }
+      return true
+    })
+
+    const filteredActive = applyFilters(allUsers.filter(u => u.status === "active"))
+    const filteredInactive = applyFilters(allUsers.filter(u => u.status === "inactive"))
+    const filteredRequests = applyFilters(getFilteredUsersByRole(allUsers.filter(u => u.status === "request")))
+
+    return {
+      total: filteredActive.length + filteredInactive.length + filteredRequests.length,
+      active: filteredActive.length,
+      inactive: filteredInactive.length,
+      requests: filteredRequests.length,
+      admins: filteredActive.filter(u => u.role === "admin" || u.role === "root").length,
+      leaders: filteredActive.filter(u => u.role === "ld").length,
+      cc: filteredActive.filter(u => u.role === "cc").length,
+      regularUsers: filteredActive.filter(u => u.role === "user").length,
+    }
+  }, [users, currentUserRole, filterRole, filterCity])
 
   return {
     activeUsers,

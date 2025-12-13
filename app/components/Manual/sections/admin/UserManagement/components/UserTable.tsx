@@ -10,6 +10,7 @@ interface UserTableProps {
   onEdit: (user: UserType) => void
   onChangeRole: (user: UserType) => void
   onChangeCity: (user: UserType) => void
+  onTransferCity: (user: UserType) => void  // ДОБАВЛЕНО
   onDeactivate: (userId: string, gameNick: string) => void
   onRestore: (userId: string, gameNick: string) => void
   onPermanentDelete: (userId: string, gameNick: string) => void
@@ -23,64 +24,99 @@ export const UserTable: React.FC<UserTableProps> = ({
   onEdit,
   onChangeRole,
   onChangeCity,
+  onTransferCity,  // ДОБАВЛЕНО
   onDeactivate,
   onRestore,
   onPermanentDelete,
   onApprove,
   onReject,
 }) => {
-  const canEditUser = (user: UserType): boolean => {
-    if (!currentUser) return false
-    return (
-      currentUser.role === "root" ||
-      (currentUser.role === "admin" &&
-        (currentUser.id === user.id || user.role !== "admin")) ||
-      (currentUser.role === "ld" &&
-        (currentUser.id === user.id || user.role === "cc" || user.role === "user"))
-    )
+const canEditUser = (user: UserType): boolean => {
+  if (!currentUser) return false
+  
+  // Root может редактировать всех кроме других root
+  if (currentUser.role === "root") {
+    return user.role !== "root"
   }
-
-  const canChangeRole = (user: UserType): boolean => {
-    if (!currentUser || currentUser.id === user.id) return false
-    
-    if (currentUser.role === "root") {
-      return user.role !== "root"
-    }
-    
-    if (currentUser.role === "admin") {
-      return user.role !== "admin" && user.role !== "root"
-    }
-    
-    // Лидер может изменять роль между user и cc
-    if (currentUser.role === "ld") {
-      return (user.role === "user" || user.role === "cc") && user.city === currentUser.city
-    }
-    
-    return false
+  
+  // Admin может редактировать себя и пользователей ниже рангом
+  if (currentUser.role === "admin") {
+    return currentUser.id === user.id || 
+           (user.role !== "admin" && user.role !== "root")
   }
-
-  const canDeactivate = (user: UserType): boolean => {
-    if (!currentUser || currentUser.id === user.id) return false
-    return (
-      currentUser.role === "root" ||
-      (currentUser.role === "admin" && user.role !== "admin") ||
-      (currentUser.role === "ld" && (user.role === "cc" || user.role === "user"))
-    )
+  
+  // Лидер может редактировать себя, и user/cc своего города
+  if (currentUser.role === "ld") {
+    return (currentUser.id === user.id) || 
+           ((user.role === "cc" || user.role === "user") && user.city === currentUser.city)
   }
+  
+  return false
+}
 
-  const canApproveRequest = (user: UserType): boolean => {
-    if (!currentUser) return false
-    if (currentUser.role === "root") return true
-    if (
-      currentUser.role === "admin" &&
-      (user.role === "cc" || user.role === "user" || user.role === "ld")
-    )
-      return true
-    if (currentUser.role === "ld" && (user.role === "cc" || user.role === "user"))
-      return true
-    return false
+const canChangeRole = (user: UserType): boolean => {
+  if (!currentUser || currentUser.id === user.id) return false
+  
+  // Root может изменять роль всем кроме других root
+  if (currentUser.role === "root") {
+    return user.role !== "root"
   }
+  
+  // Admin может изменять роль user, cc (не может трогать admin, ld, root)
+  if (currentUser.role === "admin") {
+    return user.role === "user" || user.role === "cc"
+  }
+  
+  // Лидер может изменять роль между user и cc только в своем городе
+  if (currentUser.role === "ld") {
+    return (user.role === "user" || user.role === "cc") && 
+           user.city === currentUser.city
+  }
+  
+  return false
+}
 
+const canDeactivate = (user: UserType): boolean => {
+  if (!currentUser || currentUser.id === user.id) return false
+  
+  // Root может деактивировать всех кроме других root
+  if (currentUser.role === "root") {
+    return user.role !== "root"
+  }
+  
+  // Admin может деактивировать user, cc (не может трогать admin, ld, root)
+  if (currentUser.role === "admin") {
+    return user.role === "user" || user.role === "cc"
+  }
+  
+  // Лидер может деактивировать user и cc своего города
+  if (currentUser.role === "ld") {
+    return (user.role === "cc" || user.role === "user") && 
+           user.city === currentUser.city
+  }
+  
+  return false
+}
+
+const canApproveRequest = (user: UserType): boolean => {
+  if (!currentUser) return false
+  
+  // Root может одобрять все запросы
+  if (currentUser.role === "root") return true
+  
+  // Admin может одобрять запросы с ролями cc, user, ld
+  if (currentUser.role === "admin") {
+    return user.role === "cc" || user.role === "user" || user.role === "ld"
+  }
+  
+  // Лидер может одобрять запросы с ролями cc и user своего города
+  if (currentUser.role === "ld") {
+    return (user.role === "cc" || user.role === "user") && 
+           user.city === currentUser.city
+  }
+  
+  return false
+}
   return (
     <div className="bg-card/50 rounded-lg border-2 border-border overflow-hidden transition-colors">
       <div className="overflow-x-auto">
@@ -224,6 +260,7 @@ export const UserTable: React.FC<UserTableProps> = ({
                           </button>
                         )}
 
+                        {/* КНОПКА ИЗМЕНЕНИЯ ГОРОДА для Root и Admin */}
                         {(currentUser?.role === "root" || currentUser?.role === "admin") && (
                           <button
                             onClick={() => onChangeCity(user)}
@@ -242,6 +279,32 @@ export const UserTable: React.FC<UserTableProps> = ({
                             >
                               <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
                               <circle cx="12" cy="10" r="3" />
+                            </svg>
+                          </button>
+                        )}
+
+                        {/* КНОПКА ПЕРЕМЕЩЕНИЯ В ДРУГОЙ ГОРОД для LD (необратимо) */}
+                        {currentUser?.role === "ld" && 
+                        (user.role === "user" || user.role === "cc") && 
+                        user.city === currentUser.city && (
+                          <button
+                            onClick={() => onTransferCity(user)}
+                            className="text-yellow-600 dark:text-yellow-400 hover:opacity-70 transition-all"
+                            title="Переместить в другой город (необратимо)"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="w-5 h-5"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+                              <circle cx="12" cy="10" r="3" />
+                              <path d="M12 2v8" strokeWidth="3" />
                             </svg>
                           </button>
                         )}
