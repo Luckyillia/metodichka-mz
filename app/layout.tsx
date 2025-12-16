@@ -21,32 +21,37 @@ export const metadata: Metadata = {
 }
 
 export default function RootLayout({
-                                     children,
-                                   }: {
+  children,
+}: {
   children: React.ReactNode
 }) {
   return (
-      <html lang="ru">
+    <html lang="ru" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{
           __html: `
             (function() {
-              const theme = localStorage.getItem('theme') || 'dark';
-              document.documentElement.className = theme;
+              try {
+                const theme = localStorage.getItem('theme') || 'dark';
+                document.documentElement.className = theme;
+              } catch (e) {
+                // localStorage недоступен (SSR)
+                document.documentElement.className = 'dark';
+              }
             })();
           `
         }} />
       </head>
       <body className={`${inter.variable} ${playfair.variable} font-sans`}>
-      <Suspense fallback={null}>
-        <AuthProvider>
-          {children}
-          <AppFooter />
-          <Analytics />
-          <SpeedInsights />
-        </AuthProvider>
-      </Suspense>
+        <Suspense fallback={null}>
+          <AuthProvider>
+            {children}
+            <AppFooter />
+            <Analytics />
+            <SpeedInsights />
+          </AuthProvider>
+        </Suspense>
       </body>
-      </html>
+    </html>
   )
 }
