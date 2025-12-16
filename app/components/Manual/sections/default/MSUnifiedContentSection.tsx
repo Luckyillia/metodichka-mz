@@ -1,18 +1,20 @@
 import React, { useState, Suspense, lazy } from 'react';
 
 const UnifiedContentSection = () => {
-    const [activeTab, setActiveTab] = useState< 'operations' | 'procedures' | 'rptask'>('operations');
+    const [activeTab, setActiveTab] = useState<'operations' | 'procedures' | 'rptask' | 'hippocratic'>('operations');
     const [gender, setGender] = useState<'male' | 'female'>('male');
 
     // Динамическая загрузка компонентов
     const OperationsSection = lazy(() => import('./UnifiedContent/OperationsSection'));
     const ProceduresSection = lazy(() => import('./UnifiedContent/ProceduresSection'));
     const RPTaskSection = lazy(() => import('./UnifiedContent/RPTaskSection'));
+    const HippocraticOath = lazy(() => import('./UnifiedContent/HippocraticOath'));
 
     const tabs = [
         { id: 'operations' as const, label: '🏥 Операции', icon: '🏥', component: OperationsSection },
         { id: 'procedures' as const, label: '💊 Процедуры', icon: '💊', component: ProceduresSection },
         { id: 'rptask' as const, label: '🎯 РП задания', icon: '🎯', component: RPTaskSection },
+        { id: 'hippocratic' as const, label: '⚕️ Клятва Гиппократа', icon: '⚕️', component: HippocraticOath },
     ];
 
     const activeTabData = tabs.find(tab => tab.id === activeTab);
