@@ -87,8 +87,12 @@ const AnnouncementsSection = () => {
     const positionTitle = getPositionTitle()
     const hospitalName = getHospitalName()
     
+    result = result.replace(/\{POSITION\}/g, positionTitle)
+
     // Замена полного названия больницы
     result = result.replace(/\{HOSPITAL_FULL\}/g, hospitalName)
+
+    result = result.replace(/\{MY_NAME\}/g, settings.myName)
     
     // Замена города
     result = result.replace(/\{CITY\}/g, settings.city)
