@@ -48,7 +48,93 @@ export class AuthService {
     // Пробрасываем ошибку дальше, чтобы UI мог показать сообщение
     throw error
   }
-}
+
+  }
+
+  static async getPromotionSystem(): Promise<any> {
+    try {
+      const response = await this.fetchWithAuth("/api/promotion-system", {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      })
+
+      if (!response.ok) {
+        return { promotions: [], reprimands: [] }
+      }
+
+      return await response.json()
+    } catch (error) {
+      console.error("[AuthService] Error fetching promotion system:", error)
+      return { promotions: [], reprimands: [] }
+    }
+  }
+
+  static async updatePromotionTask(
+    sectionKey: string,
+    taskId: number,
+    field: "task" | "max" | "points",
+    value: string
+  ): Promise<any> {
+    try {
+      const response = await this.fetchWithAuth("/api/promotion-system", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "update_task", sectionKey, taskId, field, value }),
+      })
+
+      const data = await response.json()
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to update task")
+      }
+      return data
+    } catch (error) {
+      console.error("[AuthService] Error updating promotion task:", error)
+      throw error
+    }
+  }
+
+  static async addPromotionTask(
+    sectionKey: string,
+    task: string,
+    max: string,
+    points: string
+  ): Promise<any> {
+    try {
+      const response = await this.fetchWithAuth("/api/promotion-system", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "add_task", sectionKey, task, max, points }),
+      })
+
+      const data = await response.json()
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to add task")
+      }
+      return data
+    } catch (error) {
+      console.error("[AuthService] Error adding promotion task:", error)
+      throw error
+    }
+  }
+
+  static async deletePromotionTask(taskId: number): Promise<{ success: boolean }> {
+    try {
+      const response = await this.fetchWithAuth("/api/promotion-system", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "delete_task", taskId }),
+      })
+
+      const data = await response.json()
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to delete task")
+      }
+      return data
+    } catch (error) {
+      console.error("[AuthService] Error deleting promotion task:", error)
+      throw error
+    }
+  }
 
   static createAuthToken(user: User): string {
     const tokenData = {
@@ -217,8 +303,8 @@ export class AuthService {
     ]
 
     const ccLdSections = [...publicSections, "exam-section", "ss-unified-content", "goss-wave", "announcements", "forum-responses", "report-generator"]
-    const ldSections = [...ccLdSections, "leader-report-generator", "user-management"]
-    const privilegedSections = [...ldSections, "gs-report-generator", "action-log"]
+    const ldSections = [...ccLdSections, "promotion-system", "leader-report-generator", "user-management"]
+    const privilegedSections = [...ldSections, "gs-report-generator", "action-log", "user-management"];
 
     switch (user.role) {
       case "root":

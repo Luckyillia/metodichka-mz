@@ -29,6 +29,8 @@ const UserManagementSection = lazy(() => import("@/app/components/Manual/section
 const ActionLogSection = lazy(() => import("@/app/components/Manual/sections/admin/ActionLogSection"))
 const VehiclesSection = lazy(() => import("@/app/components/Manual/sections/default/VehiclesSection"))
 const GSReportGeneratorSection = lazy(() => import("@/app/components/Manual/sections/admin/GSReportGeneratorSection"))
+const PromotionSystem = lazy(() => import("@/app/components/Manual/sections/admin/PromotionSystem"))
+
 
 const sectionComponents: Record<string, React.ComponentType> = {
   overview: OverviewSection,
@@ -51,6 +53,7 @@ const sectionComponents: Record<string, React.ComponentType> = {
   "user-management": UserManagementSection,
   "action-log": ActionLogSection,
   "gs-report-generator": GSReportGeneratorSection,
+  "promotion-system": PromotionSystem,
 }
 
 const getSectionTitle = (id: string) => {
