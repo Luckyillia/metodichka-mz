@@ -69,12 +69,22 @@ function getUserFromRequest(request: Request) {
 
 export async function GET() {
   try {
+    // 1. Get section info
+    const { data: sections, error: sectionsErr } = await supabase
+      .from("promotion_section_info")
+      .select("section_key, name, subtitle, color, sort_order")
+      .order("sort_order", { ascending: true })
+
+    if (sectionsErr) {
+      console.error("[Promotion API] GET sections error:", sectionsErr)
+      return NextResponse.json({ error: "Ошибка получения данных разделов" }, { status: 500 })
+    }
+
+    // 2. Get items
     const { data: rows, error: rowErr } = await supabase
       .from("promotion_system_items")
-      .select(
-        "id, category, section_key, section_title, section_subtitle, section_color, section_sort, task_sort, task, max, points"
-      )
-      .order("section_sort", { ascending: true })
+      .select("id, category, section_key, task_sort, task, max, points")
+      .order("section_key", { ascending: true })
       .order("task_sort", { ascending: true })
       .order("id", { ascending: true })
 
@@ -83,28 +93,47 @@ export async function GET() {
       return NextResponse.json({ error: "Ошибка получения данных" }, { status: 500 })
     }
 
-    type SectionOut = {
-      id: string
-      subtitle: string
-      color: string
-      tasks: Array<{ id: number; task: string; max: string; points: string }>
+    // 3. Build section map from promotion_section_info
+    const sectionMap = new Map()
+    for (const s of sections || []) {
+      sectionMap.set(s.section_key, {
+        id: s.section_key,
+        name: s.name,
+        subtitle: s.subtitle,
+        color: s.color || "bg-slate-600",
+        tasks: [],
+        section_sort: s.sort_order ?? 0,
+      })
     }
 
-    const promotionsByKey = new Map<string, SectionOut & { name: string; section_sort: number }>()
-    const reprimandsByKey = new Map<string, SectionOut & { title: string; section_sort: number }>()
+    // 4. Group items by section_key and category
+    const promotionsByKey = new Map()
+    const reprimandsByKey = new Map()
 
     for (const r of rows || []) {
-      const taskItem = { id: Number(r.id), task: r.task, max: r.max, points: r.points }
+      const taskItem = {
+        id: r.id,
+        task: r.task,
+        max: r.max,
+        points: r.points,
+      }
+
+      const sectionInfo = sectionMap.get(r.section_key)
+      if (!sectionInfo) {
+        console.warn(`[Promotion API] No section info found for section_key=${r.section_key}`)
+        continue
+      }
+
       if (r.category === "promotion") {
         const existing = promotionsByKey.get(r.section_key)
         if (!existing) {
           promotionsByKey.set(r.section_key, {
             id: r.section_key,
-            name: r.section_title,
-            subtitle: r.section_subtitle,
-            color: r.section_color || "bg-slate-600",
+            name: sectionInfo.name,
+            subtitle: sectionInfo.subtitle,
+            color: sectionInfo.color,
             tasks: [taskItem],
-            section_sort: r.section_sort ?? 0,
+            section_sort: sectionInfo.section_sort,
           })
         } else {
           existing.tasks.push(taskItem)
@@ -114,11 +143,11 @@ export async function GET() {
         if (!existing) {
           reprimandsByKey.set(r.section_key, {
             id: r.section_key,
-            title: r.section_title,
-            subtitle: r.section_subtitle,
-            color: r.section_color || "bg-slate-600",
+            title: sectionInfo.name,
+            subtitle: sectionInfo.subtitle,
+            color: sectionInfo.color,
             tasks: [taskItem],
-            section_sort: r.section_sort ?? 0,
+            section_sort: sectionInfo.section_sort,
           })
         } else {
           existing.tasks.push(taskItem)
@@ -243,24 +272,21 @@ export async function POST(request: Request) {
       const nextOrder = existing && existing.length > 0 ? (existing[0].task_sort || 0) + 1 : 1
 
       const { data: sectionRow, error: sectionErr } = await supabase
-        .from("promotion_system_items")
-        .select("category, section_key, section_title, section_subtitle, section_color, section_sort")
+        .from("promotion_section_info")
+        .select("section_key")
         .eq("section_key", sectionKey)
-        .order("section_sort", { ascending: true })
-        .limit(1)
         .single()
 
       if (sectionErr || !sectionRow) {
         return NextResponse.json({ error: "Раздел не найден" }, { status: 404 })
       }
 
+      // Determine category from sectionKey: promotions start with 'pmu', 'oth', 'old'; reprimands start with 'rep_'
+      const category = sectionKey.startsWith('rep_') ? 'reprimand' : 'promotion'
+
       const insertPayload = {
-        category: sectionRow.category,
+        category,
         section_key: sectionKey,
-        section_title: sectionRow.section_title,
-        section_subtitle: sectionRow.section_subtitle,
-        section_color: sectionRow.section_color,
-        section_sort: sectionRow.section_sort,
         task: task.toString().trim(),
         max: (max ?? "1").toString().trim(),
         points: (points ?? "1").toString().trim(),

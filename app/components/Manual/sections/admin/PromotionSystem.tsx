@@ -1,4 +1,4 @@
-    import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Edit2, Save, X, Plus, Trash2 } from 'lucide-react';
 import { useAuth } from '@/lib/auth/auth-context';
 import { AuthService } from '@/lib/auth/auth-service';
@@ -40,6 +40,7 @@ const PromotionSystem = () => {
   const [reprimandSystems, setReprimandSystems] = useState<ReprimandSystem[]>([]);
   const [editingCell, setEditingCell] = useState<EditingCell | null>(null);
   const [editValue, setEditValue] = useState('');
+  const [activeTab, setActiveTab] = useState<string>('pmu');
 
   useEffect(() => {
     const load = async () => {
@@ -360,14 +361,40 @@ const PromotionSystem = () => {
     </div>
   );
 
+  const allSections = [
+    ...departments.map((d) => ({ ...d, type: 'promotion' as const, key: d.id, label: d.name })),
+    ...reprimandSystems.map((r) => ({ ...r, type: 'reprimand' as const, key: r.id, label: r.title }))
+  ];
+
+  const tabOrder = ['pmu', 'old', 'oth', 'rep_1_7', 'rep_lead'];
+  const tabs = tabOrder
+    .map((key) => {
+      const section = allSections.find((s) => s.key === key);
+      return section ? { key, label: section.label } : null;
+    })
+    .filter((t): t is { key: string; label: string } => !!t);
+
+  const currentSection = allSections.find((s) => s.key === activeTab);
+
   return (
     <div>
-      {departments.map((department) => (
-        <div key={department.id}>{renderTable(department, 'promotion')}</div>
-      ))}
-      {reprimandSystems.map((system) => (
-        <div key={system.id}>{renderTable(system, 'reprimand')}</div>
-      ))}
+      <div className="flex gap-2 mb-6 flex-wrap border-b border-border pb-2">
+        {tabs.map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => setActiveTab(tab.key)}
+            className={`px-4 py-2 rounded-t-lg font-medium text-sm transition-colors ${
+              activeTab === tab.key
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {currentSection && renderTable(currentSection, currentSection.type)}
     </div>
   );
 };

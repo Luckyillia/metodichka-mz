@@ -21,14 +21,18 @@ export class AuthService {
 
     if (!response.ok) {
       console.error('[AuthService] Login failed with status:', response.status)
-      
-      const errorData = await response.json()
+
+      const errorData = await response.json().catch(() => ({} as any))
       console.log('[AuthService] Error data from server:', errorData)
 
-      if (errorData.error) {
-        throw new Error(errorData.error)  // ← Ошибка улетает наружу
+      if (errorData && (errorData as any).error) {
+        const err: any = new Error((errorData as any).error)
+        if ((errorData as any).errorType) {
+          err.errorType = (errorData as any).errorType
+        }
+        throw err // ← Ошибка уходит наружу, но с типом
       }
-      
+
       return null
     }
 

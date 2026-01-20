@@ -3,7 +3,7 @@ export const APP_VERSION = '1.1.0';
 // Changelog
 export const CHANGELOG = [
   {
-    version: '1.1.0',
+    version: '1.1.1',
     date: '2026-01-20',
     changes: [
       'Добавлен раздел по продвижению',

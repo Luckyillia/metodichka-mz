@@ -33,19 +33,24 @@ export default function LoginPage() {
         setErrorType('default')
       }
     } catch (err: any) {
-      // Определяем тип ошибки по тексту сообщения
-      const errorMessage = err.message || "Произошла ошибка при входе"
-      
-      if (errorMessage.includes("деактивирован")) {
-        setErrorType('deactivated')
-      } else if (errorMessage.includes("не одобрен") || errorMessage.includes("ожидает")) {
-        setErrorType('pending')
-      } else if (errorMessage.includes("Ошибка") || errorMessage.includes("ошибка")) {
-        setErrorType('server_error')
+      const errorTypeFromApi = (err && err.errorType) as ErrorType | undefined
+      const errorMessage = (err && err.message) || "Произошла ошибка при входе"
+
+      if (errorTypeFromApi) {
+        setErrorType(errorTypeFromApi)
       } else {
-        setErrorType('default')
+        // Fallback: определяем тип по сообщению
+        if (errorMessage.includes("деактивирован")) {
+          setErrorType('deactivated')
+        } else if (errorMessage.includes("не одобрен") || errorMessage.includes("ожидает")) {
+          setErrorType('pending')
+        } else if (errorMessage.includes("Ошибка") || errorMessage.includes("ошибка")) {
+          setErrorType('server_error')
+        } else {
+          setErrorType('default')
+        }
       }
-      
+
       setError(errorMessage)
     } finally {
       setIsLoading(false)
