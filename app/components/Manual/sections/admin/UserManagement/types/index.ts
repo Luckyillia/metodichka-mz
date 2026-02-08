@@ -26,8 +26,10 @@ export interface ConfirmModalState {
   title: string
   message: string
   onConfirm: () => void
+  onCancel?: () => void
   confirmText?: string
+  cancelText?: string
   type?: 'danger' | 'warning' | 'info'
 }
 
-export type UserTab = 'active' | 'inactive' | 'requests'
+export type UserTab = 'active' | 'inactive' | 'requests' | 'moderation'

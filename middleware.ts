@@ -56,8 +56,8 @@ export async function middleware(request: NextRequest) {
             return NextResponse.json({ error: 'Недействительный токен' }, { status: 401 })
         }
 
-        // Проверяем права для управления пользователями
-        if (path.startsWith('/api/users')) {
+        // Проверяем права для управления пользователями и админских эндпоинтов
+        if (path.startsWith('/api/users') || path.startsWith('/api/admin')) {
             if (user.role !== 'root' && user.role !== 'admin' && user.role !== 'ld') {
                 console.log('[Middleware] Insufficient permissions for users API')
 
@@ -204,7 +204,9 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
     matcher: [
+        '/api/user/:path*',
         '/api/users/:path*',
+        '/api/admin/:path*',
         '/api/action-logs',
         '/api/action-logs/:path*',
         '/api/parking-spaces',

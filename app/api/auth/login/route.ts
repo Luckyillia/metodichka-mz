@@ -20,7 +20,7 @@ export async function POST(request: Request) {
         .from('users')
         .select('*')
         .eq('username', username)
-        .single()
+        .maybeSingle()
 
     if (fetchError || !user) {
       console.log("[Login API] User not found:", username)
@@ -59,6 +59,7 @@ export async function POST(request: Request) {
 
     // Проверяем пароль
     const isPasswordValid = await bcrypt.compare(password, user.password)
+    console.log("[Login API] Password validation result:", isPasswordValid, "for user:", username)
 
     if (!isPasswordValid) {
       console.log("[Login API] Invalid password for user:", username)

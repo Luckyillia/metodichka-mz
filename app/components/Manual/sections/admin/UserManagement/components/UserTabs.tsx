@@ -8,17 +8,20 @@ interface UserTabsProps {
       active: number;
       inactive: number;
       requests: number;
+      moderation?: number;
     };
     showInactiveTab: boolean;
     showRequestsTab: boolean;
-  }
+    showModerationTab?: boolean;
+}
 
 export const UserTabs: React.FC<UserTabsProps> = ({
   activeTab,
   onTabChange,
   counts,
   showInactiveTab,
-  showRequestsTab
+  showRequestsTab,
+  showModerationTab = false,
 }) => {
   return (
     <div className="flex items-center gap-2 border-b-2 border-border">
@@ -56,6 +59,19 @@ export const UserTabs: React.FC<UserTabsProps> = ({
           }`}
         >
           Неактивные ({counts.inactive})
+        </button>
+      )}
+
+      {showModerationTab && (
+        <button
+          onClick={() => onTabChange('moderation')}
+          className={`px-4 py-2 font-medium transition-all border-b-2 -mb-0.5 ${
+            activeTab === 'moderation'
+              ? 'border-primary text-primary'
+              : 'border-transparent text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          Модерация аватаров ({counts.moderation || 0})
         </button>
       )}
     </div>

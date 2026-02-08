@@ -397,7 +397,13 @@ export class AuthService {
       const response = await this.fetchWithAuth("/api/users")
 
       if (!response.ok) {
-        throw new Error("Failed to fetch users")
+        const errorText = await response.text()
+        console.error("[AuthService] GetUsers failed:", {
+          status: response.status,
+          statusText: response.statusText,
+          body: errorText
+        })
+        throw new Error(`Failed to fetch users: ${response.status} ${errorText}`)
       }
 
       return await response.json()

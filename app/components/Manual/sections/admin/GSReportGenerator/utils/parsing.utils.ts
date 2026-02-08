@@ -256,61 +256,72 @@ export const extractWarnings = (section: string): Warning[] => {
     
     lines.forEach(line => {
         let trimmedLine = cleanText(line.trim());
-        if (!trimmedLine || trimmedLine === '-' || /^7\)/.test(trimmedLine)) return;
+        if (!trimmedLine || trimmedLine === '-' || trimmedLine === '---' || trimmedLine === '----') return;
         
         // Пропускаем заголовки
-        if (trimmedLine.toLowerCase().includes('список выданных') || 
-            (trimmedLine.toLowerCase().includes('выговор') && trimmedLine.toLowerCase().includes('причин'))) {
+        if (/^7\)/.test(trimmedLine) || 
+            trimmedLine.toLowerCase().includes('список выданных') ||
+            (trimmedLine.toLowerCase().includes('выговор') && trimmedLine.toLowerCase().includes('причин')) ||
+            trimmedLine.toLowerCase().includes('кол-во:')) {
             return;
         }
         
-        // Проверяем наличие никнейма (формат Nick_Name)
-        const nicknameMatch = trimmedLine.match(/^(?:\d{2}\.\d{2}\.\d{2,4}\s+)?([\w_]+)\b/);
-        if (!nicknameMatch) return;
-        
-        const nickname = nicknameMatch[1];
-        // Проверяем, что это похоже на никнейм (содержит подчеркивание или начинается с заглавной)
-        if (!/[A-Z]/.test(nickname[0]) && !nickname.includes('_')) return;
-        
-        // Паттерн 1: "Nick_Name объявлен выговор за нарушение..."
-        const match1 = trimmedLine.match(/^([\w_]+)\s+объявлен\s+выговор\s+за\s+нарушение\s+(.+)$/i);
-        if (match1) {
+        // Паттерн 1: "Сотрудник Nick_Name, выговор по X.XX ПСГО"
+        const pattern1 = trimmedLine.match(/^Сотрудник\s+([\w_]+),\s+выговор\s+по\s+(.+)$/i);
+        if (pattern1) {
             warnings.push({
-                nickname: match1[1],
-                reason: match1[2].trim()
+                nickname: pattern1[1],
+                reason: pattern1[2].trim()
             });
             return;
         }
         
-        // Паттерн 2: "Nick_Name получает письменное дисциплинарное взыскание в виде выговора за нарушение пункта..."
-        const match2 = trimmedLine.match(/^([\w_]+)\s+получает.*?выговора?\s+за\s+нарушение\s+(?:пункта\s+)?(.+)$/i);
-        if (match2) {
+        // Паттерн 2: "Nick_Name - X.XX ПСГО (пояснение)"
+        const pattern2 = trimmedLine.match(/^([\w_]+)\s+(\d+\.\d+\s+ПСГО.*)$/i);
+        if (pattern2) {
             warnings.push({
-                nickname: match2[1],
-                reason: match2[2].trim()
+                nickname: pattern2[1],
+                reason: pattern2[2].trim()
             });
             return;
         }
         
-        // Паттерн 3: "Nick_Name – 4.38 ПСГО – 1" (с тире или дефисом)
-        const match3 = trimmedLine.match(/^(?:\d{2}\.\d{2}\.\d{2,4}\s+)?([\w_]+)\s*[-–]+\s*(.+?)\s*[-–]+\s*(\d+)/);
-        if (match3) {
+        // Паттерн 3: "Nick_Name X.XX ПСГО" (без тире)
+        const pattern3 = trimmedLine.match(/^([\w_]+)\s+(\d+\.\d+)\s+(ПСГО.*)$/i);
+        if (pattern3) {
             warnings.push({
-                nickname: match3[1],
-                reason: `${match3[2].trim()} (количество: ${match3[3]})`
+                nickname: pattern3[1],
+                reason: `${pattern3[2]} ${pattern3[3].trim()}`
             });
             return;
         }
         
-        // Паттерн 4: "Nick_Name – 4.38 ПСГО" (без количества)
-        const match4 = trimmedLine.match(/^(?:\d{2}\.\d{2}\.\d{2,4}\s+)?([\w_]+)\s*[-–]+\s*([^-–]+)$/);
-        if (match4) {
-            let reason = match4[2].trim();
-            // Убираем точку в конце, если есть
-            reason = reason.replace(/\.$/, '');
+        // Паттерн 4: "Nick_Name объявлен выговор за нарушение..."
+        const pattern4 = trimmedLine.match(/^([\w_]+)\s+объявлен\s+выговор\s+за\s+(.+)$/i);
+        if (pattern4) {
             warnings.push({
-                nickname: match4[1],
-                reason: reason
+                nickname: pattern4[1],
+                reason: pattern4[2].trim()
+            });
+            return;
+        }
+        
+        // Паттерн 5: "Nick_Name получает письменное дисциплинарное взыскание..."
+        const pattern5 = trimmedLine.match(/^([\w_]+)\s+получает.*?выговора?\s+за\s+(.+)$/i);
+        if (pattern5) {
+            warnings.push({
+                nickname: pattern5[1],
+                reason: pattern5[2].trim()
+            });
+            return;
+        }
+        
+        // Паттерн 6: "Nick_Name - X.XX ПСГО" (с тире)
+        const pattern6 = trimmedLine.match(/^([\w_]+)\s*[-–]\s*(.+ПСГО.*)$/i);
+        if (pattern6 && /^[A-Z]/.test(pattern6[1])) {
+            warnings.push({
+                nickname: pattern6[1],
+                reason: pattern6[2].trim()
             });
             return;
         }

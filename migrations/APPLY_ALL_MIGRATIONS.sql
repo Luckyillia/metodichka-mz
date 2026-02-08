@@ -52,6 +52,28 @@ WHERE ip_address IS NULL AND status = 'active';
 --     END IF;
 -- END $$;
 
+-- STEP 4: Add avatar fields for Cloudinary
+-- ============================================
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS avatar_url varchar;
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS avatar_public_id varchar;
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS avatar_uploaded_at timestamptz;
+
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS avatar_moderation_status varchar DEFAULT 'approved';
+
+CREATE INDEX IF NOT EXISTS idx_users_avatar_uploaded_at ON public.users USING btree (avatar_uploaded_at);
+
+-- STEP 5: Rate limit avatar uploads (1 upload per 5 minutes per user)
+-- ============================================
+CREATE TABLE IF NOT EXISTS public.user_avatar_upload_limits (
+    user_id uuid PRIMARY KEY,
+    last_uploaded_at timestamptz NOT NULL,
+    created_at timestamptz NOT NULL DEFAULT now(),
+    updated_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_avatar_upload_limits_last_uploaded_at
+ON public.user_avatar_upload_limits USING btree (last_uploaded_at);
+
 -- ============================================
 -- VERIFICATION QUERIES
 -- ============================================

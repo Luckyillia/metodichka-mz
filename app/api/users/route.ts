@@ -1,6 +1,6 @@
 // app/api/users/route.ts
 import { NextResponse } from "next/server"
-import { supabase, validateGameNick } from "@/lib/supabase"
+import { supabaseAdmin, validateGameNick } from "@/lib/supabase"
 import bcrypt from "bcryptjs"
 
 function getUserFromHeaders(request: Request) {
@@ -35,15 +35,16 @@ export async function GET(request: Request) {
 
     console.log("[Users API] Fetching users, requested by:", currentUser.username, "role:", currentUser.role)
 
-    let query = supabase
+    let query = supabaseAdmin
         .from("users")
-        .select("id, username, game_nick, role, status, city, created_at")
+        .select("id, username, game_nick, role, status, city, created_at, avatar_url, avatar_public_id, avatar_uploaded_at, avatar_moderation_status")
         .order("created_at", { ascending: false })
 
     // Лидер видит только пользователей своего города
     if (currentUser.role === "ld") {
       console.log("[Users API] LD filter: users from city", currentUser.city)
-      query = query.eq("city", currentUser.city)
+      // Always include self, even if `city` in headers is stale/mismatched.
+      query = query.or(`city.eq.${currentUser.city},id.eq.${currentUser.id}`)
     }
     // Admin и Root видят всех пользователей
 
@@ -113,7 +114,7 @@ export async function POST(request: Request) {
     }
 
     // Проверка только среди активных пользователей
-    const { data: existingUsername } = await supabase
+    const { data: existingUsername } = await supabaseAdmin
         .from("users")
         .select("id")
         .eq("username", username)
@@ -124,7 +125,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Имя пользователя уже существует" }, { status: 400 })
     }
 
-    const { data: existingGameNick } = await supabase
+    const { data: existingGameNick } = await supabaseAdmin
         .from("users")
         .select("id")
         .eq("game_nick", gameNick)
@@ -137,7 +138,7 @@ export async function POST(request: Request) {
 
     const hashedPassword = await bcrypt.hash(password, 10)
 
-    const { data: newUser, error } = await supabase
+    const { data: newUser, error } = await supabaseAdmin
         .from("users")
         .insert([
           {
@@ -165,7 +166,7 @@ export async function POST(request: Request) {
 
     // Логируем создание с сохранением состояния
     try {
-      await supabase.from("action_logs").insert([
+      await supabaseAdmin.from("action_logs").insert([
         {
           user_id: currentUser.id,
           game_nick: currentUser.game_nick,
@@ -221,7 +222,7 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: "ID, имя пользователя и игровой ник обязательны" }, { status: 400 })
     }
 
-    const { data: existingUser, error: fetchError } = await supabase
+    const { data: existingUser, error: fetchError } = await supabaseAdmin
         .from("users")
         .select("role, username, game_nick, status, city")
         .eq("id", userId)
@@ -259,7 +260,7 @@ export async function PUT(request: Request) {
 
     // Проверка уникальности среди активных
     if (username !== existingUser.username) {
-      const { data: existingUsername } = await supabase
+      const { data: existingUsername } = await supabaseAdmin
           .from("users")
           .select("id")
           .eq("username", username)
@@ -273,7 +274,7 @@ export async function PUT(request: Request) {
     }
 
     if (gameNick !== existingUser.game_nick) {
-      const { data: existingGameNick } = await supabase
+      const { data: existingGameNick } = await supabaseAdmin
           .from("users")
           .select("id")
           .eq("game_nick", gameNick)
@@ -298,7 +299,7 @@ export async function PUT(request: Request) {
       updateData.password = await bcrypt.hash(password, 10)
     }
 
-    const { data: updatedUser, error: updateError } = await supabase
+    const { data: updatedUser, error: updateError } = await supabaseAdmin
         .from("users")
         .update(updateData)
         .eq("id", userId)
@@ -326,7 +327,7 @@ export async function PUT(request: Request) {
         return field
       }).join(", ")
 
-      await supabase.from("action_logs").insert([
+      await supabaseAdmin.from("action_logs").insert([
         {
           user_id: currentUser.id,
           game_nick: currentUser.game_nick,
@@ -374,6 +375,111 @@ export async function PATCH(request: Request) {
     const body = await request.json()
     const { userId, role, city, action } = body
 
+    if (action === "avatar_approve" || action === "avatar_reject") {
+      if (!userId) {
+        return NextResponse.json({ error: "ID пользователя обязателен" }, { status: 400 })
+      }
+
+      if (currentUser.role !== "root" && currentUser.role !== "admin" && currentUser.role !== "ld") {
+        return NextResponse.json({ error: "Недостаточно прав" }, { status: 403 })
+      }
+
+      const { data: existingUser, error: fetchError } = await supabaseAdmin
+        .from("users")
+        .select("id, username, game_nick, role, status, city, avatar_public_id, avatar_url")
+        .eq("id", userId)
+        .single()
+
+      if (fetchError || !existingUser) {
+        return NextResponse.json({ error: "Пользователь не найден" }, { status: 404 })
+      }
+
+      if (currentUser.role === "ld" && existingUser.city !== currentUser.city) {
+        return NextResponse.json({ error: "Лидер может модерировать только пользователей своего города" }, { status: 403 })
+      }
+
+      if (action === "avatar_approve") {
+        const { data: updated, error: updateError } = await supabaseAdmin
+          .from("users")
+          .update({ avatar_moderation_status: "approved" })
+          .eq("id", userId)
+          .select("id, username, game_nick, role, status, city, created_at, avatar_url, avatar_public_id, avatar_uploaded_at")
+          .single()
+
+        if (updateError) {
+          return NextResponse.json({ error: "Не удалось одобрить аватар" }, { status: 500 })
+        }
+
+        try {
+          await supabaseAdmin.from("action_logs").insert([
+            {
+              user_id: currentUser.id,
+              game_nick: currentUser.game_nick,
+              action: `Одобрен аватар пользователя: ${existingUser.game_nick}`,
+              action_type: "update",
+              target_type: "user",
+              target_id: userId,
+              target_name: existingUser.game_nick,
+              details: `avatar_moderation_status: pending -> approved`,
+              new_state: { avatar_moderation_status: "approved" },
+              metadata: {
+                action: "avatar_approve",
+              },
+            },
+          ])
+        } catch {
+          // ignore
+        }
+
+        return NextResponse.json(updated)
+      }
+
+      // avatar_reject = reset avatar (null) + status rejected
+      const { data: rejected, error: rejectError } = await supabaseAdmin
+        .from("users")
+        .update({
+          avatar_url: null,
+          avatar_public_id: null,
+          avatar_uploaded_at: null,
+          avatar_moderation_status: "rejected",
+        })
+        .eq("id", userId)
+        .select("id, username, game_nick, role, status, city, created_at, avatar_url, avatar_public_id, avatar_uploaded_at")
+        .single()
+
+      if (rejectError) {
+        return NextResponse.json({ error: "Не удалось отклонить аватар" }, { status: 500 })
+      }
+
+      try {
+        await supabaseAdmin.from("action_logs").insert([
+          {
+            user_id: currentUser.id,
+            game_nick: currentUser.game_nick,
+            action: `Отклонен аватар пользователя: ${existingUser.game_nick}`,
+            action_type: "update",
+            target_type: "user",
+            target_id: userId,
+            target_name: existingUser.game_nick,
+            details: `avatar reset + avatar_moderation_status -> rejected`,
+            new_state: {
+              avatar_url: null,
+              avatar_public_id: null,
+              avatar_moderation_status: "rejected",
+            },
+            metadata: {
+              action: "avatar_reject",
+              previous_public_id: existingUser.avatar_public_id,
+            },
+          },
+        ])
+      } catch {
+        // ignore
+      }
+
+      return NextResponse.json(rejected)
+    }
+
     // Обработка изменения города
     if (action === "change_city") {
       console.log("[Users API] Changing city:", userId, "to", city, "by:", currentUser.username)
@@ -388,7 +494,7 @@ export async function PATCH(request: Request) {
         return NextResponse.json({ error: "Некорректный город" }, { status: 400 })
       }
 
-      const { data: existingUser, error: fetchError } = await supabase
+      const { data: existingUser, error: fetchError } = await supabaseAdmin
           .from("users")
           .select("role, username, game_nick, status, city")
           .eq("id", userId)
@@ -407,7 +513,7 @@ export async function PATCH(request: Request) {
         return NextResponse.json({ error: "Недостаточно прав для изменения города" }, { status: 403 })
       }
 
-      const { data: updatedUser, error: updateError } = await supabase
+      const { data: updatedUser, error: updateError } = await supabaseAdmin
           .from("users")
           .update({ city })
           .eq("id", userId)
@@ -423,7 +529,7 @@ export async function PATCH(request: Request) {
 
       // Логируем изменение города
       try {
-        await supabase.from("action_logs").insert([
+        await supabaseAdmin.from("action_logs").insert([
           {
             user_id: currentUser.id,
             game_nick: currentUser.game_nick,
@@ -456,7 +562,7 @@ export async function PATCH(request: Request) {
         return NextResponse.json({ error: "ID пользователя обязателен" }, { status: 400 })
       }
 
-      const { data: existingUser, error: fetchError } = await supabase
+      const { data: existingUser, error: fetchError } = await supabaseAdmin
           .from("users")
           .select("id, username, game_nick, role, status, city")
           .eq("id", userId)
@@ -485,7 +591,7 @@ export async function PATCH(request: Request) {
         return NextResponse.json({ error: "Администратор может одобрять только запросы с ролями User, CC и LD" }, { status: 403 })
       }
 
-      const { data: approvedUser, error: approveError } = await supabase
+      const { data: approvedUser, error: approveError } = await supabaseAdmin
           .from("users")
           .update({ status: "active" })
           .eq("id", userId)
@@ -499,7 +605,7 @@ export async function PATCH(request: Request) {
 
       // Логируем одобрение
       try {
-        await supabase.from("action_logs").insert([
+        await supabaseAdmin.from("action_logs").insert([
           {
             user_id: currentUser.id,
             game_nick: currentUser.game_nick,
@@ -532,7 +638,7 @@ export async function PATCH(request: Request) {
         return NextResponse.json({ error: "ID пользователя обязателен" }, { status: 400 })
       }
 
-      const { data: existingUser, error: fetchError } = await supabase
+      const { data: existingUser, error: fetchError } = await supabaseAdmin
           .from("users")
           .select("id, username, game_nick, role, status, city")
           .eq("id", userId)
@@ -551,7 +657,7 @@ export async function PATCH(request: Request) {
         return NextResponse.json({ error: "Лидер может восстанавливать только пользователей своего города" }, { status: 403 })
       }
 
-      const { data: restoredUser, error: restoreError } = await supabase
+      const { data: restoredUser, error: restoreError } = await supabaseAdmin
           .from("users")
           .update({ status: "active" })
           .eq("id", userId)
@@ -565,7 +671,7 @@ export async function PATCH(request: Request) {
 
       // Логируем восстановление
       try {
-        await supabase.from("action_logs").insert([
+        await supabaseAdmin.from("action_logs").insert([
           {
             user_id: currentUser.id,
             game_nick: currentUser.game_nick,
@@ -597,7 +703,7 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: "ID пользователя и роль обязательны" }, { status: 400 })
     }
 
-    const { data: existingUser, error: fetchError } = await supabase
+    const { data: existingUser, error: fetchError } = await supabaseAdmin
         .from("users")
         .select("role, username, game_nick, status, city")
         .eq("id", userId)
@@ -658,7 +764,7 @@ export async function PATCH(request: Request) {
       }
     }
 
-    const { data: updatedUser, error: updateError } = await supabase
+    const { data: updatedUser, error: updateError } = await supabaseAdmin
         .from("users")
         .update({ role })
         .eq("id", userId)
@@ -674,7 +780,7 @@ export async function PATCH(request: Request) {
 
     // Логируем изменение роли
     try {
-      await supabase.from("action_logs").insert([
+      await supabaseAdmin.from("action_logs").insert([
         {
           user_id: currentUser.id,
           game_nick: currentUser.game_nick,
@@ -721,7 +827,7 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: "ID пользователя обязателен" }, { status: 400 })
     }
 
-    const { data: existingUser, error: fetchError } = await supabase
+    const { data: existingUser, error: fetchError } = await supabaseAdmin
         .from("users")
         .select("id, role, username, game_nick, status, city")
         .eq("id", userId)
@@ -768,7 +874,7 @@ export async function DELETE(request: Request) {
     }
 
     // Soft delete - устанавливаем status = inactive
-    const { error: deactivateError } = await supabase
+    const { error: deactivateError } = await supabaseAdmin
         .from("users")
         .update({ status: "inactive" })
         .eq("id", userId)
@@ -782,7 +888,7 @@ export async function DELETE(request: Request) {
 
     // Логируем деактивацию с сохранением состояния
     try {
-      await supabase.from("action_logs").insert([
+      await supabaseAdmin.from("action_logs").insert([
         {
           user_id: currentUser.id,
           game_nick: currentUser.game_nick,

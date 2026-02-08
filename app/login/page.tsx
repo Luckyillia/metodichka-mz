@@ -119,7 +119,7 @@ export default function LoginPage() {
 
               <div className="space-y-2">
                 <label htmlFor="username" className="block text-sm font-medium text-foreground">
-                  Имя пользователя
+                  Логин
                 </label>
                 <input
                   id="username"

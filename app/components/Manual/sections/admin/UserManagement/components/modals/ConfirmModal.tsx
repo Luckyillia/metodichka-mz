@@ -9,7 +9,9 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
   title,
   message,
   onConfirm,
+  onCancel,
   confirmText = 'Подтвердить',
+  cancelText = 'Отмена',
   type = 'warning'
 }) => {
   if (!isOpen) return null
@@ -39,6 +41,14 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
           </div>
 
           <div className="flex gap-3">
+            {onCancel && (
+              <button
+                onClick={onCancel}
+                className="flex-1 px-4 py-2.5 rounded-lg transition-all font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80"
+              >
+                {cancelText}
+              </button>
+            )}
             <button
               onClick={onConfirm}
               className={`flex-1 px-4 py-2.5 rounded-lg transition-all font-medium ${

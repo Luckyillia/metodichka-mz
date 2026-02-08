@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
 import type { AuthState } from "./types"
 import { AuthService } from "./auth-service"
+import { USER_UPDATED_EVENT } from "./user-events"
 
 interface AuthContextType extends AuthState {
   login: (username: string, password: string) => Promise<boolean>
@@ -27,6 +28,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isLoading: false,
     })
 
+    const onUserUpdated = () => {
+      const nextUser = AuthService.getCurrentUser()
+      setState((prev) => ({
+        ...prev,
+        user: nextUser,
+        isAuthenticated: !!nextUser,
+        isLoading: false,
+      }))
+    }
+
+    window.addEventListener(USER_UPDATED_EVENT, onUserUpdated)
+
     const checkSessionInterval = setInterval(() => {
       const currentUser = AuthService.getCurrentUser()
       if (!currentUser && state.isAuthenticated) {
@@ -39,7 +52,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     }, 60000) // Check every minute
 
-    return () => clearInterval(checkSessionInterval)
+    return () => {
+      window.removeEventListener(USER_UPDATED_EVENT, onUserUpdated)
+      clearInterval(checkSessionInterval)
+    }
   }, [state.isAuthenticated])
 
   const login = async (username: string, password: string): Promise<boolean> => {

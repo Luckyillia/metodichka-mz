@@ -13,6 +13,10 @@ export interface User {
   city: UserCity
   ip_address?: string
   created_at: string
+  avatar_url?: string | null
+  avatar_public_id?: string | null
+  avatar_uploaded_at?: string | null
+  avatar_moderation_status?: "pending" | "approved" | "rejected" | null
 }
 
 export interface AuthState {

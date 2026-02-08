@@ -15,6 +15,13 @@ const themes: { value: Theme; label: string; icon: string }[] = [
   { value: 'theme-mz-glow', label: 'МЗ Glow', icon: '✨' },
 ]
 
+const initialsFromNick = (nick: string) => {
+  const parts = nick.split(/[_\s]+/).filter(Boolean)
+  const a = parts[0]?.[0] || "U"
+  const b = parts[1]?.[0] || ""
+  return (a + b).toUpperCase()
+}
+
 export default function Header() {
   const { user, isAuthenticated, logout } = useAuth()
   const router = useRouter()
@@ -118,15 +125,34 @@ export default function Header() {
 
             {isAuthenticated && user ? (
               <>
-                <div className="flex items-center gap-3 px-4 py-2 bg-secondary rounded-lg border-2 border-border">
-                  <Shield className="w-4 h-4 text-muted-foreground"/>
+                <Link
+                  href="/profile"
+                  className="flex items-center gap-3 px-4 py-2 bg-secondary rounded-lg border-2 border-border hover:bg-secondary/80 transition-colors"
+                  title="Личный кабинет"
+                >
+                  {user.avatar_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={user.avatar_url}
+                      alt="avatar"
+                      className="w-10 h-10 rounded-full object-cover border-2 border-border"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-muted border-2 border-border flex items-center justify-center text-sm font-semibold text-foreground">
+                      {initialsFromNick(user.game_nick)}
+                    </div>
+                  )}
+
                   <div className="flex flex-col">
-                    <span className="text-sm font-medium text-foreground">{user.game_nick}</span>
+                    <span className="text-sm font-medium text-foreground flex items-center gap-2">
+                      <Shield className="w-4 h-4 text-muted-foreground"/>
+                      {user.game_nick}
+                    </span>
                     <span className={`text-xs px-2 py-0.5 rounded ${getRoleBadge(user.role, user.city).color} text-white w-fit`}>
                       {getRoleBadge(user.role, user.city).label}
                     </span>
                   </div>
-                </div>
+                </Link>
                 <button
                     onClick={handleLogout}
                     className="modern-button flex items-center gap-2"
