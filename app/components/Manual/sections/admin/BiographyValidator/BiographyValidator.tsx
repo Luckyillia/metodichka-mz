@@ -248,12 +248,32 @@ export default function BiographyValidator() {
                 <div className="text-sm text-muted-foreground">Общая оценка</div>
                 <div className={`text-3xl font-bold ${scoreClass(result.score)}`}>{result.score}/10</div>
                 <div className="mt-1 text-sm">
-                  {result.valid ? (
+                  {(result as any)?.primaryVerdict === "passed" ? (
                     <span className="text-emerald-400 font-semibold">✅ Биография прошла проверку</span>
                   ) : (
-                    <span className="text-rose-400 font-semibold">❌ Биография не прошла проверку</span>
+                    <span className={`${result.score < 5 ? "text-rose-400" : "text-orange-400"} font-semibold`}>
+                      {result.score < 5 ? "❌ Отказана" : "⚠️ Первичный вердикт: отказана"}
+                    </span>
                   )}
                 </div>
+
+                {(result as any)?.primaryVerdict !== "passed" ? (
+                  <div className="mt-2 inline-flex items-center rounded-lg border border-orange-500/30 bg-orange-500/10 px-3 py-2 text-xs text-orange-200">
+                    {(() => {
+                      const diff = (result as any)?.birthdate?.difference
+                      if (typeof diff === "number" && diff > 0) {
+                        return "Причина: возраст не совпадает с датой рождения"
+                      }
+                      if ((result as any)?.perspective?.status === "error") {
+                        return "Причина: пункты 10–12 не от 1-го лица"
+                      }
+                      if ((result as any)?.structure?.status === "error") {
+                        return "Причина: структура 1–13 заполнена не полностью"
+                      }
+                      return "Причина: требуются исправления"
+                    })()}
+                  </div>
+                ) : null}
               </div>
 
               <div className="flex gap-2">
@@ -268,7 +288,29 @@ export default function BiographyValidator() {
 
             <div className="mt-2 text-xs text-muted-foreground">Модель: {model}</div>
 
-            <div className="mt-4 text-sm text-muted-foreground">{result.summary}</div>
+            {(result as any)?.primaryVerdict !== "passed" ? (
+              <div className="mt-4 rounded-xl border border-orange-500/30 bg-orange-500/10 p-4">
+                <div className="text-sm font-semibold text-orange-200">Коротко что не так</div>
+                <ul className="mt-2 space-y-1 text-sm text-orange-100/90">
+                  {(() => {
+                    const items: string[] = []
+                    const diff = (result as any)?.birthdate?.difference
+                    if (typeof diff === "number" && diff > 0) items.push("Возраст не совпадает с датой рождения")
+                    if ((result as any)?.birthdate?.status === "error") items.push("Ошибка в дате рождения / возрасте")
+                    if ((result as any)?.perspective?.status === "error") items.push("Пункты 10–12 должны быть строго от 1-го лица")
+                    if ((result as any)?.structure?.status === "error") items.push("Не заполнены обязательные пункты 1–13")
+                    if ((result as any)?.grammar?.status === "error") items.push("Критические ошибки грамматики")
+                    if ((result as any)?.logic?.status === "error") items.push("Критические логические ошибки")
+                    if (items.length === 0) items.push("Требуются исправления — проверьте детали ниже")
+                    return items.map((t, i) => (
+                      <li key={i} className="list-disc ml-5">{t}</li>
+                    ))
+                  })()}
+                </ul>
+              </div>
+            ) : (
+              <div className="mt-4 text-sm text-muted-foreground">Биография прошла проверку без замечаний.</div>
+            )}
           </div>
 
           {result.sections?.length ? (
