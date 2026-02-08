@@ -3,7 +3,7 @@ export const APP_VERSION = '1.2.0';
 // Changelog
 export const CHANGELOG = [
   {
-    version: '1.2.0',
+    version: '1.2.1',
     date: '2026-02-08',
     changes: [
       'Добавлен личный кабинет',

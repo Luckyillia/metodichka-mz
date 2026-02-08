@@ -56,6 +56,7 @@ export default function ProfilePage() {
 
   const [isUploading, setIsUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
+  const [isGif, setIsGif] = useState(false)
 
   const fileInputRef = useRef<HTMLInputElement | null>(null)
 
@@ -123,6 +124,8 @@ export default function ProfilePage() {
 
     if (previewUrl) URL.revokeObjectURL(previewUrl)
 
+    const fileIsGif = file.type === "image/gif"
+    setIsGif(fileIsGif)
     setSelectedFile(file)
     setPreviewUrl(URL.createObjectURL(file))
     setZoom(1)
@@ -131,18 +134,42 @@ export default function ProfilePage() {
   }
 
   const uploadAvatar = async () => {
-    if (!selectedFile || !previewUrl || !croppedAreaPixels) {
-      show("error", "Выберите файл и кадрируйте изображение")
+    if (!selectedFile || !previewUrl) {
+      show("error", "Выберите файл")
       return
+    }
+
+    // GIF загружаем БЕЗ кадрирования
+    if (isGif) {
+      if (!selectedFile) {
+        show("error", "Файл не найден")
+        return
+      }
+    } else {
+      // Для JPG/PNG/WebP требуется кадрирование
+      if (!croppedAreaPixels) {
+        show("error", "Кадрируйте изображение")
+        return
+      }
     }
 
     setIsUploading(true)
     setUploadProgress(0)
 
     try {
-      const blob = await getCroppedImageBlob(previewUrl, croppedAreaPixels)
+      let fileToUpload: File
+
+      if (isGif) {
+        // GIF — загружаем как есть
+        fileToUpload = selectedFile
+      } else {
+        // Остальное — кадрируем
+        const blob = await getCroppedImageBlob(previewUrl, croppedAreaPixels!)
+        fileToUpload = new File([blob], selectedFile.name, { type: blob.type })
+      }
+
       const form = new FormData()
-      form.append("file", new File([blob], selectedFile.name, { type: blob.type }))
+      form.append("file", fileToUpload)
 
       const token = AuthService.getAuthToken()
       if (!token) {
@@ -191,8 +218,9 @@ export default function ProfilePage() {
       }
       setPreviewUrl(null)
       setUploadProgress(0)
+      setIsGif(false)
 
-      show("success", "Аватар обновлён")
+      show("success", isGif ? "GIF аватар обновлён (анимация сохранена)" : "Аватар обновлён")
     } catch (e: any) {
       show("error", e?.message || "Не удалось загрузить аватар")
     } finally {
@@ -329,6 +357,11 @@ export default function ProfilePage() {
                 <div className="text-xs text-muted-foreground mt-1">
                   Форматы: JPG, PNG, WEBP, GIF. Максимум: 5MB.
                 </div>
+                {isGif && (
+                  <div className="text-xs text-yellow-600 dark:text-yellow-400 mt-1 font-semibold">
+                    ⚡ GIF загружается без кадрирования (анимация сохраняется)
+                  </div>
+                )}
               </div>
             </div>
 
@@ -363,7 +396,7 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {previewUrl && (
+          {previewUrl && !isGif && (
             <div className="mt-6">
               <div className="text-sm text-muted-foreground mb-3">
                 Перетащи изображение и настрой зум, чтобы кадрировать 1:1.
@@ -423,6 +456,55 @@ export default function ProfilePage() {
                     />
                   </div>
                   <div className="text-xs text-muted-foreground mt-1">{uploadProgress}%</div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {previewUrl && isGif && (
+            <div className="mt-6">
+              <div className="text-sm text-yellow-600 dark:text-yellow-400 mb-3 font-semibold">
+                ⚡ GIF-анимация сохранится без изменений (кадрирование недоступно)
+              </div>
+              <div className="relative w-full max-w-md mx-auto">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={previewUrl}
+                  alt="GIF preview"
+                  className="w-full h-auto rounded-xl border-2 border-border"
+                />
+              </div>
+
+              <div className="mt-4 flex items-center justify-center">
+                <button
+                  type="button"
+                  className="modern-button inline-flex items-center gap-2 disabled:opacity-50"
+                  onClick={uploadAvatar}
+                  disabled={isUploading}
+                >
+                  {isUploading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Загрузка...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4" />
+                      Загрузить GIF аватар
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {isUploading && (
+                <div className="mt-4">
+                  <div className="w-full h-2 bg-secondary rounded-full overflow-hidden border border-border">
+                    <div
+                      className="h-full bg-primary transition-all"
+                      style={{ width: `${uploadProgress}%` }}
+                    />
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-1 text-center">{uploadProgress}%</div>
                 </div>
               )}
             </div>
