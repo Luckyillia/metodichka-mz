@@ -308,7 +308,7 @@ export class AuthService {
 
     const ccLdSections = [...publicSections, "exam-section", "ss-unified-content", "goss-wave", "announcements", "forum-responses", "report-generator"]
     const ldSections = [...ccLdSections, "promotion-system", "leader-report-generator", "user-management"]
-    const privilegedSections = [...ldSections, "gs-report-generator", "action-log", "user-management"];
+    const privilegedSections = [...ldSections, "gs-report-generator", "action-log", "user-management", "biography-validator"];
 
     switch (user.role) {
       case "root":
