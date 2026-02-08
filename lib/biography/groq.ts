@@ -257,7 +257,7 @@ export async function validateBiographyWithGroq(params: {
     if (birth && !Number.isNaN(now.getTime())) {
       const calculatedAge = calcAge({ birth, now })
       const difference = statedAge === null ? 0 : Math.abs(calculatedAge - statedAge)
-      const match = statedAge === null ? false : difference <= 1
+      const match = statedAge === null ? false : calculatedAge === statedAge
       const status = statedAge === null ? "warning" : clampStatusByDiff(difference)
 
       parsed.birthdate = {
