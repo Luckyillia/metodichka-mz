@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useCallback } from "react"
 import { AuthService } from "@/lib/auth/auth-service"
 import type { ActionLog } from "@/lib/auth/types"
 import {
@@ -40,11 +40,7 @@ export default function ActionLogSection() {
 
     const logsPerPage = 5
 
-    useEffect(() => {
-        loadLogs()
-    }, [currentPage, selectedActionType, selectedTargetType])
-
-    const loadLogs = async () => {
+    const loadLogs = useCallback(async () => {
         setIsLoading(true)
         try {
             const filters: any = {}
@@ -65,7 +61,11 @@ export default function ActionLogSection() {
         } finally {
             setIsLoading(false)
         }
-    }
+    }, [currentPage, selectedActionType, selectedTargetType])
+
+    useEffect(() => {
+        loadLogs()
+    }, [loadLogs])
 
     const formatDate = (dateString: string) => {
         const date = new Date(dateString)

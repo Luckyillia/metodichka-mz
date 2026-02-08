@@ -12,13 +12,12 @@ declare global {
 
 export const AppFooter = () => {
   const { version, lastUpdated } = getVersionInfo();
-  const [currentTheme, setCurrentTheme] = useState('dark');
+  const [currentTheme, setCurrentTheme] = useState(() => {
+    if (typeof window === "undefined") return "dark"
+    return localStorage.getItem("theme") || "dark"
+  });
 
   useEffect(() => {
-    // Get current theme from localStorage or use default
-    const savedTheme = localStorage.getItem('theme') || 'dark';
-    setCurrentTheme(savedTheme);
-    
     // Function to handle theme changes
     const handleThemeChange = () => {
       const theme = localStorage.getItem('theme') || 'dark';

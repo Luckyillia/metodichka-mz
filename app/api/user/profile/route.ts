@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server"
 import { supabase } from "@/lib/supabase"
 import bcrypt from "bcryptjs"
+import CryptoJS from "crypto-js"
+import { AUTH_SIGNING_KEY } from "@/lib/auth/constants"
 
 function getUserFromHeaders(request: Request) {
   const userId = request.headers.get("x-user-id")
@@ -110,7 +112,24 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: "Не удалось обновить профиль" }, { status: 500 })
     }
 
-    return NextResponse.json({ user: updated })
+    if (!AUTH_SIGNING_KEY) {
+      console.error("[Profile API] AUTH_SIGNING_KEY is not set")
+      return NextResponse.json({ error: "Сервер не настроен" }, { status: 500 })
+    }
+
+    const loginTimestamp = Date.now()
+    const signatureData = `${updated.id}:${updated.username}:${updated.role}:${updated.game_nick}`
+    const signature = CryptoJS.HmacSHA256(signatureData, AUTH_SIGNING_KEY).toString()
+
+    const tokenData = {
+      ...updated,
+      loginTimestamp,
+      timestamp: loginTimestamp,
+      signature,
+    }
+    const token = Buffer.from(JSON.stringify(tokenData)).toString("base64")
+
+    return NextResponse.json({ user: updated, token })
   } catch (error: any) {
     return NextResponse.json(
       { error: error?.message || "Ошибка при обновлении профиля" },

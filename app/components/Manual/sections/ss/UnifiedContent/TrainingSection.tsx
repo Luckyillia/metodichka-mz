@@ -84,6 +84,7 @@ const TrainingSection = () => {
                 <div className="space-y-3 mt-4">
                     {trainings.map((training) => (
                         <DropdownMenu
+                            key={training}
                             title={training}
                             icon={trainingIcon[training as keyof typeof trainingContent] || "📖"}
                             items={trainingContent[training as keyof typeof trainingContent] || ["Содержание лекции будет добавлено позже"]}

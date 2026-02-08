@@ -79,17 +79,12 @@ export default function ManualPage() {
   const router = useRouter()
   const { canAccessSection, isLoading } = useAuth()
   const [activeSection, setActiveSection] = useState("overview")
-  const SectionComponent = sectionComponents[activeSection]
+  const effectiveSection = !isLoading && !canAccessSection(activeSection) ? "overview" : activeSection
+  const SectionComponent = sectionComponents[effectiveSection]
 
   useEffect(() => {
     // Removed manual-page class for clean design
   }, [])
-
-  useEffect(() => {
-    if (!isLoading && !canAccessSection(activeSection)) {
-      setActiveSection("overview")
-    }
-  }, [activeSection, canAccessSection, isLoading])
 
   if (isLoading) {
     return (
@@ -107,7 +102,7 @@ export default function ManualPage() {
         <div className="ml-64">
           <div className="max-w-screen-2xl mx-auto px-6 py-6">
             <main className="modern-card min-h-[calc(100vh-8rem)]">
-              {!canAccessSection(activeSection) ? (
+              {!canAccessSection(effectiveSection) ? (
                   <div className="flex flex-col items-center justify-center py-20 text-center">
                     <AlertCircle className="w-16 h-16 text-amber-500 mb-4" />
                     <h2 className="text-2xl font-bold text-foreground mb-2">Требуется авторизация</h2>
@@ -123,11 +118,11 @@ export default function ManualPage() {
                   <Suspense fallback={<div className="text-center py-8">Загрузка раздела...</div>}>
                     <div className="mb-6">
                       <h1 className="text-3xl font-bold text-foreground mb-2">
-                        {getSectionTitle(activeSection)}
+                        {getSectionTitle(effectiveSection)}
                       </h1>
                       <div className="w-20 h-1 bg-primary rounded-full"></div>
                     </div>
-                    {activeSection === "overview" ? (
+                    {effectiveSection === "overview" ? (
                       <OverviewSection setActiveSection={setActiveSection} />
                     ) : (
                       <SectionComponent />

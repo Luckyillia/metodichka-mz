@@ -86,7 +86,7 @@ const MedicalCommissionSection = () => {
         <ExamplePhrase text="do У *Имя Фамилия* какой вес?" />
         
         <div className="note">
-          <strong>📌 Примечание:</strong> Ждём пока напишет в ДУ "do 80 кг.".
+          <strong>📌 Примечание:</strong> Ждём пока напишет в ДУ &quot;do 80 кг.&quot;.
         </div>
         
         <ExamplePhrase text="do В углу стоит стол." />

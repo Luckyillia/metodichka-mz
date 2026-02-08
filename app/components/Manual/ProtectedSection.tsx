@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useEffect } from 'react';
 import '@/app/styles/protectedSection.css';
 
@@ -14,36 +16,58 @@ const ProtectedSection: React.FC<ProtectedSectionProps> = ({
                                                                hint = "Подсказка не предоставлена",
                                                                sessionDuration = 5
                                                            }) => {
-    const [accessGranted, setAccessGranted] = useState(false);
     const [inputPassword, setInputPassword] = useState('');
     const [error, setError] = useState('');
     const [showHint, setShowHint] = useState(false);
     const [attempts, setAttempts] = useState(3);
     const [isBlocked, setIsBlocked] = useState(false);
     const [blockTimeLeft, setBlockTimeLeft] = useState(0);
-    const [sessionTimeLeft, setSessionTimeLeft] = useState(0);
+
     const isUnlimited = sessionDuration === 9999;
 
     // Генерируем уникальный ключ для этого компонента на основе пароля
     const sessionKey = `protected_section_${btoa(password).substring(0, 10)}`;
 
-    // Проверяем сессию при монтировании компонента
-    useEffect(() => {
+    const [accessGranted, setAccessGranted] = useState(() => {
         const savedSession = sessionStorage.getItem(sessionKey);
-        if (savedSession) {
+        if (!savedSession) return false;
+        try {
             const sessionData = JSON.parse(savedSession);
             const now = Date.now();
+            return isUnlimited || now < sessionData.expiresAt;
+        } catch {
+            return false;
+        }
+    });
 
-            if (isUnlimited || now < sessionData.expiresAt) {
-                setAccessGranted(true);
-                if (!isUnlimited) {
-                    const timeLeft = Math.floor((sessionData.expiresAt - now) / 1000);
-                    setSessionTimeLeft(timeLeft);
-                }
-            } else {
-                // Сессия истекла, удаляем её
+    const [sessionTimeLeft, setSessionTimeLeft] = useState(() => {
+        if (isUnlimited) return 0;
+        const savedSession = sessionStorage.getItem(sessionKey);
+        if (!savedSession) return 0;
+        try {
+            const sessionData = JSON.parse(savedSession);
+            const now = Date.now();
+            if (now >= sessionData.expiresAt) return 0;
+            return Math.floor((sessionData.expiresAt - now) / 1000);
+        } catch {
+            return 0;
+        }
+    });
+
+    // Проверяем сессию при монтировании компонента (только cleanup если истекла)
+    useEffect(() => {
+        if (isUnlimited) return;
+        const savedSession = sessionStorage.getItem(sessionKey);
+        if (!savedSession) return;
+
+        try {
+            const sessionData = JSON.parse(savedSession);
+            const now = Date.now();
+            if (now >= sessionData.expiresAt) {
                 sessionStorage.removeItem(sessionKey);
             }
+        } catch {
+            sessionStorage.removeItem(sessionKey);
         }
     }, [sessionKey, isUnlimited]);
 

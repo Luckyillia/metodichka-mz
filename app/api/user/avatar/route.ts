@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server"
 import { supabase } from "@/lib/supabase"
 import { getCloudinary } from "@/lib/cloudinary"
+import CryptoJS from "crypto-js"
+import { AUTH_SIGNING_KEY } from "@/lib/auth/constants"
 
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024
 const ALLOWED_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"])
@@ -207,6 +209,22 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Не удалось сохранить аватар" }, { status: 500 })
     }
 
+    if (!AUTH_SIGNING_KEY) {
+      console.error("[Avatar API] AUTH_SIGNING_KEY is not set")
+      return NextResponse.json({ error: "Сервер не настроен" }, { status: 500 })
+    }
+
+    const loginTimestamp = Date.now()
+    const signatureData = `${updated.id}:${updated.username}:${updated.role}:${updated.game_nick}`
+    const signature = CryptoJS.HmacSHA256(signatureData, AUTH_SIGNING_KEY).toString()
+    const tokenData = {
+      ...updated,
+      loginTimestamp,
+      timestamp: loginTimestamp,
+      signature,
+    }
+    const token = Buffer.from(JSON.stringify(tokenData)).toString("base64")
+
     try {
       await commitAvatarUploadLimit(currentUser.id)
     } catch {
@@ -222,7 +240,7 @@ export async function POST(request: Request) {
       }
     }
 
-    return NextResponse.json({ user: updated })
+    return NextResponse.json({ user: updated, token })
   } catch (error: any) {
     return NextResponse.json(
       { error: error?.message || "Ошибка при загрузке аватара" },
@@ -268,7 +286,23 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: "Не удалось сбросить аватар" }, { status: 500 })
     }
 
-    return NextResponse.json({ user: updated })
+    if (!AUTH_SIGNING_KEY) {
+      console.error("[Avatar API] AUTH_SIGNING_KEY is not set")
+      return NextResponse.json({ error: "Сервер не настроен" }, { status: 500 })
+    }
+
+    const loginTimestamp = Date.now()
+    const signatureData = `${updated.id}:${updated.username}:${updated.role}:${updated.game_nick}`
+    const signature = CryptoJS.HmacSHA256(signatureData, AUTH_SIGNING_KEY).toString()
+    const tokenData = {
+      ...updated,
+      loginTimestamp,
+      timestamp: loginTimestamp,
+      signature,
+    }
+    const token = Buffer.from(JSON.stringify(tokenData)).toString("base64")
+
+    return NextResponse.json({ user: updated, token })
   } catch (error: any) {
     return NextResponse.json(
       { error: error?.message || "Ошибка при удалении аватара" },

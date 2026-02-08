@@ -29,11 +29,10 @@ export default function Header() {
   const router = useRouter()
   const [currentTheme, setCurrentTheme] = useState<Theme>('dark')
   const [showThemeMenu, setShowThemeMenu] = useState(false)
+  const mounted = typeof window !== "undefined"
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme') as Theme || 'dark'
-    setCurrentTheme(savedTheme)
-    
+    const savedTheme = (localStorage.getItem('theme') as Theme) || 'dark'
     const root = document.documentElement;
     const themeClasses = themes.map(t => t.value);
     root.classList.remove(...themeClasses);
@@ -124,7 +123,7 @@ export default function Header() {
                 title="Сменить тему"
               >
                 <Palette className="w-4 h-4" />
-                <span className="text-sm">{themes.find(t => t.value === currentTheme)?.icon}</span>
+                <span className="text-sm">{mounted ? themes.find(t => t.value === currentTheme)?.icon : themes[0]?.icon}</span>
               </button>
               
               {showThemeMenu && (
@@ -145,7 +144,7 @@ export default function Header() {
               )}
             </div>
 
-            {isAuthenticated && user ? (
+            {mounted && isAuthenticated && user ? (
               <>
                 <Link
                   href="/profile"
@@ -183,14 +182,18 @@ export default function Header() {
                   <span>Выйти</span>
                 </button>
               </>
-            ) : (
-                <Link
-                    href="/login"
-                    className="modern-button flex items-center gap-2"
+            ) : mounted ? (
+              <Link
+                href="/login"
+                className="modern-button flex items-center gap-2"
               >
                 <Users className="w-4 h-4" />
                 <span>Войти</span>
               </Link>
+            ) : (
+              <div className="animate-pulse">
+                <div className="w-10 h-10 rounded-full bg-muted border-2 border-border" />
+              </div>
             )}
           </div>
         </div>

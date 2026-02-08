@@ -1,7 +1,6 @@
 // lib/auth/auth-service.ts - ПОЛНОСТЬЮ ИСПРАВЛЕННАЯ ВЕРСИЯ
 import type { User, ActionLog } from "./types"
-import CryptoJS from "crypto-js"
-import { ENCRYPTION_KEY, AUTH_STORAGE_KEY, SESSION_DURATION } from "./constants"
+import { AUTH_STORAGE_KEY, SESSION_DURATION } from "./constants"
 
 export class AuthService {
   static async login(username: string, password: string): Promise<User | null> {
@@ -36,16 +35,17 @@ export class AuthService {
       return null
     }
 
-    const user = await response.json()
+    const data = await response.json()
+    const user = data?.user
+    const token = data?.token
+
+    if (!user || !token) {
+      console.error('[AuthService] Invalid login response shape')
+      return null
+    }
+
     console.log('[AuthService] Login successful, user:', user.username, 'role:', user.role)
-    console.log('[AuthService] Full user object:', user)
-
-    const authToken = this.createAuthToken(user)
-    console.log('[AuthService] Auth token created')
-    
-    this.saveEncryptedUser(authToken)
-    console.log('[AuthService] Token saved to localStorage')
-
+    this.saveToken(token)
     return user
   } catch (error) {
     console.error("[AuthService] Login error:", error)
@@ -140,45 +140,10 @@ export class AuthService {
     }
   }
 
-  static createAuthToken(user: User): string {
-    const tokenData = {
-      ...user,
-      loginTimestamp: Date.now(),
-      timestamp: Date.now(),
-      signature: this.createSignature(user),
-    }
-
-    return Buffer.from(JSON.stringify(tokenData)).toString("base64")
-  }
-
-  static createSignature(user: User): string {
-    const signatureData = `${user.id}:${user.username}:${user.role}:${user.game_nick}`
-    return CryptoJS.HmacSHA256(signatureData, ENCRYPTION_KEY).toString()
-  }
-
-  static verifyTokenSignature(token: string): boolean {
-    try {
-      const decoded = JSON.parse(Buffer.from(token, "base64").toString())
-
-      const loginTimestamp = decoded.loginTimestamp || decoded.timestamp
-      if (Date.now() - loginTimestamp > SESSION_DURATION) {
-        console.warn('[AuthService] Token expired')
-        return false
-      }
-
-      const expectedSignature = this.createSignature(decoded)
-      return decoded.signature === expectedSignature
-    } catch (error) {
-      console.error('[AuthService] Token verification error:', error)
-      return false
-    }
-  }
-
-  static saveEncryptedUser(token: string): void {
+  static saveToken(token: string): void {
     if (typeof window !== "undefined") {
       try {
-        const encrypted = CryptoJS.AES.encrypt(token, ENCRYPTION_KEY).toString()
-        localStorage.setItem(AUTH_STORAGE_KEY, encrypted)
+        localStorage.setItem(AUTH_STORAGE_KEY, token)
       } catch (error) {
         console.error('[AuthService] Error saving token:', error)
       }
@@ -196,22 +161,20 @@ export class AuthService {
       return null
     }
 
-    const encrypted = localStorage.getItem(AUTH_STORAGE_KEY)
-    if (!encrypted) {
+    const token = localStorage.getItem(AUTH_STORAGE_KEY)
+    if (!token) {
       return null
     }
 
     try {
-      const bytes = CryptoJS.AES.decrypt(encrypted, ENCRYPTION_KEY)
-      const token = bytes.toString(CryptoJS.enc.Utf8)
+      const userData = JSON.parse(Buffer.from(token, "base64").toString())
+      const { timestamp, signature, loginTimestamp, ...user } = userData
 
-      if (!token || !this.verifyTokenSignature(token)) {
+      const loginTs = loginTimestamp || timestamp
+      if (loginTs && Date.now() - loginTs > SESSION_DURATION) {
         this.logout()
         return null
       }
-
-      const userData = JSON.parse(Buffer.from(token, "base64").toString())
-      const { timestamp, signature, loginTimestamp, ...user } = userData
 
       return user as User
     } catch (error) {
@@ -245,24 +208,12 @@ export class AuthService {
       return null
     }
 
-    const encrypted = localStorage.getItem(AUTH_STORAGE_KEY)
-    if (!encrypted) {
+    const token = localStorage.getItem(AUTH_STORAGE_KEY)
+    if (!token) {
       return null
     }
 
-    try {
-      const bytes = CryptoJS.AES.decrypt(encrypted, ENCRYPTION_KEY)
-      const token = bytes.toString(CryptoJS.enc.Utf8)
-
-      if (!token || !this.verifyTokenSignature(token)) {
-        return null
-      }
-
-      return token
-    } catch (error) {
-      console.error('[AuthService] Error retrieving token:', error)
-      return null
-    }
+    return token
   }
 
   static async fetchWithAuth(url: string, options: RequestInit = {}): Promise<Response> {

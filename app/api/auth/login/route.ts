@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server"
 import { supabase } from "@/lib/supabase"
 import bcrypt from "bcryptjs"
+import CryptoJS from "crypto-js"
+import { AUTH_SIGNING_KEY } from "@/lib/auth/constants"
 
 export async function POST(request: Request) {
   try {
@@ -182,6 +184,27 @@ export async function POST(request: Request) {
     const { password: _, ...safeUser } = user
     console.log("[Login API] Login successful for user:", safeUser.username)
 
+    if (!AUTH_SIGNING_KEY) {
+      console.error("[Login API] AUTH_SIGNING_KEY is not set")
+      return NextResponse.json(
+        { error: "Сервер не настроен: отсутствует AUTH_SIGNING_KEY" },
+        { status: 500 }
+      )
+    }
+
+    const loginTimestamp = Date.now()
+    const signatureData = `${safeUser.id}:${safeUser.username}:${safeUser.role}:${safeUser.game_nick}`
+    const signature = CryptoJS.HmacSHA256(signatureData, AUTH_SIGNING_KEY).toString()
+
+    const tokenData = {
+      ...safeUser,
+      loginTimestamp,
+      timestamp: loginTimestamp,
+      signature,
+    }
+
+    const token = Buffer.from(JSON.stringify(tokenData)).toString("base64")
+
     // Логируем успешный вход для admin, root и ld
     if (user.role === "admin" || user.role === "root" || user.role === "ld") {
       try {
@@ -204,7 +227,7 @@ export async function POST(request: Request) {
       }
     }
 
-    return NextResponse.json(safeUser)
+    return NextResponse.json({ user: safeUser, token })
   } catch (error) {
     console.error("[Login API] Error:", error)
     return NextResponse.json(

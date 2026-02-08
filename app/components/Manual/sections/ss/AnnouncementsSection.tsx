@@ -347,7 +347,7 @@ const AnnouncementsSection = () => {
             ))
           ) : (
             <div className="text-center py-12 text-muted-foreground">
-              <p className="text-lg">По запросу "{searchQuery}" ничего не найдено</p>
+              <p className="text-lg">По запросу &quot;{searchQuery}&quot; ничего не найдено</p>
               <p className="text-sm mt-2">Попробуйте изменить поисковый запрос или выбрать другую категорию</p>
             </div>
           )}

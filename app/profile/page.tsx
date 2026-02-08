@@ -206,9 +206,8 @@ export default function ProfilePage() {
 
       const data = await promise
 
-      if (data?.user) {
-        const newToken = AuthService.createAuthToken(data.user)
-        AuthService.saveEncryptedUser(newToken)
+      if (data?.token) {
+        AuthService.saveToken(data.token)
         emitUserUpdated()
       }
 
@@ -242,9 +241,8 @@ export default function ProfilePage() {
         throw new Error(data.error || "Не удалось удалить аватар")
       }
 
-      if (data?.user) {
-        const newToken = AuthService.createAuthToken(data.user)
-        AuthService.saveEncryptedUser(newToken)
+      if (data?.token) {
+        AuthService.saveToken(data.token)
         emitUserUpdated()
       }
 
@@ -284,9 +282,8 @@ export default function ProfilePage() {
         throw new Error(data.error || "Не удалось обновить профиль")
       }
 
-      if (data?.user) {
-        const newToken = AuthService.createAuthToken(data.user)
-        AuthService.saveEncryptedUser(newToken)
+      if (data?.token) {
+        AuthService.saveToken(data.token)
         emitUserUpdated()
       }
 

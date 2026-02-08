@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { supabase } from "@/lib/supabase"
 import CryptoJS from "crypto-js"
-import { ENCRYPTION_KEY, SESSION_DURATION } from "@/lib/auth/constants"
+import { AUTH_SIGNING_KEY, SESSION_DURATION } from "@/lib/auth/constants"
 
 export const runtime = "nodejs"
 
@@ -30,6 +30,10 @@ function verifyAuthToken(token: string): null | {
   game_nick: string
 } {
   try {
+    if (!AUTH_SIGNING_KEY) {
+      return null
+    }
+
     const decodedStr = Buffer.from(token, "base64").toString()
     const decoded = JSON.parse(decodedStr)
 
@@ -39,7 +43,7 @@ function verifyAuthToken(token: string): null | {
     }
 
     const signatureData = `${decoded.id}:${decoded.username}:${decoded.role}:${decoded.game_nick}`
-    const expectedSignature = CryptoJS.HmacSHA256(signatureData, ENCRYPTION_KEY).toString()
+    const expectedSignature = CryptoJS.HmacSHA256(signatureData, AUTH_SIGNING_KEY).toString()
     if (decoded.signature !== expectedSignature) {
       return null
     }

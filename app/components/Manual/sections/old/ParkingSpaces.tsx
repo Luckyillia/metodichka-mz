@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Edit2, Save, X, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
 import { useAuth } from '@/lib/auth/auth-context';
 import { AuthService } from '@/lib/auth/auth-service';
@@ -48,12 +48,7 @@ const ParkingSpaces = () => {
     // Проверка прав на редактирование
     const canEdit = user && ['root', 'admin', 'ld', 'cc'].includes(user.role);
 
-    // Загрузка данных
-    useEffect(() => {
-        fetchParkingData();
-    }, []);
-
-    const fetchParkingData = async () => {
+    const fetchParkingData = useCallback(async () => {
         try {
             setIsLoading(true);
             console.log('[ParkingSpaces] Fetching parking data...');
@@ -66,7 +61,12 @@ const ParkingSpaces = () => {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, []);
+
+    // Загрузка данных
+    useEffect(() => {
+        fetchParkingData();
+    }, [fetchParkingData]);
 
     const showNotification = (type: 'success' | 'error', message: string) => {
         setNotification({ type, message });

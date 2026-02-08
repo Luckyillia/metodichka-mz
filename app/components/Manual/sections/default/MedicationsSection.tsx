@@ -4,61 +4,61 @@ import { useState, useMemo } from "react"
 import ExamplePhrase from "../../ExamplePhrase"
 import { Search, X } from "lucide-react"
 
+const medications = [
+  { symptom: "Головная боль", medicine: "Миг", gender: "его" },
+  { symptom: "Мигрени", medicine: "Амигренин", gender: "его" },
+  { symptom: "Судороги, нервный тик", medicine: "Аспаркам", gender: "его" },
+  { symptom: "Боль в животе", medicine: "Ношпу", gender: "её" },
+  { symptom: "Тошнота", medicine: "Драмина", gender: "его" },
+  { symptom: "Изжога", medicine: "Алмагель", gender: "его" },
+  { symptom: "Боль в печени", medicine: "Гепабене", gender: "его" },
+  { symptom: "Сердечная боль", medicine: "Кардиомагнил", gender: "его" },
+  { symptom: "Простуда и жар", medicine: "Терафлю", gender: "его" },
+  { symptom: "Кашель", medicine: "Лазолван", gender: "его" },
+  { symptom: "Влажный кашель с мокротой", medicine: "Амбробене", gender: "его" },
+  { symptom: "Насморк", medicine: "Тизин", gender: "его" },
+  { symptom: "Боль в горле - спреи", medicine: "Гексорал", gender: "его" },
+  { symptom: "Боли в глазах", medicine: "Визин", gender: "его" },
+  { symptom: "Боли в ушах", medicine: "Отинум", gender: "его" },
+  { symptom: "Боли в почках", medicine: "Урохол", gender: "его" },
+  { symptom: "Мочевой пузырь", medicine: "Цистон", gender: "его" },
+  { symptom: "Боли в спине, ногах и суставах - мазь", medicine: "Фастум-гель", gender: "его" },
+  { symptom: "Геморрой - Свечи от геморроя", medicine: "Натальсид", gender: "его" },
+  { symptom: "Диабет", medicine: "Виктоза", gender: "её" },
+  { symptom: "Ушибы и ссадины", medicine: "Долобене", gender: "его" },
+  { symptom: "Витамины", medicine: "Витамикс", gender: "его" },
+  { symptom: "Повышенное давление", medicine: "Андипал", gender: "его" },
+  { symptom: "Пониженное давление", medicine: "Норадреналин", gender: "его" },
+  { symptom: "Обезболивающие", medicine: "Парацетамол", gender: "его" },
+  { symptom: "Для увеличения потенции", medicine: "Сиалекс", gender: "его" },
+  { symptom: "Молочница", medicine: "Нистатин", gender: "его" },
+  { symptom: "Понос", medicine: "Лоперамид", gender: "его" },
+  { symptom: "Запор", medicine: "Линекс Форте", gender: "его" },
+  { symptom: "Бессонница", medicine: "Найтвелл", gender: "его" },
+  { symptom: "Приступы Астмы", medicine: "Сальбутамол", gender: "его" },
+  { symptom: "Стресс", medicine: "Тенотен", gender: "его" },
+]
+
+const specialMedications = [
+  {
+    symptom: "Аллергия",
+    medicines: "Цетрин, Кларитин, Эриус, Зодак, Тавегил, Лоратадин",
+    note: "После оказания экстренной помощи необходимо взять анализ",
+  },
+  {
+    symptom: "При потере сознания",
+    medicines: "Нашатырный спирт",
+    note: "Нашатырем смачивают вату и подносят под нос пострадавшему",
+  },
+  {
+    symptom: "Ожоги",
+    medicines: "Бепантен",
+    note: "Желательно закрыть ожог антибактериальной повязкой Космопор",
+  },
+]
+
 const MedicationsSection = () => {
   const [searchQuery, setSearchQuery] = useState("")
-
-  const medications = [
-    { symptom: "Головная боль", medicine: "Миг", gender: "его" },
-    { symptom: "Мигрени", medicine: "Амигренин", gender: "его" },
-    { symptom: "Судороги, нервный тик", medicine: "Аспаркам", gender: "его" },
-    { symptom: "Боль в животе", medicine: "Ношпу", gender: "её" },
-    { symptom: "Тошнота", medicine: "Драмина", gender: "его" },
-    { symptom: "Изжога", medicine: "Алмагель", gender: "его" },
-    { symptom: "Боль в печени", medicine: "Гепабене", gender: "его" },
-    { symptom: "Сердечная боль", medicine: "Кардиомагнил", gender: "его" },
-    { symptom: "Простуда и жар", medicine: "Терафлю", gender: "его" },
-    { symptom: "Кашель", medicine: "Лазолван", gender: "его" },
-    { symptom: "Влажный кашель с мокротой", medicine: "Амбробене", gender: "его" },
-    { symptom: "Насморк", medicine: "Тизин", gender: "его" },
-    { symptom: "Боль в горле - спреи", medicine: "Гексорал", gender: "его" },
-    { symptom: "Боли в глазах", medicine: "Визин", gender: "его" },
-    { symptom: "Боли в ушах", medicine: "Отинум", gender: "его" },
-    { symptom: "Боли в почках", medicine: "Урохол", gender: "его" },
-    { symptom: "Мочевой пузырь", medicine: "Цистон", gender: "его" },
-    { symptom: "Боли в спине, ногах и суставах - мазь", medicine: "Фастум-гель", gender: "его" },
-    { symptom: "Геморрой - Свечи от геморроя", medicine: "Натальсид", gender: "его" },
-    { symptom: "Диабет", medicine: "Виктоза", gender: "её" },
-    { symptom: "Ушибы и ссадины", medicine: "Долобене", gender: "его" },
-    { symptom: "Витамины", medicine: "Витамикс", gender: "его" },
-    { symptom: "Повышенное давление", medicine: "Андипал", gender: "его" },
-    { symptom: "Пониженное давление", medicine: "Норадреналин", gender: "его" },
-    { symptom: "Обезболивающие", medicine: "Парацетамол", gender: "его" },
-    { symptom: "Для увеличения потенции", medicine: "Сиалекс", gender: "его" },
-    { symptom: "Молочница", medicine: "Нистатин", gender: "его" },
-    { symptom: "Понос", medicine: "Лоперамид", gender: "его" },
-    { symptom: "Запор", medicine: "Линекс Форте", gender: "его" },
-    { symptom: "Бессонница", medicine: "Найтвелл", gender: "его" },
-    { symptom: "Приступы Астмы", medicine: "Сальбутамол", gender: "его" },
-    { symptom: "Стресс", medicine: "Тенотен", gender: "его" }
-  ]
-
-  const specialMedications = [
-    {
-      symptom: "Аллергия",
-      medicines: "Цетрин, Кларитин, Эриус, Зодак, Тавегил, Лоратадин",
-      note: "После оказания экстренной помощи необходимо взять анализ"
-    },
-    {
-      symptom: "При потере сознания",
-      medicines: "Нашатырный спирт",
-      note: "Нашатырем смачивают вату и подносят под нос пострадавшему"
-    },
-    {
-      symptom: "Ожоги",
-      medicines: "Бепантен",
-      note: "Желательно закрыть ожог антибактериальной повязкой Космопор"
-    }
-  ]
 
   // Фильтрация препаратов по поисковому запросу
   const filteredMedications = useMemo(() => {
@@ -132,7 +132,7 @@ const MedicationsSection = () => {
             ))
           ) : searchQuery ? (
             <div className="text-center py-8 text-muted-foreground">
-              <p>По запросу "{searchQuery}" ничего не найдено в основном списке</p>
+              <p>По запросу &quot;{searchQuery}&quot; ничего не найдено в основном списке</p>
             </div>
           ) : null}
         </div>
@@ -153,7 +153,7 @@ const MedicationsSection = () => {
               ))
             ) : searchQuery ? (
               <div className="text-center py-8 text-muted-foreground">
-                <p>По запросу "{searchQuery}" ничего не найдено в специальных случаях</p>
+                <p>По запросу &quot;{searchQuery}&quot; ничего не найдено в специальных случаях</p>
               </div>
             ) : null}
           </div>

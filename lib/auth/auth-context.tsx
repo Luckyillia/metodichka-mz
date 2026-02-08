@@ -14,20 +14,16 @@ interface AuthContextType extends AuthState {
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<AuthState>({
-    user: null,
-    isAuthenticated: false,
-    isLoading: true,
-  })
-
-  useEffect(() => {
+  const [state, setState] = useState<AuthState>(() => {
     const user = AuthService.getCurrentUser()
-    setState({
+    return {
       user,
       isAuthenticated: !!user,
       isLoading: false,
-    })
+    }
+  })
 
+  useEffect(() => {
     const onUserUpdated = () => {
       const nextUser = AuthService.getCurrentUser()
       setState((prev) => ({
@@ -42,21 +38,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const checkSessionInterval = setInterval(() => {
       const currentUser = AuthService.getCurrentUser()
-      if (!currentUser && state.isAuthenticated) {
-        // Session expired, log out
-        setState({
+      setState((prev) => {
+        if (currentUser || !prev.isAuthenticated) return prev
+        return {
           user: null,
           isAuthenticated: false,
           isLoading: false,
-        })
-      }
+        }
+      })
     }, 60000) // Check every minute
 
     return () => {
       window.removeEventListener(USER_UPDATED_EVENT, onUserUpdated)
       clearInterval(checkSessionInterval)
     }
-  }, [state.isAuthenticated])
+  }, [])
 
   const login = async (username: string, password: string): Promise<boolean> => {
     try {

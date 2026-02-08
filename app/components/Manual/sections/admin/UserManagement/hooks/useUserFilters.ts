@@ -1,4 +1,4 @@
-import { useMemo } from "react"
+import { useCallback, useMemo } from "react"
 import type { User as UserType } from "@/lib/auth/types"
 import type { UserTab } from "../types"
 
@@ -12,7 +12,7 @@ export const useUserFilters = (
   sortOrder: 'asc' | 'desc',
   searchQuery: string
 ) => {
-  const applyFilters = (usersList: UserType[]): UserType[] => {
+  const applyFilters = useCallback((usersList: UserType[]): UserType[] => {
     let filtered = usersList
 
     const q = searchQuery.trim().toLowerCase()
@@ -51,9 +51,9 @@ export const useUserFilters = (
     }
 
     return filtered
-  }
+  }, [filterCity, filterOrder, filterRole, searchQuery, sortOrder])
 
-  const getFilteredUsersByRole = (usersList: UserType[]): UserType[] => {
+  const getFilteredUsersByRole = useCallback((usersList: UserType[]): UserType[] => {
     // Лидер видит только user, cc и ld своего города
     if (currentUserRole === "ld") {
       return usersList.filter((u) => 
@@ -71,21 +71,21 @@ export const useUserFilters = (
     }
     // Root видит всех
     return usersList
-  }
+  }, [currentUserRole])
 
   const activeUsers = useMemo(() => 
     applyFilters(getFilteredUsersByRole(users.filter((u) => u.status === "active"))), 
-    [users, currentUserRole, filterRole, filterCity, filterOrder, sortOrder, searchQuery]
+    [applyFilters, getFilteredUsersByRole, users]
   )
   
   const inactiveUsers = useMemo(() => 
     applyFilters(getFilteredUsersByRole(users.filter((u) => u.status === "inactive"))), 
-    [users, currentUserRole, filterRole, filterCity, filterOrder, sortOrder, searchQuery]
+    [applyFilters, getFilteredUsersByRole, users]
   )
   
   const requestUsers = useMemo(() => 
     applyFilters(getFilteredUsersByRole(users.filter((u) => u.status === "request"))), 
-    [users, currentUserRole, filterRole, filterCity, filterOrder, sortOrder, searchQuery]
+    [applyFilters, getFilteredUsersByRole, users]
   )
 
   const filteredUsers = useMemo(() => {
@@ -118,7 +118,7 @@ export const useUserFilters = (
       cc: filteredActive.filter(u => u.role === "cc").length,
       regularUsers: filteredActive.filter(u => u.role === "user").length,
     }
-  }, [users, currentUserRole, filterRole, filterCity, filterOrder, sortOrder, searchQuery])
+  }, [applyFilters, getFilteredUsersByRole, users, currentUserRole])
 
   return {
     activeUsers,
