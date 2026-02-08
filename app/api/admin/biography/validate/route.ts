@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { supabase } from "@/lib/supabase"
 import { validateBiographyWithGroq } from "@/lib/biography/groq"
 import type { GroqBiographyModel } from "@/lib/biography/prompt"
+import { normalizeBiographyTo13Sections } from "@/lib/biography/normalize"
 
 const MIN_CHARS = 100
 const MAX_CHARS = 10000
@@ -84,7 +85,18 @@ export async function POST(request: Request) {
 
     const body = await request.json()
     const biographyText = String(body?.biographyText || "")
-    const model = (body?.model || "llama-3.3-70b-versatile") as GroqBiographyModel
+    const debug = Boolean(body?.debug)
+    const requestedModel = String(body?.model || "llama-3.3-70b-versatile")
+    const allowedModels: GroqBiographyModel[] = ["llama-3.3-70b-versatile", "openai/gpt-oss-120b"]
+
+    if (!allowedModels.includes(requestedModel as GroqBiographyModel)) {
+      return NextResponse.json(
+        { error: "Неподдерживаемая модель", model: requestedModel },
+        { status: 400 }
+      )
+    }
+
+    const model = requestedModel as GroqBiographyModel
 
     if (biographyText.trim().length < MIN_CHARS) {
       return NextResponse.json(
@@ -102,10 +114,12 @@ export async function POST(request: Request) {
 
     const currentDateISO = new Date().toISOString()
 
+    const normalized = normalizeBiographyTo13Sections(biographyText)
+
     let result
     try {
       result = await validateBiographyWithGroq({
-        biographyText,
+        biographyText: normalized.normalizedText,
         currentDateISO,
         model,
       })
@@ -158,6 +172,27 @@ export async function POST(request: Request) {
       ])
     } catch {
       // ignore
+    }
+
+    // Merge deterministic structure info derived from normalization
+    result.structure = {
+      ...result.structure,
+      totalSections: 13,
+      allSectionsPresent: normalized.missingSections.length === 0 && normalized.emptySections.length === 0,
+      missingSections: normalized.missingSections,
+      emptySections: normalized.emptySections,
+      status: normalized.missingSections.length > 0 || normalized.emptySections.length > 0 ? "error" : "success",
+    }
+
+    if (debug) {
+      ;(result as any).debug = {
+        model,
+        normalizedText: normalized.normalizedText,
+        normalization: {
+          missingSections: normalized.missingSections,
+          emptySections: normalized.emptySections,
+        },
+      }
     }
 
     return NextResponse.json(result)

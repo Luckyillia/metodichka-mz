@@ -21,6 +21,7 @@ import { ImagePreviewModal } from "@/app/components/common/ImagePreviewModal"
 import type { EditUserData } from "./types"
 
 const UserManagement: React.FC = () => {
+  const [searchQuery, setSearchQuery] = React.useState("")
   const {
     users,
     selectedUserIds,
@@ -406,38 +407,22 @@ const UserManagement: React.FC = () => {
 
   const [avatarPreviewTitle, setAvatarPreviewTitle] = React.useState<string>("")
 
-
-
   const { filteredUsers, getFilteredUsersByRole, stats } = useUserFilters(
-
     users,
-
     currentUser?.role,
-
     activeTab,
-
     filterRole,
-
     filterCity,
-
     filterOrder,
-
     sortOrder,
-
+    searchQuery
   )
 
-
-
   React.useEffect(() => {
-
     if (activeTab === 'moderation') {
-
       clearSelection()
-
       fetchUsers()
-
     }
-
   }, [activeTab, clearSelection, fetchUsers])
 
 
@@ -1018,33 +1003,24 @@ const UserManagement: React.FC = () => {
 
       {activeTab !== 'moderation' && (
 
-      <UserFilters
-
-        filterRole={filterRole}
-
-        filterCity={filterCity}
-
-        filterOrder={filterOrder}
-
-        sortOrder={sortOrder}
-
-        onFilterRoleChange={setFilterRole}
-
-        onFilterCityChange={setFilterCity}
-
-        onFilterOrderChange={setFilterOrder}
-
-        onSortOrderChange={setSortOrder}
-
-        currentUserRole={currentUser?.role}
-
-      />
+        <UserFilters
+          filterRole={filterRole}
+          filterCity={filterCity}
+          filterOrder={filterOrder}
+          sortOrder={sortOrder}
+          searchQuery={searchQuery}
+          onFilterRoleChange={setFilterRole}
+          onFilterCityChange={setFilterCity}
+          onFilterOrderChange={setFilterOrder}
+          onSortOrderChange={setSortOrder}
+          onSearchQueryChange={setSearchQuery}
+          currentUserRole={currentUser?.role}
+        />
 
       )}
 
 
-
-      {/* Users Table */}
+// ...
 
       <UserTable
 

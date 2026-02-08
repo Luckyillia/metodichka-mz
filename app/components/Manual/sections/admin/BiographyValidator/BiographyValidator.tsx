@@ -95,12 +95,21 @@ function normalizeErrorMessage(err: unknown) {
 
 export default function BiographyValidator() {
   const [text, setText] = useState("")
+  const [model, setModel] = useState<"llama-3.3-70b-versatile" | "openai/gpt-oss-120b">(
+    "llama-3.3-70b-versatile"
+  )
+  const [debug, setDebug] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<BiographyValidationResult | null>(null)
 
   const chars = text.length
   const charsOk = chars >= MIN_CHARS && chars <= MAX_CHARS
+
+  const ageMismatch = useMemo(() => {
+    const diff = (result as any)?.birthdate?.difference
+    return typeof diff === "number" && diff > 0
+  }, [result])
 
   const canSubmit = useMemo(() => {
     return !loading && charsOk
@@ -117,7 +126,7 @@ export default function BiographyValidator() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ biographyText: text }),
+        body: JSON.stringify({ biographyText: text, model, debug }),
       })
 
       const data = await res.json().catch(() => null)
@@ -150,6 +159,38 @@ export default function BiographyValidator() {
               Автоматическая AI-проверка на соответствие требованиям (возраст, 1-е лицо, структура, логика).
             </p>
           </div>
+
+        <div className="mt-4">
+          <label className="text-sm font-medium text-foreground">Модель</label>
+          <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <select
+              value={model}
+              onChange={(e) => setModel(e.target.value as any)}
+              disabled={loading}
+              className="w-full px-4 py-3 bg-input border-2 border-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-colors"
+            >
+              <option value="llama-3.3-70b-versatile">llama-3.3-70b-versatile (быстро)</option>
+              <option value="openai/gpt-oss-120b">openai/gpt-oss-120b (умнее)</option>
+            </select>
+
+            <div className="text-xs text-muted-foreground flex items-center">
+              Рекомендация: если отчёт “плывёт” — попробуй умную модель.
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-3 flex items-center gap-2">
+          <input
+            id="bio-debug"
+            type="checkbox"
+            checked={debug}
+            onChange={(e) => setDebug(e.target.checked)}
+            disabled={loading}
+          />
+          <label htmlFor="bio-debug" className="text-sm text-muted-foreground">
+            Режим отладки (вернёт нормализованный текст и метаданные)
+          </label>
+        </div>
           <div className="text-right">
             <div className="text-xs text-muted-foreground">Символов</div>
             <div className={`text-lg font-semibold ${charsOk ? "text-foreground" : "text-rose-400"}`}>{chars}</div>
@@ -160,7 +201,7 @@ export default function BiographyValidator() {
         <div className="mt-5">
           <label className="text-sm font-medium text-foreground">Биография для проверки</label>
           <textarea
-            className="mt-2 w-full min-h-[220px] rounded-xl border border-border bg-background/60 p-4 text-sm text-foreground outline-none focus:ring-2 focus:ring-primary/40"
+            className="mt-2 w-full min-h-[220px] rounded-xl border border-border bg-input p-4 text-sm text-foreground placeholder:text-muted-foreground caret-primary outline-none focus:ring-2 focus:ring-primary/40 dark:bg-zinc-900/80 dark:text-zinc-100"
             placeholder="Вставьте биографию (13 пунктов)..."
             value={text}
             onChange={(e) => setText(e.target.value)}
@@ -225,6 +266,8 @@ export default function BiographyValidator() {
               </div>
             </div>
 
+            <div className="mt-2 text-xs text-muted-foreground">Модель: {model}</div>
+
             <div className="mt-4 text-sm text-muted-foreground">{result.summary}</div>
           </div>
 
@@ -267,8 +310,24 @@ export default function BiographyValidator() {
             </div>
           ) : null}
 
+          {(result as any)?.debug?.normalizedText ? (
+            <details className="rounded-2xl border border-border bg-card/50 backdrop-blur p-6 shadow-xl">
+              <summary className="cursor-pointer text-sm font-semibold text-foreground">
+                Debug
+              </summary>
+              <div className="mt-3 text-xs text-muted-foreground">Модель: {(result as any).debug.model}</div>
+              <pre className="mt-3 whitespace-pre-wrap text-xs text-foreground/80 bg-background/50 border border-border rounded-xl p-4 overflow-auto">
+                {(result as any).debug.normalizedText}
+              </pre>
+            </details>
+          ) : null}
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <div className="rounded-2xl border border-border bg-card/50 backdrop-blur p-6 shadow-xl">
+            <div
+              className={`rounded-2xl border bg-card/50 backdrop-blur p-6 shadow-xl ${
+                ageMismatch ? "border-orange-500/40 bg-orange-500/5" : "border-border"
+              }`}
+            >
               <div className="flex items-center justify-between gap-3">
                 <h3 className="text-lg font-semibold text-foreground">Дата рождения и возраст</h3>
                 <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${statusBadgeClass(result.birthdate.status)}`}>

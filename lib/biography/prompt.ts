@@ -1,4 +1,4 @@
-export type GroqBiographyModel = "llama-3.3-70b-versatile" | "mixtral-8x7b-32768"
+export type GroqBiographyModel = "llama-3.3-70b-versatile" | "openai/gpt-oss-120b"
 
 export function buildBiographyValidationPrompt(params: {
   biographyText: string
@@ -18,6 +18,11 @@ export function buildBiographyValidationPrompt(params: {
 
 ПРОВЕРЬ RP БИОГРАФИЮ ПО ПРАВИЛАМ.
 
+ВАЖНО ПРО СТРУКТУРУ:
+- В исходном тексте нумерации может не быть.
+- Ты обязан(а) всё равно найти/выделить смыслом 13 обязательных пунктов (1..13) и отразить это в отчёте.
+- Если пункт не найден — отметь его как missing/empty и поставь ошибку.
+
 КРИТИЧЕСКИЕ ПРОВЕРКИ:
 1) Дата рождения и возраст:
 - Извлеки дату рождения из пункта 5. Формат ДД.ММ.ГГГГ.
@@ -32,6 +37,7 @@ export function buildBiographyValidationPrompt(params: {
 2) Первое лицо:
 - Пункты 10, 11, 12 ОБЯЗАТЕЛЬНО должны быть от первого лица.
 - Если встречается третье лицо ("он", имя персонажа вместо "я" и т.п.) — это критическая ошибка.
+ - Правило строгое: любые явные маркеры третьего лица в пунктах 10-12 = status=error.
 
 ОСТАЛЬНЫЕ ПРОВЕРКИ:
 3) Грамматика и орфография:

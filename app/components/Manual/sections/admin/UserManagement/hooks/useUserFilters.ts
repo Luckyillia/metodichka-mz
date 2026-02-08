@@ -9,10 +9,21 @@ export const useUserFilters = (
   filterRole: string,
   filterCity: string,
   filterOrder: string,
-  sortOrder: 'asc' | 'desc'
+  sortOrder: 'asc' | 'desc',
+  searchQuery: string
 ) => {
   const applyFilters = (usersList: UserType[]): UserType[] => {
     let filtered = usersList
+
+    const q = searchQuery.trim().toLowerCase()
+    if (q) {
+      filtered = filtered.filter((u) => {
+        const username = String((u as any).username || "").toLowerCase()
+        const gameNick = String((u as any).game_nick || "").toLowerCase()
+        const id = String((u as any).id || "").toLowerCase()
+        return username.includes(q) || gameNick.includes(q) || id.includes(q)
+      })
+    }
 
     // Фильтр по роли
     if (filterRole !== "all") {
@@ -64,17 +75,17 @@ export const useUserFilters = (
 
   const activeUsers = useMemo(() => 
     applyFilters(getFilteredUsersByRole(users.filter((u) => u.status === "active"))), 
-    [users, currentUserRole, filterRole, filterCity, filterOrder, sortOrder]
+    [users, currentUserRole, filterRole, filterCity, filterOrder, sortOrder, searchQuery]
   )
   
   const inactiveUsers = useMemo(() => 
     applyFilters(getFilteredUsersByRole(users.filter((u) => u.status === "inactive"))), 
-    [users, currentUserRole, filterRole, filterCity, filterOrder, sortOrder]
+    [users, currentUserRole, filterRole, filterCity, filterOrder, sortOrder, searchQuery]
   )
   
   const requestUsers = useMemo(() => 
     applyFilters(getFilteredUsersByRole(users.filter((u) => u.status === "request"))), 
-    [users, currentUserRole, filterRole, filterCity, filterOrder, sortOrder]
+    [users, currentUserRole, filterRole, filterCity, filterOrder, sortOrder, searchQuery]
   )
 
   const filteredUsers = useMemo(() => {
@@ -107,7 +118,7 @@ export const useUserFilters = (
       cc: filteredActive.filter(u => u.role === "cc").length,
       regularUsers: filteredActive.filter(u => u.role === "user").length,
     }
-  }, [users, currentUserRole, filterRole, filterCity, filterOrder, sortOrder])
+  }, [users, currentUserRole, filterRole, filterCity, filterOrder, sortOrder, searchQuery])
 
   return {
     activeUsers,

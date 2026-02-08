@@ -1,13 +1,12 @@
-export const APP_VERSION = '1.2.2';
+export const APP_VERSION = '1.2.3';
 
 // Changelog
 export const CHANGELOG = [
   {
-    version: '1.2.2',
+    version: '1.2.3',
     date: '2026-02-08',
     changes: [
-      'Добавлен личный кабинет',
-      'Добавлена возможность загрузки аватаров'
+      'Добавлена возможность выбора модели для валидации биографии',
     ]
   }
 ];

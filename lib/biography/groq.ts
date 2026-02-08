@@ -1,5 +1,6 @@
 import Groq from "groq-sdk"
 import { buildBiographyValidationPrompt, type GroqBiographyModel } from "./prompt"
+import { getSectionText } from "./normalize"
 
 export type BiographyValidationResult = {
   valid: boolean
@@ -70,6 +71,22 @@ function extractFirstJson(text: string) {
   return text.slice(start, end + 1)
 }
 
+function stripCodeFences(text: string) {
+  return text.replace(/```(?:json)?/gi, "").replace(/```/g, "").trim()
+}
+
+function fixCommonJsonIssues(text: string) {
+  let t = text
+  // Remove trailing commas before } or ]
+  t = t.replace(/,\s*([}\]])/g, "$1")
+  return t
+}
+
+function safeJsonParse(raw: string) {
+  const cleaned = fixCommonJsonIssues(stripCodeFences(raw))
+  return JSON.parse(cleaned)
+}
+
 function parseBirthdateDDMMYYYY(value: string) {
   const m = /^([0-3]\d)\.([01]\d)\.(\d{4})$/.exec(value.trim())
   if (!m) return null
@@ -102,6 +119,30 @@ function extractStatedAge(value: unknown) {
   return null
 }
 
+function clampStatusByDiff(diff: number) {
+  if (diff > 2) return "error" as const
+  if (diff > 1) return "warning" as const
+  return "success" as const
+}
+
+function detectThirdPerson(text: string) {
+  const t = text.toLowerCase()
+  const markers = [
+    /\bон\b/u,
+    /\bона\b/u,
+    /\bони\b/u,
+    /\bего\b/u,
+    /\bеё\b/u,
+    /\bее\b/u,
+    /\bему\b/u,
+    /\bей\b/u,
+    /\bих\b/u,
+    /\bперсонаж\b/u,
+  ]
+
+  return markers.some((re) => re.test(t))
+}
+
 export async function validateBiographyWithGroq(params: {
   biographyText: string
   currentDateISO: string
@@ -125,15 +166,33 @@ export async function validateBiographyWithGroq(params: {
     temperature: 0.2,
     max_tokens: 2500,
     top_p: 1,
-  })
+    // Some Groq models support OpenAI-compatible JSON mode
+    response_format: { type: "json_object" } as any,
+  } as any)
 
   const content = completion.choices?.[0]?.message?.content
   if (!content) {
     throw new Error("Пустой ответ от AI")
   }
 
-  const jsonText = extractFirstJson(content)
-  const parsed = JSON.parse(jsonText) as BiographyValidationResult
+  let parsed: BiographyValidationResult
+  try {
+    const jsonText = extractFirstJson(content)
+    parsed = safeJsonParse(jsonText) as BiographyValidationResult
+  } catch (e: any) {
+    const snippet = String(content).slice(0, 800)
+    const errMsg = e?.message || "JSON parse error"
+    const error: any = new Error(`Не удалось распарсить JSON от модели (${params.model}). ${errMsg}`)
+    error.code = "invalid_ai_json"
+    error.model = params.model
+    error.snippet = snippet
+    try {
+      error.extractedLength = extractFirstJson(String(content)).length
+    } catch {
+      // ignore
+    }
+    throw error
+  }
 
   try {
     const extracted = parsed?.birthdate?.extracted
@@ -145,6 +204,7 @@ export async function validateBiographyWithGroq(params: {
       const calculatedAge = calcAge({ birth, now })
       const difference = statedAge === null ? 0 : Math.abs(calculatedAge - statedAge)
       const match = statedAge === null ? false : difference <= 1
+      const status = statedAge === null ? "warning" : clampStatusByDiff(difference)
 
       parsed.birthdate = {
         ...parsed.birthdate,
@@ -152,6 +212,20 @@ export async function validateBiographyWithGroq(params: {
         statedAge,
         difference,
         match,
+        status,
+      }
+
+      // If any mismatch exists (difference > 0), cap the score to 7 and make status at least warning
+      if (statedAge !== null && difference > 0) {
+        parsed.birthdate = {
+          ...parsed.birthdate,
+          status: parsed.birthdate.status === "success" ? "warning" : parsed.birthdate.status,
+        }
+
+        parsed.score = Math.min(parsed.score ?? 10, 7)
+        if (parsed.valid === true && parsed.score < 10) {
+          // keep valid as decided by other rules; age mismatch alone is not critical
+        }
       }
     } else {
       parsed.birthdate = {
@@ -165,6 +239,15 @@ export async function validateBiographyWithGroq(params: {
 
   try {
     const issues: string[] = []
+
+    // Strict 1st-person enforcement for sections 10-12 using normalized text
+    const s10 = getSectionText(params.biographyText, 10)
+    const s11 = getSectionText(params.biographyText, 11)
+    const s12 = getSectionText(params.biographyText, 12)
+    const third10 = s10 ? detectThirdPerson(s10) : false
+    const third11 = s11 ? detectThirdPerson(s11) : false
+    const third12 = s12 ? detectThirdPerson(s12) : false
+    const hasThirdPerson = third10 || third11 || third12
 
     const score = typeof parsed.score === "number" && Number.isFinite(parsed.score) ? parsed.score : 0
     let nextScore = score
@@ -196,6 +279,26 @@ export async function validateBiographyWithGroq(params: {
 
     if (parsed.perspective?.status === "error" || parsed.perspective?.isFirstPerson === false) {
       issues.push("Пункты 10-12 должны быть написаны от первого лица")
+      nextValid = false
+      nextScore = Math.min(nextScore, 3)
+    }
+
+    if (hasThirdPerson) {
+      const violations = []
+      if (third10) violations.push({ section: "Пункт 10", text: s10, issue: "обнаружены маркеры третьего лица", suggestion: "Перепишите от первого лица (я/мне/мой)" })
+      if (third11) violations.push({ section: "Пункт 11", text: s11, issue: "обнаружены маркеры третьего лица", suggestion: "Перепишите от первого лица (я/мне/мой)" })
+      if (third12) violations.push({ section: "Пункт 12", text: s12, issue: "обнаружены маркеры третьего лица", suggestion: "Перепишите от первого лица (я/мне/мой)" })
+
+      parsed.perspective = {
+        ...parsed.perspective,
+        isFirstPerson: false,
+        status: "error",
+        violations: Array.isArray(parsed.perspective?.violations)
+          ? [...parsed.perspective.violations, ...violations]
+          : violations,
+      }
+
+      issues.push("Строгая проверка: в пунктах 10-12 найдены маркеры третьего лица")
       nextValid = false
       nextScore = Math.min(nextScore, 3)
     }

@@ -7,10 +7,12 @@ interface UserFiltersProps {
   filterCity: string;
   filterOrder: string;
   sortOrder: 'asc' | 'desc'; // Добавить
+  searchQuery: string;
   onFilterRoleChange: (role: string) => void;
   onFilterCityChange: (city: string) => void;
   onFilterOrderChange: (order: string) => void;
   onSortOrderChange: (order: 'asc' | 'desc') => void; // Добавить
+  onSearchQueryChange: (value: string) => void;
   currentUserRole?: string;
 }
 
@@ -19,10 +21,12 @@ export const UserFilters: React.FC<UserFiltersProps> = ({
   filterCity,
   filterOrder,
   sortOrder,
+  searchQuery,
   onFilterRoleChange,
   onFilterCityChange,
   onFilterOrderChange,
   onSortOrderChange,
+  onSearchQueryChange,
   currentUserRole
 }) => {
   const isLeader = currentUserRole === "ld"
@@ -34,7 +38,20 @@ export const UserFilters: React.FC<UserFiltersProps> = ({
         <h3 className="text-lg font-semibold text-foreground">Фильтры</h3>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {/* Поиск */}
+        <div>
+          <label className="block text-sm font-medium text-muted-foreground mb-2">
+            Поиск
+          </label>
+          <input
+            value={searchQuery}
+            onChange={(e) => onSearchQueryChange(e.target.value)}
+            placeholder="Ник / username / id"
+            className="w-full px-4 py-2 bg-input border-2 border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-colors"
+          />
+        </div>
+
         {/* Фильтр по роли */}
         <div>
           <label className="block text-sm font-medium text-muted-foreground mb-2">
@@ -103,9 +120,20 @@ export const UserFilters: React.FC<UserFiltersProps> = ({
       </div>
 
       {/* Индикатор активных фильтров */}
-      {(filterRole !== "all" || filterCity !== "all" || filterOrder !== "all") && (
+      {(searchQuery.trim() !== "" || filterRole !== "all" || filterCity !== "all" || filterOrder !== "all") && (
         <div className="mt-3 flex items-center gap-2 flex-wrap">
           <span className="text-xs text-muted-foreground">Активные фильтры:</span>
+          {searchQuery.trim() !== "" && (
+            <span className="inline-flex items-center gap-1 px-2 py-1 bg-primary/20 text-primary rounded text-xs">
+              Поиск: {searchQuery}
+              <button
+                onClick={() => onSearchQueryChange("")}
+                className="hover:opacity-70"
+              >
+                ✕
+              </button>
+            </span>
+          )}
           {filterRole !== "all" && (
             <span className="inline-flex items-center gap-1 px-2 py-1 bg-primary/20 text-primary rounded text-xs">
               Роль: {filterRole}
@@ -152,6 +180,7 @@ export const UserFilters: React.FC<UserFiltersProps> = ({
           )}
           <button
             onClick={() => {
+              onSearchQueryChange("");
               onFilterRoleChange("all");
               onFilterCityChange("all");
               onFilterOrderChange("all");
