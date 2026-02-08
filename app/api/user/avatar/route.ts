@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import { supabase } from "@/lib/supabase"
 import { getCloudinary } from "@/lib/cloudinary"
 
-const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024
+const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024
 const ALLOWED_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"])
 const RATE_LIMIT_MIN_MS = 5 * 60 * 1000
 
@@ -127,7 +127,7 @@ export async function POST(request: Request) {
     }
 
     if (file.size > MAX_FILE_SIZE_BYTES) {
-      return NextResponse.json({ error: "Файл слишком большой (макс. 5MB)" }, { status: 400 })
+      return NextResponse.json({ error: "Файл слишком большой (макс. 10MB)" }, { status: 400 })
     }
 
     if (!ALLOWED_MIME_TYPES.has(file.type)) {
@@ -146,6 +146,8 @@ export async function POST(request: Request) {
     const folder = getAvatarFolder()
     const publicId = `${folder}/${currentUser.id}`
 
+    const isGif = file.type === "image/gif"
+
     const uploadResult = await new Promise<any>((resolve, reject) => {
       const cloudinary = getCloudinary()
       const stream = cloudinary.uploader.upload_stream(
@@ -154,10 +156,18 @@ export async function POST(request: Request) {
           overwrite: true,
           resource_type: "image",
           folder,
-          transformation: [{ width: 512, height: 512, crop: "fill", gravity: "face" }],
+          ...(isGif ? {} : { transformation: [{ width: 512, height: 512, crop: "fill", gravity: "face" }] }),
         },
         (error: unknown, result: any) => {
-          if (error) return reject(error)
+          if (error) {
+            const e: any = error
+            const message =
+              e?.message ||
+              e?.error?.message ||
+              (typeof e === "string" ? e : "Ошибка Cloudinary")
+            const httpCode = e?.http_code || e?.error?.http_code
+            return reject(new Error(httpCode ? `${message} (Cloudinary ${httpCode})` : message))
+          }
           resolve(result)
         }
       )
