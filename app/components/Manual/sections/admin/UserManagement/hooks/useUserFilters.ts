@@ -25,11 +25,13 @@ export const useUserFilters = (
     }
 
     if (filterOrder !== "all") {
+      // Create local constant to fix TypeScript narrowing issue
+      const currentSortOrder = sortOrder;
       filtered = [...filtered].sort((a, b) => {
         const aValue = String(a[filterOrder as keyof UserType] ?? '');
         const bValue = String(b[filterOrder as keyof UserType] ?? '');
         
-        if (sortOrder === 'asc') {
+        if (currentSortOrder === 'asc') {
           return aValue.localeCompare(bValue);
         } else {
           return bValue.localeCompare(aValue);
