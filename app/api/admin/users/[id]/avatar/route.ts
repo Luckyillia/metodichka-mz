@@ -20,7 +20,10 @@ function getUserFromHeaders(request: Request) {
   }
 }
 
-export async function DELETE(request: Request, context: { params: Promise<{ id: string }> }) {
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     const currentUser = getUserFromHeaders(request)
     if (!currentUser) {
@@ -31,7 +34,8 @@ export async function DELETE(request: Request, context: { params: Promise<{ id: 
       return NextResponse.json({ error: "Недостаточно прав" }, { status: 403 })
     }
 
-    const { id: targetUserId } = await context.params
+    // Await the params promise
+    const { id: targetUserId } = await params
 
     const { data: targetUser, error: fetchError } = await supabaseAdmin
       .from("users")
