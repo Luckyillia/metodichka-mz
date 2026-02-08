@@ -102,11 +102,11 @@ export default function ProfilePage() {
   }, [user])
 
   const validateFile = (file: File) => {
-    const max = 5 * 1024 * 1024
+    const max = 10 * 1024 * 1024
     const allowed = ["image/jpeg", "image/png", "image/webp", "image/gif"]
 
     if (file.size > max) {
-      show("error", "Файл слишком большой (макс. 5MB)")
+      show("error", "Файл слишком большой (макс. 10MB)")
       return false
     }
 

@@ -64,7 +64,12 @@ async function rateLimitAvatarUpload(userId: string) {
     }
   }
 
-  const { error: upsertError } = await supabase
+  return { allowed: true as const }
+}
+
+async function commitAvatarUploadLimit(userId: string) {
+  const now = new Date()
+  const { error } = await supabase
     .from("user_avatar_upload_limits")
     .upsert(
       {
@@ -74,9 +79,9 @@ async function rateLimitAvatarUpload(userId: string) {
       { onConflict: "user_id" }
     )
 
-  if (upsertError) {
-    const msg = (upsertError as any)?.message || ""
-    const code = (upsertError as any)?.code
+  if (error) {
+    const msg = (error as any)?.message || ""
+    const code = (error as any)?.code
     const hint = msg.toLowerCase()
 
     if (
@@ -86,13 +91,19 @@ async function rateLimitAvatarUpload(userId: string) {
       hint.includes("permission") ||
       hint.includes("rls")
     ) {
-      return { allowed: true as const }
+      return
     }
 
     throw new Error("Не удалось обновить лимит загрузки")
   }
+}
 
-  return { allowed: true as const }
+function toRussianUploadErrorMessage(message: string) {
+  const m = (message || "").toLowerCase()
+  if (m.includes("file size too large") || m.includes("maximum is 10485760")) {
+    return "Файл слишком большой для Cloudinary (макс. 10MB)"
+  }
+  return message
 }
 
 function getAvatarFolder() {
@@ -166,7 +177,8 @@ export async function POST(request: Request) {
               e?.error?.message ||
               (typeof e === "string" ? e : "Ошибка Cloudinary")
             const httpCode = e?.http_code || e?.error?.http_code
-            return reject(new Error(httpCode ? `${message} (Cloudinary ${httpCode})` : message))
+            const errMessage = httpCode ? `${message} (Cloudinary ${httpCode})` : message
+            return reject(new Error(toRussianUploadErrorMessage(errMessage)))
           }
           resolve(result)
         }
@@ -193,6 +205,12 @@ export async function POST(request: Request) {
 
     if (updateError) {
       return NextResponse.json({ error: "Не удалось сохранить аватар" }, { status: 500 })
+    }
+
+    try {
+      await commitAvatarUploadLimit(currentUser.id)
+    } catch {
+      // ignore
     }
 
     if (!previous.error && previous.data?.avatar_public_id && previous.data.avatar_public_id !== uploadResult.public_id) {
