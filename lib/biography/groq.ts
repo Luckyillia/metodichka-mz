@@ -193,8 +193,9 @@ export async function validateBiographyWithGroq(params: {
   biographyText: string
   currentDateISO: string
   model: GroqBiographyModel
+  apiKey?: string
 }) {
-  const apiKey = process.env.GROQ_API_KEY
+  const apiKey = params.apiKey || process.env.GROQ_API_KEY
   if (!apiKey) {
     throw new Error("GROQ_API_KEY не задан")
   }

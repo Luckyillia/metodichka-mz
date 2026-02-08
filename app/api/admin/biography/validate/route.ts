@@ -86,6 +86,7 @@ export async function POST(request: Request) {
     const body = await request.json()
     const biographyText = String(body?.biographyText || "")
     const debug = Boolean(body?.debug)
+    const apiKeyFromBody = typeof body?.apiKey === "string" ? body.apiKey : null
     const requestedModel = String(body?.model || "llama-3.3-70b-versatile")
     const allowedModels: GroqBiographyModel[] = ["llama-3.3-70b-versatile", "openai/gpt-oss-120b"]
 
@@ -97,6 +98,19 @@ export async function POST(request: Request) {
     }
 
     const model = requestedModel as GroqBiographyModel
+
+    let apiKey: string | undefined = undefined
+    if (apiKeyFromBody && apiKeyFromBody.trim().length) {
+      const trimmed = apiKeyFromBody.trim()
+      if (trimmed.length > 200) {
+        return NextResponse.json({ error: "API ключ слишком длинный" }, { status: 400 })
+      }
+      // Basic shape check (do not enforce too hard)
+      if (!/^gsk_[A-Za-z0-9_\-]{10,}$/.test(trimmed)) {
+        return NextResponse.json({ error: "Неверный формат API ключа" }, { status: 400 })
+      }
+      apiKey = trimmed
+    }
 
     if (biographyText.trim().length < MIN_CHARS) {
       return NextResponse.json(
@@ -122,6 +136,7 @@ export async function POST(request: Request) {
         biographyText: normalized.normalizedText,
         currentDateISO,
         model,
+        apiKey,
       })
     } catch (e: any) {
       const message =

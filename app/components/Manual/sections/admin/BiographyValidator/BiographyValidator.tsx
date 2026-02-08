@@ -99,6 +99,8 @@ export default function BiographyValidator() {
     "llama-3.3-70b-versatile"
   )
   const [debug, setDebug] = useState(false)
+  const [useCustomApiKey, setUseCustomApiKey] = useState(false)
+  const [customApiKey, setCustomApiKey] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<BiographyValidationResult | null>(null)
@@ -126,7 +128,12 @@ export default function BiographyValidator() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ biographyText: text, model, debug }),
+        body: JSON.stringify({
+          biographyText: text,
+          model,
+          debug,
+          apiKey: useCustomApiKey && customApiKey.trim().length ? customApiKey.trim() : undefined,
+        }),
       })
 
       const data = await res.json().catch(() => null)
@@ -190,6 +197,33 @@ export default function BiographyValidator() {
           <label htmlFor="bio-debug" className="text-sm text-muted-foreground">
             Режим отладки (вернёт нормализованный текст и метаданные)
           </label>
+        </div>
+
+        <div className="mt-3">
+          <div className="flex items-center gap-2">
+            <input
+              id="bio-custom-api"
+              type="checkbox"
+              checked={useCustomApiKey}
+              onChange={(e) => setUseCustomApiKey(e.target.checked)}
+              disabled={loading}
+            />
+            <label htmlFor="bio-custom-api" className="text-sm text-muted-foreground">
+              Использовать свой Groq API ключ
+            </label>
+          </div>
+
+          {useCustomApiKey ? (
+            <input
+              type="password"
+              value={customApiKey}
+              onChange={(e) => setCustomApiKey(e.target.value)}
+              disabled={loading}
+              placeholder="gsk_..."
+              className="mt-2 w-full px-4 py-3 bg-input border-2 border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-colors"
+              autoComplete="off"
+            />
+          ) : null}
         </div>
           <div className="text-right">
             <div className="text-xs text-muted-foreground">Символов</div>
