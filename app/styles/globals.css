@@ -190,11 +190,90 @@
   --scrollbar-thumb-hover: rgba(249, 115, 22, 0.5);
 }
 
+/* Midnight Purple Theme - Глубокая фиолетово-черная тема */
+.theme-midnight-purple {
+  --background: #05050a;
+  --foreground: #f5f3ff;
+  --card: #0f0f1a;
+  --card-foreground: #f5f3ff;
+  --popover: #0f0f1a;
+  --popover-foreground: #f5f3ff;
+  --primary: #8b5cf6;
+  --primary-foreground: #ffffff;
+  --secondary: #1e1b4b;
+  --secondary-foreground: #f5f3ff;
+  --muted: #0f0f1a;
+  --muted-foreground: #a78bfa;
+  --accent: #7c3aed;
+  --accent-foreground: #f5f3ff;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #2e1065;
+  --input: #0f0f1a;
+  --ring: #8b5cf6;
+  --sidebar: #0f0f1a;
+  --sidebar-foreground: #f5f3ff;
+  --sidebar-primary: #8b5cf6;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #1e1b4b;
+  --sidebar-accent-foreground: #f5f3ff;
+  --sidebar-border: #2e1065;
+  --scrollbar-thumb: rgba(139, 92, 246, 0.3);
+  --scrollbar-thumb-hover: rgba(139, 92, 246, 0.5);
+}
+
+/* Aurora Theme - Тема Северное сияние (Бирюзово-изумрудная) */
+.theme-aurora {
+  --background: #020617;
+  --foreground: #f0fdfa;
+  --card: #0f172a;
+  --card-foreground: #f0fdfa;
+  --popover: #0f172a;
+  --popover-foreground: #f0fdfa;
+  --primary: #2dd4bf;
+  --primary-foreground: #020617;
+  --secondary: #134e4a;
+  --secondary-foreground: #f0fdfa;
+  --muted: #0f172a;
+  --muted-foreground: #5eead4;
+  --accent: #0d9488;
+  --accent-foreground: #f0fdfa;
+  --destructive: #f43f5e;
+  --destructive-foreground: #ffffff;
+  --border: #134e4a;
+  --input: #0f172a;
+  --ring: #2dd4bf;
+  --sidebar: #0f172a;
+  --sidebar-foreground: #f0fdfa;
+  --sidebar-primary: #2dd4bf;
+  --sidebar-primary-foreground: #020617;
+  --sidebar-accent: #134e4a;
+  --sidebar-accent-foreground: #f0fdfa;
+  --sidebar-border: #134e4a;
+  --scrollbar-thumb: rgba(45, 212, 191, 0.3);
+  --scrollbar-thumb-hover: rgba(45, 212, 191, 0.5);
+}
+
 
 
 @layer base {
   :root {
     --font-family: system-ui, -apple-system, sans-serif;
+  }
+
+  .no-select {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  .no-focus {
+    outline: none;
+  }
+
+  .no-focus:focus,
+  .no-focus:focus-visible {
+    outline: none;
+    box-shadow: none;
   }
 
   * {
@@ -346,11 +425,12 @@
     background-clip: padding-box;
   }
 
-  /* Firefox scrollbar */
-  .custom-scrollbar {
-    scrollbar-width: thin;
-    scrollbar-color: var(--primary) transparent;
-    scrollbar-gutter: stable;
+  /* Optimization: Disable expensive transitions during theme change */
+  .theme-switching *,
+  .theme-switching *::before,
+  .theme-switching *::after {
+    transition: none !important;
+    animation-duration: 0s !important;
   }
 
   /* Navigation - solid background, strict border */
@@ -438,15 +518,47 @@
     border-color: #ef4444;
   }
 
-  /* Gradient backgrounds for dynamic themes */
-  .theme-crimson-gradient body {
-    background: linear-gradient(135deg, #1a0a0f 0%, #2d1419 50%, #1a0a0f 100%);
-    background-attachment: fixed;
+  /* Gradient backgrounds for dynamic themes - Optimized for scroll performance */
+  .theme-crimson-gradient body::before,
+  .theme-sunset-gradient body::before,
+  .theme-midnight-purple body::before,
+  .theme-aurora body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    will-change: transform;
+    pointer-events: none;
   }
 
-  .theme-sunset-gradient body {
-    background: linear-gradient(135deg, #1a0f0a 0%, #2d1f14 30%, #3d1a0f 70%, #1a0f0a 100%);
-    background-attachment: fixed;
+  .theme-crimson-gradient body::before {
+    background: #1a0a0f;
+    background-image: linear-gradient(135deg, #1a0a0f 0%, #2d1419 50%, #1a0a0f 100%);
+  }
+
+  .theme-sunset-gradient body::before {
+    background: #1a0f0a;
+    background-image: linear-gradient(135deg, #1a0f0a 0%, #3d1a0f 100%);
+  }
+
+  .theme-midnight-purple body::before {
+    background: #05050a;
+    background-image: radial-gradient(circle at 50% 50%, #1e1b4b 0%, #05050a 100%);
+  }
+
+  .theme-aurora body::before {
+    background: #020617;
+    background-image: linear-gradient(135deg, #020617 0%, #064e3b 100%);
+  }
+
+  .theme-crimson-gradient body,
+  .theme-sunset-gradient body,
+  .theme-midnight-purple body,
+  .theme-aurora body {
+    background: transparent !important;
   }
 
   /* Gradient effects for cards in dynamic themes */
@@ -458,10 +570,30 @@
     background: linear-gradient(135deg, #2d1f14 0%, #3d2a19 100%);
   }
 
+  .theme-midnight-purple .modern-card {
+    background: linear-gradient(135deg, #0f0f1a 0%, #1e1b4b 100%);
+    border-color: #2e1065;
+  }
+
+  .theme-aurora .modern-card {
+    background: linear-gradient(135deg, #0f172a 0%, #134e4a 100%);
+    border-color: #134e4a;
+  }
+
   /* Animated gradient borders for hover states */
   .theme-crimson-gradient .modern-card:hover,
-  .theme-sunset-gradient .modern-card:hover {
+  .theme-sunset-gradient .modern-card:hover,
+  .theme-midnight-purple .modern-card:hover,
+  .theme-aurora .modern-card:hover {
     box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+  }
+
+  .theme-midnight-purple .modern-card:hover {
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+  }
+
+  .theme-aurora .modern-card:hover {
+    box-shadow: 0 0 20px rgba(45, 212, 191, 0.3);
   }
 }
 

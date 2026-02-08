@@ -13,7 +13,7 @@ export interface EditUserData {
   username: string
   gameNick: string
   password: string
-  role: "root" | "admin" | "ld" | "cc" | "user"
+  role: "root" | "admin" | "ld" | "cc" | "instructor" | "user"
 }
 
 export interface TransferCityData {

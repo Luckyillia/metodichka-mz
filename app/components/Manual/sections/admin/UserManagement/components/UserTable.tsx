@@ -2,7 +2,7 @@
 import React from "react"
 import type { User as UserType } from "@/lib/auth/types"
 import { CheckCircle, X, AlertCircle, Edit, Shield, Trash2, RotateCcw } from "lucide-react"
-import { getRoleBadgeColor, getRoleLabel } from "../utils/userHelpers"
+import { getCityBadgeColor, getCityLabel, getRoleBadgeColor, getRoleLabel } from "../utils/userHelpers"
 
 interface UserTableProps {
   users: UserType[]
@@ -234,7 +234,7 @@ export const UserTable: React.FC<UserTableProps> = ({
 
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span
-                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getRoleBadgeColor(
+                    className={`inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-medium border min-w-[110px] ${getRoleBadgeColor(
                       user.role
                     )}`}
                   >
@@ -243,26 +243,62 @@ export const UserTable: React.FC<UserTableProps> = ({
                 </td>
 
                 <td className="px-6 py-4 whitespace-nowrap text-muted-foreground">
-                  {user.city === "CGB-N" ? "ЦГБ-Н" : user.city === "CGB-P" ? "ЦГБ-П" : "ОКБ-М"}
+                  <span
+                    className={`inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-medium border min-w-[110px] ${getCityBadgeColor(
+                      user.city
+                    )}`}
+                    title={user.city}
+                  >
+                    {getCityLabel(user.city)}
+                  </span>
                 </td>
 
                 <td className="px-6 py-4 whitespace-nowrap">
-                  {user.status === "active" ? (
-                    <span className="text-green-600 dark:text-green-400 flex items-center gap-1">
-                      <CheckCircle className="w-4 h-4" />
-                      Активен
-                    </span>
-                  ) : user.status === "request" ? (
-                    <span className="text-yellow-600 dark:text-yellow-400 flex items-center gap-1">
-                      <AlertCircle className="w-4 h-4" />
-                      Запрос
-                    </span>
-                  ) : (
-                    <span className="text-destructive flex items-center gap-1">
-                      <X className="w-4 h-4" />
-                      Неактивен
-                    </span>
-                  )}
+                  {(() => {
+                    const hasRequest = user.status === "request"
+                    const hasAvatarModeration = user.avatar_moderation_status === "pending"
+                    const hasBoth = hasRequest && hasAvatarModeration
+
+                    if (hasRequest || hasAvatarModeration) {
+                      return (
+                        <div className={`flex items-stretch ${hasBoth ? "gap-2" : ""}`}>
+                          {hasRequest && (
+                            <div
+                              className={`${hasBoth ? "flex-1" : "w-full"} rounded-md border border-border bg-yellow-500/10 text-yellow-700 dark:text-yellow-300 px-2 py-1 text-xs font-medium flex items-center gap-1 no-select no-focus`}
+                            >
+                              <AlertCircle className="w-4 h-4" />
+                              Запрос
+                            </div>
+                          )}
+
+                          {hasAvatarModeration && (
+                            <div
+                              className={`${hasBoth ? "flex-1" : "w-full"} rounded-md border border-border bg-blue-500/10 text-blue-700 dark:text-blue-300 px-2 py-1 text-xs font-medium flex items-center gap-1 no-select no-focus`}
+                            >
+                              <AlertCircle className="w-4 h-4" />
+                              Аватар на модерации
+                            </div>
+                          )}
+                        </div>
+                      )
+                    }
+
+                    if (user.status === "active") {
+                      return (
+                        <span className="text-green-600 dark:text-green-400 flex items-center gap-1">
+                          <CheckCircle className="w-4 h-4" />
+                          Активен
+                        </span>
+                      )
+                    }
+
+                    return (
+                      <span className="text-destructive flex items-center gap-1">
+                        <X className="w-4 h-4" />
+                        Неактивен
+                      </span>
+                    )
+                  })()}
                 </td>
 
                 <td className="px-6 py-4 whitespace-nowrap hidden xl:table-cell">

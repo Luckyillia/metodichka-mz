@@ -6,13 +6,15 @@ import { Users, LogOut, Shield, Palette } from "lucide-react"
 import { useAuth } from "@/lib/auth/auth-context"
 import { useRouter } from "next/navigation"
 
-type Theme = 'dark' | 'theme-crimson-gradient' | 'theme-sunset-gradient' | 'theme-mz-glow'
+type Theme = 'dark' | 'theme-crimson-gradient' | 'theme-sunset-gradient' | 'theme-mz-glow' | 'theme-midnight-purple' | 'theme-aurora'
 
 const themes: { value: Theme; label: string; icon: string }[] = [
   { value: 'dark', label: 'Синяя', icon: '🔵' },
   { value: 'theme-crimson-gradient', label: 'Красная', icon: '🔴' },
   { value: 'theme-sunset-gradient', label: 'Закат', icon: '🌅' },
   { value: 'theme-mz-glow', label: 'МЗ Glow', icon: '✨' },
+  { value: 'theme-midnight-purple', label: 'Полночь', icon: '🔮' },
+  { value: 'theme-aurora', label: 'Аврора', icon: '🌌' },
 ]
 
 const initialsFromNick = (nick: string) => {
@@ -31,7 +33,11 @@ export default function Header() {
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme') as Theme || 'dark'
     setCurrentTheme(savedTheme)
-    document.documentElement.className = savedTheme
+    
+    const root = document.documentElement;
+    const themeClasses = themes.map(t => t.value);
+    root.classList.remove(...themeClasses);
+    root.classList.add(savedTheme);
   }, [])
 
   useEffect(() => {
@@ -47,9 +53,19 @@ export default function Header() {
   }, [showThemeMenu])
 
   const changeTheme = (theme: Theme) => {
+    const root = document.documentElement;
+    const themeClasses = themes.map(t => t.value);
+    
+    // Add temporary class to disable transitions
+    root.classList.add('theme-switching');
+    
+    // Remove all possible theme classes
+    root.classList.remove(...themeClasses);
+    // Add the new theme class
+    root.classList.add(theme);
+    
     setCurrentTheme(theme);
     localStorage.setItem('theme', theme);
-    document.documentElement.className = theme;
     
     // Dispatch a custom event when theme changes
     window.dispatchEvent(new CustomEvent('theme-changed', {
@@ -57,6 +73,11 @@ export default function Header() {
     }));
     
     setShowThemeMenu(false);
+
+    // Remove temporary class after a short delay
+    setTimeout(() => {
+      root.classList.remove('theme-switching');
+    }, 300);
   }
 
   const handleLogout = () => {
@@ -79,6 +100,7 @@ export default function Header() {
       admin: { label: "Администратор", color: "bg-red-600" },
       ld: { label: `Лидер ${city ? getCityLabel(city) : ''}`, color: "bg-pink-600" },
       cc: { label: `СС ${city ? getCityLabel(city) : ''}`, color: "bg-blue-600" },
+      instructor: { label: `Инструктор ${city ? getCityLabel(city) : ''}`, color: "bg-amber-600" },
       user: { label: `Участник ${city ? getCityLabel(city) : ''}`, color: "bg-green-600" },
     }
     return badges[role as keyof typeof badges] || { label: role, color: "bg-gray-600" }

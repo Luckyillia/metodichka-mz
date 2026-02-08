@@ -18,6 +18,7 @@ import { ConfirmModal } from "./components/modals/ConfirmModal"
 import { AuthService } from "@/lib/auth/auth-service"
 import type { User as UserType } from "@/lib/auth/types"
 import { ImagePreviewModal } from "@/app/components/common/ImagePreviewModal"
+import type { EditUserData } from "./types"
 
 const UserManagement: React.FC = () => {
   const {
@@ -489,7 +490,7 @@ const UserManagement: React.FC = () => {
 
       password: "",
 
-      role: user.role,
+      role: user.role as EditUserData["role"],
 
     })
 

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { supabaseAdmin } from "@/lib/supabase"
-import { cloudinary } from "@/lib/cloudinary"
+import { getCloudinary } from "@/lib/cloudinary"
 
 function getUserFromHeaders(request: Request) {
   const userId = request.headers.get("x-user-id")
@@ -14,7 +14,7 @@ function getUserFromHeaders(request: Request) {
 
   return {
     id: userId,
-    role: role as "root" | "admin" | "ld" | "cc" | "user",
+    role: role as "root" | "admin" | "ld" | "cc" | "instructor" | "user",
     username,
     game_nick: gameNick,
   }
@@ -48,6 +48,7 @@ export async function DELETE(
     }
 
     if (targetUser.avatar_public_id) {
+      const cloudinary = getCloudinary()
       await cloudinary.uploader.destroy(targetUser.avatar_public_id, { resource_type: "image" })
     }
 

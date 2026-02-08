@@ -1,9 +1,9 @@
-export const APP_VERSION = '1.2.0';
+export const APP_VERSION = '1.2.2';
 
 // Changelog
 export const CHANGELOG = [
   {
-    version: '1.2.1',
+    version: '1.2.2',
     date: '2026-02-08',
     changes: [
       'Добавлен личный кабинет',

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { supabase } from "@/lib/supabase"
-import { cloudinary } from "@/lib/cloudinary"
+import { getCloudinary } from "@/lib/cloudinary"
 
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024
 const ALLOWED_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"])
@@ -19,7 +19,7 @@ function getUserFromHeaders(request: Request) {
 
   return {
     id: userId,
-    role: role as "root" | "admin" | "ld" | "cc" | "user",
+    role: role as "root" | "admin" | "ld" | "cc" | "instructor" | "user",
     username,
     game_nick: gameNick,
     city: (city || "CGB-N") as "CGB-N" | "CGB-P" | "OKB-M",
@@ -147,6 +147,7 @@ export async function POST(request: Request) {
     const publicId = `${folder}/${currentUser.id}`
 
     const uploadResult = await new Promise<any>((resolve, reject) => {
+      const cloudinary = getCloudinary()
       const stream = cloudinary.uploader.upload_stream(
         {
           public_id: publicId,
@@ -186,6 +187,7 @@ export async function POST(request: Request) {
 
     if (!previous.error && previous.data?.avatar_public_id && previous.data.avatar_public_id !== uploadResult.public_id) {
       try {
+        const cloudinary = getCloudinary()
         await cloudinary.uploader.destroy(previous.data.avatar_public_id, { resource_type: "image" })
       } catch {
         // ignore
@@ -219,6 +221,7 @@ export async function DELETE(request: Request) {
     }
 
     if (user?.avatar_public_id) {
+      const cloudinary = getCloudinary()
       await cloudinary.uploader.destroy(user.avatar_public_id, { resource_type: "image" })
     }
 

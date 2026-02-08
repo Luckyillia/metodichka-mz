@@ -8,6 +8,8 @@ export const getRoleBadgeColor = (role: string): string => {
         return "bg-pink-600 text-white"
       case "cc":
         return "bg-blue-600 text-white"
+      case "instructor":
+        return "bg-amber-600 text-white"
       case "user":
         return "bg-green-600 text-white"
       default:
@@ -18,29 +20,43 @@ export const getRoleBadgeColor = (role: string): string => {
   export const getCityLabel = (city: string): string => {
     switch (city) {
       case "CGB-N":
-        return "ЦГБ-Н"
+        return "Невский"
       case "CGB-P":
-        return "ЦГБ-П"
+        return "Приволжск"
       case "OKB-M":
-        return "ОКБ-М"
+        return "Мирный"
       default:
         return city
     }
   }
   
+  export const getCityBadgeColor = (city: string): string => {
+    switch (city) {
+      case "CGB-N":
+        return "bg-red-500/15 text-red-700 dark:text-red-300 border-border"
+      case "CGB-P":
+        return "bg-green-500/15 text-green-700 dark:text-green-300 border-border"
+      case "OKB-M":
+        return "bg-sky-500/15 text-sky-700 dark:text-sky-300 border-border"
+      default:
+        return "bg-muted text-muted-foreground border-border"
+    }
+  }
+  
   export const getRoleLabel = (role: string, city?: string): string => {
-    const cityLabel = city ? ` ${getCityLabel(city)}` : ''
     switch (role) {
       case "root":
         return "Суперадмин"
       case "admin":
         return "Администратор"
       case "ld":
-        return `Лидер${cityLabel}`
+        return "Лидер"
       case "cc":
-        return `СС${cityLabel}`
+        return "СС"
+      case "instructor":
+        return "Инструктор"
       case "user":
-        return `Участник${cityLabel}`
+        return "Участник"
       default:
         return role
     }

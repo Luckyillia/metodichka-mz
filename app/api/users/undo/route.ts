@@ -14,7 +14,7 @@ function getUserFromHeaders(request: Request) {
 
     return {
         id: userId,
-        role: role as "root" | "admin" | "cc" | "user",
+        role: role as "root" | "admin" | "ld" | "cc" | "instructor" | "user",
         username: username,
         game_nick: gameNick,
     }

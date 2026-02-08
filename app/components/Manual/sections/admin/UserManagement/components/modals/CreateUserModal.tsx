@@ -96,6 +96,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
               className="w-full px-4 py-2 bg-input border-2 border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-colors"
             >
               <option value="user">Пользователь</option>
+              {(isRoot || isLeader) && <option value="instructor">Инструктор</option>}
               <option value="cc">CC</option>
               {!isLeader && <option value="ld">Лидер</option>}
               {isRoot && <option value="admin">Администратор</option>}

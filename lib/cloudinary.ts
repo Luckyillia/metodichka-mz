@@ -1,18 +1,31 @@
 import { v2 as cloudinary } from "cloudinary"
 
-const cloudName = process.env.CLOUDINARY_CLOUD_NAME
-const apiKey = process.env.CLOUDINARY_API_KEY
-const apiSecret = process.env.CLOUDINARY_API_SECRET
+let isConfigured = false
 
-if (!cloudName || !apiKey || !apiSecret) {
-  throw new Error("Missing Cloudinary environment variables")
+function ensureCloudinaryConfigured() {
+  if (isConfigured) return
+
+  const cloudName = process.env.CLOUDINARY_CLOUD_NAME
+  const apiKey = process.env.CLOUDINARY_API_KEY
+  const apiSecret = process.env.CLOUDINARY_API_SECRET
+
+  if (!cloudName || !apiKey || !apiSecret) {
+    throw new Error("Missing Cloudinary environment variables")
+  }
+
+  cloudinary.config({
+    cloud_name: cloudName,
+    api_key: apiKey,
+    api_secret: apiSecret,
+    secure: true,
+  })
+
+  isConfigured = true
 }
 
-cloudinary.config({
-  cloud_name: cloudName,
-  api_key: apiKey,
-  api_secret: apiSecret,
-  secure: true,
-})
+export function getCloudinary() {
+  ensureCloudinaryConfigured()
+  return cloudinary
+}
 
 export { cloudinary }

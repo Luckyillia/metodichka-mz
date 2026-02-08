@@ -17,7 +17,7 @@ function getUserFromHeaders(request: Request) {
 
   return {
     id: userId,
-    role: role as "root" | "admin" | "ld" | "cc" | "user",
+    role: role as "root" | "admin" | "ld" | "cc" | "instructor" | "user",
     username,
     game_nick: gameNick,
   }
@@ -25,7 +25,7 @@ function getUserFromHeaders(request: Request) {
 
 function verifyAuthToken(token: string): null | {
   id: string
-  role: "root" | "admin" | "ld" | "cc" | "user"
+  role: "root" | "admin" | "ld" | "cc" | "instructor" | "user"
   username: string
   game_nick: string
 } {

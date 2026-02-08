@@ -61,6 +61,10 @@ export const AppFooter = () => {
         return 'bg-gradient-to-r from-[#2d1419] to-[#3d1e24] text-[#ffe5e5] border-t border-red-800/50';
       case 'theme-sunset-gradient':
         return 'bg-gradient-to-r from-[#2d1f14] to-[#3d2a19] text-[#fff5e5] border-t border-orange-700/50';
+      case 'theme-midnight-purple':
+        return 'bg-gradient-to-r from-[#05050a] to-[#0f0f1a] text-[#f5f3ff] border-t border-purple-900/50';
+      case 'theme-aurora':
+        return 'bg-gradient-to-r from-[#020617] to-[#0f172a] text-[#f0fdfa] border-t border-teal-900/50';
       default: // dark theme
         return 'bg-[#0f172a] text-[#f1f5f9] border-t border-slate-700';
     }

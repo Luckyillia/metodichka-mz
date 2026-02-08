@@ -47,6 +47,7 @@ export const UserFilters: React.FC<UserFiltersProps> = ({
           >
             <option value="all">Все роли</option>
             <option value="user">Пользователь</option>
+            <option value="instructor">Инструктор</option>
             <option value="cc">CC</option>
             {!isLeader && <option value="ld">Лидер</option>}
             {!isLeader && <option value="admin">Администратор</option>}

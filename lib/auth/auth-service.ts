@@ -318,6 +318,8 @@ export class AuthService {
         return ldSections.includes(sectionId)
       case "cc":
         return ccLdSections.includes(sectionId)
+      case "instructor":
+        return [...publicSections, "ss-unified-content"].includes(sectionId)
       case "user":
         return publicSections.includes(sectionId)
       default:

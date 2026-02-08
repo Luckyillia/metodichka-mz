@@ -6,6 +6,7 @@ import type { User as UserType, ActionLog } from "@/lib/auth/types"
 import type { UserFormData, EditUserData, ConfirmModalState, UserTab } from "../types"
 
 export const useUserManagement = () => {
+
   const { user: currentUser } = useAuth()
   const [users, setUsers] = useState<UserType[]>([])
 

@@ -1,4 +1,4 @@
-export type UserRole = "guest" | "user" | "cc" | "ld" | "admin" | "root"
+export type UserRole = "guest" | "user" | "instructor" | "cc" | "ld" | "admin" | "root"
 
 export type UserStatus = "active" | "inactive" | "request"
 
@@ -8,7 +8,7 @@ export interface User {
   id: string
   username: string
   game_nick: string
-  role: "root" | "admin" | "cc" | "ld" | "user"
+  role: "root" | "admin" | "cc" | "ld" | "instructor" | "user"
   status: UserStatus
   city: UserCity
   ip_address?: string
