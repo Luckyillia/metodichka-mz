@@ -6,558 +6,581 @@ export interface Order {
   category: string
   content: string
   tags: string[]
+  builder?: OrderBuilderMeta
+}
+
+export type OrderBuilderFieldType = "text" | "textarea" | "number" | "date" | "url"
+
+export type OrderBuilderField = {
+  key: string
+  label: string
+  type: OrderBuilderFieldType
+  placeholder?: string
+}
+
+export type OrderBuilderMeta = {
+  fields: OrderBuilderField[]
+}
+
+type HeaderVariant = "gv" | "gv_sa"
+
+const buildHeader = (variant: HeaderVariant) => {
+  if (variant === "gv_sa") {
+    return `[Заместитель Главного Врача {HOSPITAL_FULL} города {CITY} | {MY_NAME} Начальник Санитарной Авиации | {MY_NAME} ]`
+  }
+
+  return `[Главный Врач {HOSPITAL_FULL} города {CITY} | {MY_NAME} ]`
+}
+
+const buildStatusLine = (variant: "default" | "dot") => {
+  if (variant === "dot") {
+    return `Состояние на данный момент: УП - {UP}/5; П - {P}/5; В - {V}/3.`
+  }
+
+  return `Состояние на данный момент: УП - {UP}/5; П - {P}/5; В - {V}/3`
+}
+
+const trimEndNewlines = (value: string) => value.replace(/[\n\r]+$/g, "")
+
+const joinHeaderBodyStatus = (header: string, body: string, status?: string) => {
+  const normalizedHeader = trimEndNewlines(header)
+  const normalizedBody = body.replace(/^[\n\r]+/, "")
+  const base = `${normalizedHeader}\n\n${normalizedBody}`
+  if (!status) return base
+  return `${trimEndNewlines(base)}\n\n${status}`
+}
+
+type OrderTemplateParams = {
+  id: string
+  title: string
+  category: string
+  tags: string[]
+  builder?: OrderBuilderMeta
+  headerVariant?: HeaderVariant
+  body: string
+  statusVariant?: "default" | "dot" | "none"
+}
+
+const createOrderTemplate = ({
+  id,
+  title,
+  category,
+  tags,
+  builder,
+  headerVariant = "gv",
+  body,
+  statusVariant = "default"
+}: OrderTemplateParams): Order => {
+  const statusBlock = statusVariant === "none" ? undefined : buildStatusLine(statusVariant)
+  return {
+    id,
+    title,
+    category,
+    tags,
+    builder,
+    content: joinHeaderBodyStatus(buildHeader(headerVariant), body, statusBlock)
+  }
+}
+
+type DisciplinaryPerson = {
+  name: string
+  position?: string
+}
+
+type DisciplinaryOrderParams = {
+  id: string
+  title: string
+  tags: string[]
+  people: DisciplinaryPerson[]
+  article: string
+  articleDescription?: string
+  penalty: string
+  complaintUrl?: string
+}
+
+const formatPeople = (people: DisciplinaryPerson[]) => {
+  return people
+    .map((p) => {
+      if (p.position) return `${p.name}, находясь в должности ${p.position}`
+      return p.name
+    })
+    .join("; ")
+}
+
+const createDisciplinaryOrder = ({
+  id,
+  title,
+  tags,
+  people,
+  article,
+  articleDescription,
+  penalty,
+  complaintUrl
+}: DisciplinaryOrderParams): Order => {
+  const articleBlock = articleDescription ? `${article} (${articleDescription})` : article
+  const complaintBlock = complaintUrl ? `По жалобе: ${complaintUrl}` : undefined
+
+  const body = `Приказ о выдаче служебного взыскания:  
+
+${formatPeople(people)} получает взыскание в виде ${penalty} и несёт ответственность по пункту ${articleBlock}
+${complaintBlock ? `${complaintBlock}\n` : ""}`
+
+  return createOrderTemplate({
+    id,
+    title,
+    category: "Взыскания",
+    tags,
+    body,
+    statusVariant: "default"
+  })
 }
 
 export const medicalOrders: Order[] = [
-  {
+  createOrderTemplate({
     id: "priem-intern-open",
     title: "Принятие в МУ на должность Интерна (открытое)",
     category: "Приём",
-    content: `[Главный Врач по {HOSPITAL_FULL} города {CITY} | {MY_NAME} ]
-
-Приказ о принятии в Медицинский Университет:  
-
-Sergey_Berg принят в Медицинский Университет {HOSPITAL} г. {CITY} по результатам открытого собеседования на должность Интерна. Желаем успешного продвижения в работе!  
-
+    tags: ["Принят", "Открытому"],
+    builder: {
+      fields: [
+        { key: "TARGET_NAME", label: "Сотрудник", type: "text", placeholder: "Имя_Фамилия" },
+      ]
+    },
+    body: `Приказ о принятии в Медицинский Университет:  
+{TARGET_NAME} принят в Медицинский Университет {HOSPITAL} г. {CITY} по результатам открытого собеседования на должность Интерна. Желаем успешного продвижения в работе!  
 Состояние на данный момент: УП - {UP}/5; П - {P}/5; В - {V}/3`,
-    tags: ["Принят", "Открытому"]
-  },
-  {
+    statusVariant: "none"
+  }),
+  createOrderTemplate({
     id: "perevod-imu",
     title: "Перевод в ИМУ",
     category: "Перевод",
-    content: `[Главный Врач по {HOSPITAL_FULL} города {CITY} | {MY_NAME} ]
-
-Приказ о переводе сотрудника:
-
-На основании поданного заявления и в соответствии с внутренними кадровыми процедурами, сотрудник Sergey_Berg переводится в отдел Инструкторов Медицинского Университета!
-
+    tags: ["ИМУ"],
+    builder: {
+      fields: [
+        { key: "TARGET_NAME", label: "Сотрудник", type: "text", placeholder: "Имя_Фамилия" },
+      ]
+    },
+    body: `Приказ о переводе сотрудника:
+На основании поданного заявления и в соответствии с внутренними кадровыми процедурами, сотрудник {TARGET_NAME} переводится в отдел Инструкторов Медицинского Университета!
 Состояние на данный момент: УП - {UP}/5; П - {P}/5; В - {V}/3`,
-    tags: ["ИМУ"]
-  },
-  {
-    id: "naznachenie-zam-gv-mu",
-    title: "Назначение на должность (Зам.Нач.ГВ-МУ)",
-    category: "Назначения",
-    content: `[Главный Врач по {HOSPITAL_FULL} города {CITY} | {MY_NAME} ]
-
-Приказ о кадровых перестановках:
-
-Сотрудник Sergey_Berg назначен на должность «Заместитель начальника главного военно-медицинского управления».
-
-Состояние на данный момент: УП - {UP}/5; П - {P}/5; В - {V}/3`,
-    tags: ["Зам", "ГВ-МУ", "Заместитель"]
-  },
-  {
-    id: "naznachenie-kom-gv-mu",
-    title: "Назначение на должность (Ком.ГВ-МУ)",
-    category: "Назначения",
-    content: `[Главный Врач по {HOSPITAL_FULL} города {CITY} | {MY_NAME} ]
-
-Приказ о кадровых перестановках:
-
-Сотрудник Sergey_Berg назначен на должность «Командир военно-медицинским отделом».
-
-Состояние на данный момент: УП - {UP}/5; П - {P}/5; В - {V}/3`,
-    tags: ["Командир", "ГВ-МУ"]
-  },
-  {
-    id: "naznachenie-nach-imu",
-    title: "Назначение на должность (Начальник ИМУ)",
-    category: "Назначения",
-    content: `[Главный Врач по {HOSPITAL_FULL} города {CITY} | {MY_NAME} ]
-
-Приказ о кадровых перестановках:
-
-Сотрудник Sergey_Berg назначен на должность «Начальник ИМУ».
-
-Состояние на данный момент: УП - {UP}/5; П - {P}/5; В - {V}/3`,
-    tags: ["Начальник", "ИМУ"]
-  },
-  {
+    statusVariant: "none"
+  }),
+  createOrderTemplate({
     id: "perevod-mezhdu-filialami",
     title: "Перевод между филиалами",
     category: "Перевод",
-    content: `[Главный Врач по {HOSPITAL_FULL} города {CITY} | {MY_NAME} ]
-
-Приказ о переводе сотрудника:
- 
-Сотрудник Sergey_Berg переводится из организации {HOSPITAL_FULL} города {CITY} в Центральную Городскую Больницу города Приволжск на должность «Врач-терапевт». Заявление приложено на государственном портале Министерства Здравоохранения. 
- 
-Текущее положение: УП - {UP}/5; П - {P}/5; В - {V}/3.`,
-    tags: ["Перевод"]
-  },
-  {
-    id: "naznachenie-zaveduyushiy",
-    title: "Назначение на должность (Заведующий)",
-    category: "Назначения",
-    content: `[Главный Врач по {HOSPITAL_FULL} города {CITY} | {MY_NAME} ]
-
-Приказ о кадровых перестановках:
-
-Sergey_Berg — назначен на должность: Заведующий ОЛД.
-
-ВрИО срок 7 дней.
-
-Состояние на данный момент: УП - {UP}/5; П - {P}/5; В - {V}/3`,
-    tags: ["Назначение", "Зав", "Заведующий"]
-  },
-  {
-    id: "naznachenie-zam-gv",
-    title: "Назначение на должность (Заместитель)",
-    category: "Назначения",
-    content: `[Главный Врач по {HOSPITAL_FULL} города {CITY} | {MY_NAME} ]
-
-Приказ о кадровых перестановках:
-
-Sergey_Berg — назначен на должность: Заместитель Главного Врача по организационно-методической работе.
-
-Состояние на данный момент: УП - {UP}/5; П - {P}/5; В - {V}/3`,
-    tags: ["Назначение", "Зам", "Заместитель главного врача"]
-  },
-  {
-    id: "naznachenie-zam-nach-sa",
-    title: "Назначение на должность (Зам.Нач.СА)",
-    category: "Назначения",
-    content: `[Главный Врач по {HOSPITAL_FULL} города {CITY} | {MY_NAME} ]
-
-Приказ о кадровых перестановках:
-
-Сотрудник Sergey_Berg назначен на должность «Заместитель Начальника санитарной авиации».
-
-Состояние на данный момент: УП - {UP}/5; П - {P}/5; В - {V}/3`,
-    tags: ["Назначение", "СА"]
-  },
-  {
-    id: "naznachenie-nach-sa",
-    title: "Назначение на должность (Нач.СА)",
-    category: "Назначения",
-    content: `[Главный Врач по {HOSPITAL_FULL} города {CITY} | {MY_NAME} ]
-
-Приказ о кадровых перестановках:
-
-Сотрудник Sergey_Berg назначен на должность «Начальник санитарной авиации».
-
-Состояние на данный момент: УП - {UP}/5; П - {P}/5; В - {V}/3`,
-    tags: ["Назначение", "СА"]
-  },
-  {
-    id: "perevod-v-sa-psa",
-    title: "Перевод в СА (ПСА)",
-    category: "СА",
-    content: `[Главный Врач по {HOSPITAL_FULL} города {CITY} | {MY_NAME} ]
-
-Приказ о переводе сотрудника:
-
-На основании поданного рапорта и в соответствии с кадровыми процедурами, сотрудник Sergey_Berg переводится в отдел Санитарной Авиации на должность Пилота Санитарной Авиации. Желаем успехов, продуктивной работы и роста в новых обязанностях!
-
-Состояние на данный момент: УП - {UP}/5; П - {P}/5; В - {V}/3`,
-    tags: ["Перевод", "СА", "ПСА"]
-  },
-  {
-    id: "perevod-v-sa-fsa",
-    title: "Перевод в СА (ФСА)",
-    category: "СА",
-    content: `[Главный Врач по {HOSPITAL_FULL} города {CITY} | {MY_NAME} ]
-
-Приказ о переводе сотрудника:
-
-На основании поданного рапорта и в соответствии с кадровыми процедурами, сотрудник Sergey_Berg переводится в отдел Санитарной Авиации на должность Фельдшера Санитарной Авиации. Желаем успехов, продуктивной работы и роста в новых обязанностях!
-
-Состояние на данный момент: УП - {UP}/5; П - {P}/5; В - {V}/3`,
-    tags: ["Перевод", "СА", "ФСА"]
-  },
-  {
-    id: "vostanovlenie-ss",
-    title: "Восстановление в СС",
-    category: "Приём",
-    content: `[Главный Врач по {HOSPITAL_FULL} города {CITY} | {MY_NAME} ]
-
-Приказ о принятии в Старший состав:
-
-Sergey_Berg восстановлен в Старший состав {HOSPITAL_FULL} города {CITY} на Заведующего Отделением Лабораторной Диагностики по результатам закрытого собеседования и снова готов приступить к своим обязанностям с новыми силами. Рады видеть вас снова!
-
-Состояние на данный момент: УП - {UP}/5; П - {P}/5; В - {V}/3.`,
-    tags: ["Восстановление", "Приём"]
-  },
-  {
+    tags: ["Перевод"],
+    builder: {
+      fields: [
+        { key: "TARGET_NAME", label: "Сотрудник", type: "text", placeholder: "Имя_Фамилия" },
+        { key: "TARGET_HOSPITAL_FULL", label: "Куда переводится (больница полностью)", type: "text", placeholder: "Центральную Городскую Больницу" },
+        { key: "TARGET_CITY", label: "Куда переводится (город)", type: "text", placeholder: "Приволжск" },
+        { key: "TARGET_POSITION", label: "Новая должность", type: "text", placeholder: "Врач-терапевт" },
+        { key: "APPLICATION_URL_LINE", label: "Ссылка на заявление (опционально)", type: "url", placeholder: "https://..." },
+      ]
+    },
+    body: `Приказ о переводе сотрудника:
+Сотрудник {TARGET_NAME} переводится из организации {HOSPITAL_FULL} города {CITY} в {TARGET_HOSPITAL_FULL} города {TARGET_CITY} на должность «{TARGET_POSITION}».{APPLICATION_URL_LINE}
+Текущее положение: УП - {UP}/5; П - {P}/5; В - {V}/3`,
+    statusVariant: "none"
+  }),
+  createOrderTemplate({
     id: "otpusk",
     title: "Предоставление отпуска",
     category: "Отпуск",
-    content: `[Главный Врач по {HOSPITAL_FULL} города {CITY} | {MY_NAME} ]
-
+    tags: ["Отпуск"],
+    builder: {
+      fields: [
+        { key: "TARGET_NAME", label: "Сотрудник", type: "text", placeholder: "Имя_Фамилия" },
+        { key: "TARGET_POSITION", label: "Должность сотрудника", type: "text", placeholder: "Врач-хирург" },
+        { key: "DATE_FROM", label: "Дата начала", type: "text", placeholder: "ДД.ММ.ГГГГ" },
+        { key: "DATE_TO", label: "Дата окончания", type: "text", placeholder: "ДД.ММ.ГГГГ" },
+      ]
+    },
+    body: `
 Приказ о предоставлении отпуска:
 
-Сотрудник Sergey_Berg, находясь в должности Врач-хирург, отправляется в отпуск с ДД.ММ.ГГГГ по ДД.ММ.ГГГГ включительно. Хорошего отдыха!
+Сотрудник {TARGET_NAME}, находясь в должности {TARGET_POSITION}, отправляется в отпуск с {DATE_FROM} по {DATE_TO} включительно. Хорошего отдыха!
 
-Состояние на данный момент: УП - {UP}/5; П - {P}/5; В - {V}/3`,
-    tags: ["Отпуск"]
-  },
-  {
+`
+  }),
+  createOrderTemplate({
     id: "snyatie-vrio-zav",
     title: "Снятие ВрИО срока (Заведующий)",
     category: "ВрИО",
-    content: `[Главный Врач по {HOSPITAL_FULL} города {CITY} | {MY_NAME} ]
-
+    tags: ["ВрИО", "снятие", "заведующий"],
+    builder: {
+      fields: [
+        { key: "TARGET_NAME", label: "Сотрудник", type: "text", placeholder: "Имя_Фамилия" },
+        { key: "TARGET_POSITION", label: "Должность", type: "text", placeholder: "Заведующий ОЛД" },
+      ]
+    },
+    body: `
 Приказ о снятии ВрИО срока:
 
-Сотрудник Kevin_Evil успешно проходит ВрИО срок и становится на полноценную должность Заведующий ОЛД.
+Сотрудник {TARGET_NAME} успешно проходит ВрИО срок и становится на полноценную должность {TARGET_POSITION}.
 
-Состояние на данный момент: УП - {UP}/5; П - {P}/5; В - {V}/3`,
-    tags: ["ВрИО", "снятие", "заведующий"]
-  },
-  {
+`
+  }),
+  createOrderTemplate({
     id: "snyatie-vrio-zam",
     title: "Снятие ВрИО срока (Заместитель)",
     category: "ВрИО",
-    content: `[Главный Врач по {HOSPITAL_FULL} города {CITY} | {MY_NAME} ]
-
+    tags: ["ВрИО", "снятие", "заместитель"],
+    builder: {
+      fields: [
+        { key: "TARGET_NAME", label: "Сотрудник", type: "text", placeholder: "Имя_Фамилия" },
+        { key: "TARGET_POSITION", label: "Должность", type: "text", placeholder: "Заместитель главного врача" },
+      ]
+    },
+    body: `
 Приказ о снятии ВрИО срока:
 
-Сотрудник Sergey_Teslenko успешно проходит ВрИО срок и становится на полноценную должность Заместитель главного врача.
+Сотрудник {TARGET_NAME} успешно проходит ВрИО срок и становится на полноценную должность {TARGET_POSITION}.
 
-Состояние на данный момент: УП - {UP}/5; П - {P}/5; В - {V}/3`,
-    tags: ["ВрИО", "снятие", "заместитель"]
-  },
-  {
-    id: "vziskanie-28",
-    title: "Выдача служебного взыскания 2.8 ПСГО",
-    category: "Взыскания",
-    content: `[Главный Врач по {HOSPITAL_FULL} города {CITY} | {MY_NAME} ]
+`
+  }),
+  createOrderTemplate({
+    id: "perevod-universal",
+    title: "Перевод на должность (универсальный)",
+    category: "Перевод",
+    tags: ["перевод", "универсальный"],
+    builder: {
+      fields: [
+        { key: "TARGET_NAME", label: "Сотрудник", type: "text", placeholder: "Имя_Фамилия" },
+        { key: "FROM_POSITION", label: "С какой должности (опционально)", type: "text", placeholder: "Интерн" },
+        { key: "TARGET_POSITION", label: "На какую должность", type: "text", placeholder: "Врач-терапевт" },
+        { key: "TARGET_DEPARTMENT", label: "Отдел (опционально)", type: "text", placeholder: "ОТХ" },
+        { key: "REASON", label: "Основание (опционально)", type: "text", placeholder: "по результатам отчётности" },
+      ]
+    },
+    body: `
+Приказ о переводе:  
 
-Приказ о выдаче служебного взыскания:  
+Сотрудник {TARGET_NAME} переводится{FROM_POSITION} на должность {TARGET_POSITION}.{TARGET_DEPARTMENT_LINE}
+Основание: {REASON}.
+`
+  }),
+  createOrderTemplate({
+    id: "naznachenie-universal",
+    title: "Назначение на должность (универсальный)",
+    category: "Назначения",
+    tags: ["назначение", "универсальный"],
+    builder: {
+      fields: [
+        { key: "TARGET_NAME", label: "Сотрудник", type: "text", placeholder: "Имя_Фамилия" },
+        { key: "TARGET_POSITION", label: "Должность", type: "text", placeholder: "Заведующий отделом" },
+        { key: "TARGET_DEPARTMENT", label: "Отдел (опционально)", type: "text", placeholder: "ОЛД" },
+        { key: "REASON", label: "Основание (опционально)", type: "text", placeholder: "по результатам обзвона" },
+      ]
+    },
+    body: `
+Приказ о постановлении на должность:
 
-Сотрудник Daniel_Manarskiy, находясь в должности врач-хирург, получает взыскание в виде выговора и несёт ответственность по пункту 2.8 ПСГО (Сотрудник, получивший наказание по любому пункту ВПС, наказывается письменными взысканиями на усмотрение следящей администрации)
-По жалобе: https://forum.gtaprovince.ru/topic/919005-mz-nonrp-artur_iralin/
+Сотрудник {TARGET_NAME} назначен на должность {TARGET_POSITION}.{TARGET_DEPARTMENT_LINE}
+Основание: {REASON}.
+`
+  }),
+  createOrderTemplate({
+    id: "vrio-naznachenie-universal",
+    title: "Назначение ВрИО (универсальный)",
+    category: "ВрИО",
+    tags: ["ВрИО", "назначение", "универсальный"],
+    builder: {
+      fields: [
+        { key: "TARGET_NAME", label: "Сотрудник", type: "text", placeholder: "Имя_Фамилия" },
+        { key: "TARGET_POSITION", label: "Должность ВрИО", type: "text", placeholder: "Заведующий ОТХ" },
+        { key: "TARGET_DEPARTMENT", label: "Отдел (опционально)", type: "text", placeholder: "ОТХ" },
+        { key: "VRIO_DAYS", label: "Срок ВрИО (дней)", type: "number", placeholder: "7" },
+        { key: "REASON", label: "Основание (опционально)", type: "text", placeholder: "по результатам обзвона" },
+      ]
+    },
+    body: `
+Приказ о назначении ВрИО:
 
-Состояние: УП - {UP}/5; П - {P}/5; В - {V}/3`,
-    tags: ["взыскание", "выговор", "ПСГО", "ВПС"]
-  },
-  {
-    id: "vziskanie-42-umz",
-    title: "Выдача служебного взыскания 4.2 УМЗ",
-    category: "Взыскания",
-    content: `[Главный Врач по {HOSPITAL_FULL} города {CITY} | {MY_NAME} ]
+Сотрудник {TARGET_NAME} назначен ВрИО на должность {TARGET_POSITION}{TARGET_DEPARTMENT_LINE}
+Срок ВрИО: {VRIO_DAYS} дней.
+Основание: {REASON}.
+`
+  }),
+  createOrderTemplate({
+    id: "priem-universal",
+    title: "Принятие на должность (универсальный)",
+    category: "Приём",
+    tags: ["приём", "универсальный"],
+    builder: {
+      fields: [
+        { key: "TARGET_NAME", label: "Сотрудник", type: "text", placeholder: "Имя_Фамилия" },
+        { key: "TARGET_POSITION", label: "Должность", type: "text", placeholder: "Врач-терапевт" },
+        { key: "TARGET_DEPARTMENT", label: "Отдел (опционально)", type: "text", placeholder: "ОТХ" },
+        { key: "REASON", label: "Основание (опционально)", type: "text", placeholder: "по результатам собеседования" },
+      ]
+    },
+    body: `
+Приказ о принятии:  
 
-Приказ о выдаче служебного взыскания:  
-
-Сотрудник Daniel_Manarskiy, находясь в должности врач-хирург, получает взыскание в виде выговора и несёт ответственность по пункту 4.2 УМЗ (Запрещено отказывать в медицинской помощи гражданину Провинции.)
-По жалобе: https://forum.gtaprovince.ru/topic/913359-mz-rp-nikolay_nellson/
-
-Состояние: УП - {UP}/5; П - {P}/5; В - {V}/3`,
-    tags: ["взыскание", "выговор", "УМЗ", "отказ в помощи"]
-  },
-  {
-    id: "vziskanie-310",
-    title: "Выдача служебного взыскания 3.10 ПСГО",
-    category: "Взыскания",
-    content: `[Главный Врач по {HOSPITAL_FULL} города {CITY} | {MY_NAME} ]
-
-Приказ о выдаче служебного взыскания:  
-
-Сотрудник Daniel_Manarskiy, находясь в должности врач-хирург, получает взыскание в виде выговора и несёт ответственность по пункту 3.10 ПСГО (Нарушение правил чатов, сообщения не по теме в чат ДО).
-
-Состояние: УП - {UP}/5; П - {P}/5; В - {V}/3`,
-    tags: ["взыскание", "выговор", "ПСГО", "чат"]
-  },
-  {
-    id: "vziskanie-328",
-    title: "Выдача служебного взыскания 3.28 ПСГО",
-    category: "Взыскания",
-    content: `[Главный Врач по {HOSPITAL_FULL} города {CITY} | {MY_NAME} ]
-
-Приказ о выдаче служебного взыскания:  
-
-Сотрудник Daniel_Manarskiy, находясь в должности врач-хирург, получает взыскание в виде выговора и несёт ответственность по пункту 3.28 ПСГО (Пребывание во фракции без наличия действующей медкарты).
-
-Состояние: УП - {UP}/5; П - {P}/5; В - {V}/3`,
-    tags: ["взыскание", "выговор", "ПСГО", "медкарта"]
-  },
-  {
-    id: "vziskanie-48",
-    title: "Выдача служебного взыскания 4.8 ПСГО",
-    category: "Взыскания",
-    content: `[Главный Врач по {HOSPITAL_FULL} города {CITY} | {MY_NAME} ]
-
-Приказ о выдаче служебного взыскания:  
-
-Сотрудник Daniel_Manarskiy, находясь в должности врач-хирург, получает взыскание в виде выговора и несёт ответственность по пункту 4.8 ПСГО (Запрещено нецензурно выражаться).
-
-Состояние: УП - {UP}/5; П - {P}/5; В - {V}/3`,
-    tags: ["взыскание", "выговор", "ПСГО", "мат"]
-  },
-  {
-    id: "vziskanie-otchet",
-    title: "Выдача служебного взыскания за несдачу отчета",
-    category: "Взыскания",
-    content: `[Главный Врач по {HOSPITAL_FULL} города {CITY} | {MY_NAME} ]
-
-Приказ о выдаче служебного взыскания:  
-
-Сотрудник Kayton_Romanov получает выговор за несдачу отчета СС. 
-
-Состояние: УП - {UP}/5; П - {P}/5; В - {V}/3`,
-    tags: ["взыскание", "выговор", "отчет"]
-  },
-  {
-    id: "dosrochnoe-vozvrat",
-    title: "Досрочное возвращение из отпуска",
-    category: "Отпуска",
-    content: `[Главный Врач по {HOSPITAL_FULL} города {CITY} | {MY_NAME} ]
-Приказ о возвращении из отпуска:
-
-Polter_Jameson - досрочно выходит из отпуска.
-
-Состояние на данный момент: УП - {UP}/5; П - {P}/5; В - {V}/3`,
-    tags: ["отпуск", "досрочное возвращение"]
-  },
-  {
-    id: "vozvrat-iz-otpuska",
-    title: "Возвращение из отпуска",
-    category: "Отпуска",
-    content: `[Главный Врач по {HOSPITAL_FULL} города {CITY} | {MY_NAME} ]
-Приказ о возвращении с отпуска:
-
-Сотрудник Ivan_Kurdin возвращается из отпуска в ЦГБ города {CITY} и приступает к своим должностным обязанностям.
-
-Состояние на данный момент: УП - {UP}/5; П - {P}/5; В - {V}/3`,
-    tags: ["отпуск", "возвращение"]
-  },
-  {
-    id: "uvolnenie-psj-bez",
-    title: "Увольнение по собственному желанию (без неустойки)",
-    category: "Увольнения",
-    content: `[Главный Врач по {HOSPITAL_FULL} города {CITY} | {MY_NAME} ]
-
-Приказ об увольнении:  
-
-Сотрудник Sergey_Bobrov уволен из {HOSPITAL_FULL} города {CITY}.
-Причина: Собственное желание. Неустойка не требуется.
-Должность при увольнении: (Врач-хирург).
-Спасибо за проделанную медицинскую работу!  
-
-Состояние: УП - {UP}/5; П - {P}/5; В - {V}/3`,
-    tags: ["увольнение", "собственное желание"]
-  },
-  {
-    id: "uvolnenie-ochs-0111",
-    title: "Увольнение по ОЧС 0.1.11 (Самолив)",
-    category: "Увольнения",
-    content: `[Главный Врач по {HOSPITAL_FULL} города {CITY} | {MY_NAME} ] 
-
-Приказ об увольнении:  
-
-Сотрудник Daniel_Manarskiy находясь в должности (Врач-хирург), {HOSPITAL_FULL} города {CITY}, с занесением в общий чёрный список для дальнейшего исключения возможности трудоустройства в организации сроком на 30 дней по пункту 0.1.11 ОЧС (Самолив из оф.бесед).
-
-Состояние: УП - {UP}/5; П - {P}/5; В - {V}/3`,
-    tags: ["увольнение", "ОЧС", "самолив", "черный список"]
-  },
-  {
-    id: "uvolnenie-ochs-013",
-    title: "Увольнение по ОЧС 0.1.3 (Бан 10+ дней)",
-    category: "Увольнения",
-    content: `[Главный Врач по {HOSPITAL_FULL} города {CITY} | {MY_NAME} ] 
-
-Приказ об увольнении:  
-
-Сотрудник Daniel_Manarskiy находясь в должности (Врач-хирург), покидает {HOSPITAL_FULL} города {CITY}, с занесением в общий чёрный список для дальнейшего исключения возможности трудоустройства в организации сроком на 30 дней по пункту 0.1.3 ОЧС (Бан на 10 и более дней).
-
-Состояние: УП - {UP}/5; П - {P}/5; В - {V}/3`,
-    tags: ["увольнение", "ОЧС", "бан", "черный список"]
-  },
-  {
-    id: "uvolnenie-ochs-019",
-    title: "Увольнение по ОЧС 0.1.9 (Неактив)",
-    category: "Увольнения",
-    content: `[Главный Врач по {HOSPITAL_FULL} города {CITY} | {MY_NAME} ]
-
-Сотрудник Danill_Marcinkevich находясь в должности Интерн, покидает {HOSPITAL_FULL} города {CITY}, с занесением в общий чёрный список для дальнейшего исключения возможности трудоустройства в организации сроком на 60 дней за нарушение пункта 0.1.9 ОЧС (Продолжительный неактив без предупреждения).
-
-Состояние: УП - {UP}/5; П - {P}/5; В - {V}/3`,
-    tags: ["увольнение", "ОЧС", "неактив", "черный список"]
-  },
-  {
+{TARGET_NAME} принят в {HOSPITAL_FULL} города {CITY} на должность {TARGET_POSITION}.{TARGET_DEPARTMENT_LINE}
+Основание: {REASON}.
+`
+  }),
+  createOrderTemplate({
     id: "priem-intern-closed",
     title: "Принятие в МУ на должность Интерна (закрытое)",
     category: "Приём",
-    content: `[Главный Врач по {HOSPITAL_FULL} города {CITY} | {MY_NAME} ] 
-
+    tags: ["приём", "интерн", "закрытое собеседование"],
+    builder: {
+      fields: [{ key: "TARGET_NAME", label: "Сотрудник", type: "text", placeholder: "Имя_Фамилия" }]
+    },
+    body: `
 Приказ о принятии в Медицинский Университет:  
 
-Daniel_Manarskiy принят в Медицинский Университет {HOSPITAL} г. {CITY} по результатам закрытого собеседования на должность Интерна. Желаем успешного продвижения в работе!  
+{TARGET_NAME} принят в Медицинский Университет {HOSPITAL} г. {CITY} по результатам закрытого собеседования на должность Интерна. Желаем успешного продвижения в работе!  
 
-Состояние: УП - {UP}/5; П - {P}/5; В - {V}/3`,
-    tags: ["приём", "интерн", "закрытое собеседование"]
-  },
-  {
+`
+  }),
+  createOrderTemplate({
     id: "priem-old",
     title: "Принятие в ОЛД (восстановление)",
     category: "Приём",
-    content: `[Главный Врач по {HOSPITAL_FULL} города {CITY} | {MY_NAME} ]  
-
+    tags: ["приём", "ОЛД", "восстановление"],
+    builder: {
+      fields: [{ key: "TARGET_NAME", label: "Сотрудник", type: "text", placeholder: "Имя_Фамилия" }]
+    },
+    body: `
 Приказ о принятии в Отдел Лабораторной Диагностики:  
 
-Daniel_Manarskiy восстанавливается в Отдел Лабораторной Диагностики {HOSPITAL} г. {CITY} по результатам закрытого собеседования на должность врач-участковый. Рады видеть вас снова!  
+{TARGET_NAME} восстанавливается в Отдел Лабораторной Диагностики {HOSPITAL} г. {CITY} по результатам закрытого собеседования на должность врач-участковый. Рады видеть вас снова!  
 
-Состояние: УП - {UP}/5; П - {P}/5; В - {V}/3`,
-    tags: ["приём", "ОЛД", "восстановление"]
-  },
-  {
+`
+  }),
+  createOrderTemplate({
     id: "povyshenie-old",
     title: "Повышение классификации с переводом в ОЛД",
     category: "Повышения",
-    content: `[Главный Врач по {HOSPITAL_FULL} города {CITY} | {MY_NAME} ] 
-
+    tags: ["повышение", "классификация", "перевод", "ОЛД"],
+    builder: {
+      fields: [
+        { key: "TARGET_NAME", label: "Сотрудник", type: "text", placeholder: "Имя_Фамилия" },
+        { key: "FROM_POSITION", label: "С какой должности", type: "text", placeholder: "Интерна" },
+        { key: "TO_POSITION", label: "На какую должность", type: "text", placeholder: "Лаборант" },
+      ]
+    },
+    body: `
 Приказ о повышении классификации сотрудника:  
 
-Сотрудник Daniel_Manarskiy повышается в классификации с Интерна до Лаборант в связи с успешной сдачей отчётности.
-На основании поданного рапорта и в соответствии с кадровыми процедурами, сотрудник Daniel_Manarskiy переводится в Отдел Лабораторной Диагностики (далее ОЛД).
+Сотрудник {TARGET_NAME} повышается в классификации с {FROM_POSITION} до {TO_POSITION} в связи с успешной сдачей отчётности.
+На основании поданного рапорта и в соответствии с кадровыми процедурами, сотрудник {TARGET_NAME} переводится в Отдел Лабораторной Диагностики (далее ОЛД).
 Продолжайте в том же духе!  
 
-Состояние: УП - {UP}/5; П - {P}/5; В - {V}/3`,
-    tags: ["повышение", "классификация", "перевод", "ОЛД"]
-  },
-  {
+`
+  }),
+  createOrderTemplate({
     id: "povyshenie-oth",
     title: "Повышение классификации с переводом в ОТХ",
     category: "Повышения",
-    content: `[Главный Врач по {HOSPITAL_FULL} города {CITY} | {MY_NAME} ] 
-
+    tags: ["повышение", "классификация", "перевод", "ОТХ"],
+    builder: {
+      fields: [
+        { key: "TARGET_NAME", label: "Сотрудник", type: "text", placeholder: "Имя_Фамилия" },
+        { key: "FROM_POSITION", label: "С какой должности", type: "text", placeholder: "Интерна" },
+        { key: "TO_POSITION", label: "На какую должность", type: "text", placeholder: "Врач-Терапевт" },
+      ]
+    },
+    body: `
 Приказ о повышении классификации сотрудника:  
 
-Сотрудник Daniel_Manarskiy повышается в классификации с Интерна до Врач-Терапевт в связи с успешной сдачей отчётности.
-На основании поданного рапорта и в соответствии с кадровыми процедурами, сотрудник Daniel_Manarskiy переводится в Отдел Терапии и Хирургии (далее - ОТХ).
+Сотрудник {TARGET_NAME} повышается в классификации с {FROM_POSITION} до {TO_POSITION} в связи с успешной сдачей отчётности.
+На основании поданного рапорта и в соответствии с кадровыми процедурами, сотрудник {TARGET_NAME} переводится в Отдел Терапии и Хирургии (далее - ОТХ).
 Продолжайте в том же духе!  
 
-Состояние: УП - {UP}/5; П - {P}/5; В - {V}/3`,
-    tags: ["повышение", "классификация", "перевод", "ОТХ"]
-  },
-  {
+`
+  }),
+  createOrderTemplate({
     id: "pooshchrenie-2",
     title: "Поощрение сотрудника (расширенное)",
     category: "Поощрения",
-    content: `[Главный Врач по {HOSPITAL_FULL} города {CITY} | {MY_NAME} ]
-
-За проявленный высокий уровень профессиональной ответственности, активное участие в жизни {HOSPITAL_FULL} города {CITY}, инициативность и качественное выполнение должностных обязанностей, сотруднику James_Cooper, занимающему должность Врач-хирург, выплачивается премия в размере 200.000.
+    tags: ["поощрение", "премия", "ответственность"],
+    builder: {
+      fields: [
+        { key: "TARGET_NAME", label: "Сотрудник", type: "text", placeholder: "Имя_Фамилия" },
+        { key: "TARGET_POSITION", label: "Должность сотрудника", type: "text", placeholder: "Врач-хирург" },
+        { key: "AMOUNT", label: "Сумма премии", type: "number", placeholder: "200000" },
+        { key: "SCREEN_URL", label: "Скрин перевода (опционально)", type: "url", placeholder: "https://..." },
+      ]
+    },
+    body: `
+За проявленный высокий уровень профессиональной ответственности, активное участие в жизни {HOSPITAL_FULL} города {CITY}, инициативность и качественное выполнение должностных обязанностей, сотруднику {TARGET_NAME}, занимающему должность {TARGET_POSITION}, выплачивается премия в размере {AMOUNT}.
 Продолжайте в том же духе! 
-Скрин перевода: https://imgur.com/a/AGfOkap
+Скрин перевода: {SCREEN_URL}
 
-Состояние на данный момент: УП - {UP}/5; П - {P}/5; В - {V}/3`,
-    tags: ["поощрение", "премия", "ответственность"]
-  },
-  {
+`
+  }),
+  createOrderTemplate({
     id: "sobranie-mp",
     title: "Собрание всего состава (Мероприятие)",
     category: "Собрания",
-    content: `[Главный Врач по {HOSPITAL_FULL} города {CITY} | {MY_NAME} ]
-
+    tags: ["собрание", "мероприятие", "премия"],
+    builder: {
+      fields: [
+        { key: "DATE", label: "Дата", type: "text", placeholder: "10.04.25" },
+        { key: "TIME", label: "Время", type: "text", placeholder: "17:00" },
+        { key: "RESPONSIBLE", label: "Ответственный", type: "text", placeholder: "Имя_Фамилия" },
+      ]
+    },
+    body: `
 Приказ о собрании всего состава:  
 
-10.04.25 в 17:00 по МСК состоится сбор всего состава для проведения совместного мероприятия с ЦГБ-П. 
-Ответственный за построение: Полтер Сокировский.
-Явка на смене обязательна. Премии присутствуют.`,
-    tags: ["собрание", "мероприятие", "премия"]
-  },
-  {
+{DATE} в {TIME} по МСК состоится сбор всего состава для проведения совместного мероприятия с ЦГБ-П. 
+Ответственный за построение: {RESPONSIBLE}.
+Явка на смене обязательна. Премии присутствуют.
+`
+  }),
+  createOrderTemplate({
     id: "ezhenedelnoe-postroenie",
     title: "Еженедельное построение",
     category: "Собрания",
-    content: `[Главный Врач по {HOSPITAL_FULL} города {CITY} | {MY_NAME} ]
-
-Завтра, 14.04.2025 в 21:00 пройдет еженедельное построение всего состава {HOSPITAL} г.{CITY}. На нем подведём итоги уходящей недели, обсудим рабочие моменты. В конце построения, сотрудникам будут выплачены премии.`,
-    tags: ["построение", "еженедельное", "премия"]
-  },
-  {
+    tags: ["построение", "еженедельное", "премия"],
+    builder: {
+      fields: [
+        { key: "DATE", label: "Дата", type: "text", placeholder: "14.04.2025" },
+        { key: "TIME", label: "Время", type: "text", placeholder: "21:00" },
+      ]
+    },
+    body: `
+Завтра, {DATE} в {TIME} пройдет еженедельное построение всего состава {HOSPITAL} г.{CITY}. На нем подведём итоги уходящей недели, обсудим рабочие моменты. В конце построения, сотрудникам будут выплачены премии.
+`
+  }),
+  createOrderTemplate({
     id: "priem-sa-feldsher",
     title: "Принятие в СА на должность Фельдшера",
     category: "СА",
-    content: `[Заместитель Главного Врача по {HOSPITAL_FULL} города {CITY} | {MY_NAME} Начальник Санитарной Авиации | {MY_NAME} ]
-
-На основании поданного рапорта и в соответствии с кадровыми процедурами, сотрудник Timur Goffman переводится в отдел Санитарной Авиации на должность Фельдшер Санитарной Авиации. С данного момента сотрудник имеет право оказывать высококвалифицированную медицинскую помощь и проводить технический осмотр ВСМП.
+    tags: ["СА", "фельдшер", "санитарная авиация"],
+    builder: {
+      fields: [{ key: "TARGET_NAME", label: "Сотрудник", type: "text", placeholder: "Имя_Фамилия" }]
+    },
+    body: `
+На основании поданного рапорта и в соответствии с кадровыми процедурами, сотрудник {TARGET_NAME} переводится в отдел Санитарной Авиации на должность Фельдшер Санитарной Авиации. С данного момента сотрудник имеет право оказывать высококвалифицированную медицинскую помощь и проводить технический осмотр ВСМП.
 
 Желаем успехов, продуктивной работы и роста в новых обязанностях!
 
-Состояние на данный момент: УП - {UP}/5; П - {P}/5; В - {V}/3`,
-    tags: ["СА", "фельдшер", "санитарная авиация"]
-  },
-  {
+`
+  }),
+  createOrderTemplate({
     id: "priem-sa-pilot",
     title: "Принятие в СА на должность Пилота",
     category: "СА",
-    content: `[Заместитель Главного Врача по {HOSPITAL_FULL} города {CITY} | {MY_NAME} Начальник Санитарной Авиации | {MY_NAME} ]
+    tags: ["СА", "пилот", "санитарная авиация"],
+    builder: {
+      fields: [{ key: "TARGET_NAME", label: "Сотрудник", type: "text", placeholder: "Имя_Фамилия" }]
+    },
+    body: `
+На основании поданного рапорта и в соответствии с кадровыми процедурами, сотрудник {TARGET_NAME} переводится в отдел Санитарной Авиации на должность Пилот Санитарной Авиации. С данного момента сотрудник имеет право пилотировать воздушное судно и способен оказывать высококвалифицированную медицинскую помощь.
 
-На основании поданного рапорта и в соответствии с кадровыми процедурами, сотрудник Timur Goffman переводится в отдел Санитарной Авиации на должность Пилот Санитарной Авиации. С данного момента сотрудник имеет право пилотировать воздушное судно и способен оказывать высококвалифицированную медицинскую помощь.
-
-Состояние на данный момент: УП - {UP}/5; П - {P}/5; В - {V}/3`,
-    tags: ["СА", "пилот", "санитарная авиация"]
-  },
-  {
+`
+  }),
+  createOrderTemplate({
     id: "naznachenie-nach-sa-2",
     title: "Постановление на должность Начальника СА",
     category: "Назначения",
-    content: `[Главный Врач по {HOSPITAL_FULL} города {CITY} | {MY_NAME} ]
+    tags: ["назначение", "начальник", "СА"],
+    builder: {
+      fields: [
+        { key: "TARGET_NAME", label: "Сотрудник", type: "text", placeholder: "Имя_Фамилия" },
+      ]
+    },
+    body: `
+Сотрудник {TARGET_NAME} назначен на должность "Начальник Санитарной Авиации".
 
-Сотрудник Ambassador_Bavarskiy назначен на должность "Начальник Санитарной Авиации".
-
-Состояние на данный момент: УП - {UP}/5; П - {P}/5; В - {V}/3`,
-    tags: ["назначение", "начальник", "СА"]
-  },
-  {
+`
+  }),
+  createOrderTemplate({
     id: "naznachenie-zam-sa-2",
     title: "Постановление на должность Зам. Начальника СА",
     category: "Назначения",
-    content: `[Главный Врач по {HOSPITAL_FULL} города {CITY} | {MY_NAME} ]
+    tags: ["назначение", "заместитель", "СА"],
+    builder: {
+      fields: [
+        { key: "TARGET_NAME", label: "Сотрудник", type: "text", placeholder: "Имя_Фамилия" },
+      ]
+    },
+    body: `
+Приказ о постановлении на должность:
 
-Сотрудник Ibragim_Suhavey назначен на должность "Заместитель Начальника Санитарной Авиации".
+Сотрудник {TARGET_NAME} назначен на должность "Заместитель Начальника Санитарной Авиации".
 
-Состояние на данный момент: УП - {UP}/5; П - {P}/5; В - {V}/3`,
-    tags: ["назначение", "заместитель", "СА"]
-  },
-  {
+`
+  }),
+  createOrderTemplate({
     id: "naznachenie-ss",
     title: "Постановление новых сотрудников в СС",
     category: "Назначения",
-    content: `[Главный Врач по {HOSPITAL_FULL} города {CITY} | {MY_NAME} ]
+    tags: ["назначение", "старший состав", "заведующий", "ВрИО"],
+    builder: {
+      fields: [
+        { key: "TARGET_NAME", label: "Сотрудник 1", type: "text", placeholder: "Имя_Фамилия" },
+        { key: "TARGET_POSITION", label: "Должность 1", type: "text", placeholder: "Заведующий ОТХ" },
+        { key: "TARGET_NAME_2", label: "Сотрудник 2", type: "text", placeholder: "Имя_Фамилия" },
+        { key: "TARGET_POSITION_2", label: "Должность 2", type: "text", placeholder: "Заведующий ВО" },
+        { key: "VRIO_DAYS", label: "ВрИО срок (дней)", type: "number", placeholder: "7" },
+      ]
+    },
+    body: `
+Приказ о постановлении новых сотрудников в СС:
 
-Сотрудник Egor_Perepechin поставлен на должность Заведующий ОТХ по результатам обзвона.
-Сотрудник Vladislav_Washington поставлен на должность Заведующий ВО по результатам обзвона.
+Сотрудник {TARGET_NAME} поставлен на должность {TARGET_POSITION} по результатам обзвона.
+Сотрудник {TARGET_NAME_2} поставлен на должность {TARGET_POSITION_2} по результатам обзвона.
 
-ВрИО срок 7 дней.
+ВрИО срок {VRIO_DAYS} дней.
 
-Состояние на данный момент: УП - {UP}/5; П - {P}/5; В - {V}/3`,
-    tags: ["назначение", "старший состав", "заведующий", "ВрИО"]
-  },
-  {
+`
+  }),
+  createOrderTemplate({
     id: "perevod-otdel-oth",
     title: "Перевод на другой отдел",
-    category: "Переводы",
-    content: `[Главный Врач по {HOSPITAL_FULL} города {CITY} | {MY_NAME} ]
-
-Учитывая успешное руководство отделом ММУ, сотрудник Kevin_Manarskiy переводится на должность заведующего отделом ОТХ.
+    category: "Перевод",
+    tags: ["перевод", "заведующий", "ОТХ"],
+    builder: {
+      fields: [
+        { key: "TARGET_NAME", label: "Сотрудник", type: "text", placeholder: "Имя_Фамилия" },
+        { key: "FROM_DEPARTMENT", label: "Откуда (отдел)", type: "text", placeholder: "ММУ" },
+        { key: "TO_POSITION", label: "Новая должность", type: "text", placeholder: "заведующего отделом ОТХ" },
+      ]
+    },
+    body: `
+Учитывая успешное руководство отделом {FROM_DEPARTMENT}, сотрудник {TARGET_NAME} переводится на должность {TO_POSITION}.
 
 Продолжайте в том же духе
 
-Состояние на данный момент: УП - {UP}/5; П - {P}/5; В - {V}/3`,
-    tags: ["перевод", "заведующий", "ОТХ"]
-  },
-  {
+`
+  }),
+  createOrderTemplate({
     id: "forum-gotov",
     title: "Готовность форумного раздела",
     category: "Прочее",
-    content: `[Главный Врач по {HOSPITAL_FULL} города {CITY} | {MY_NAME} ]
-
-Уважаемые сотрудники, коллеги! Форумный раздел {HOSPITAL} г. {CITY} полностью обновлён, доработан и скорректирован. Если вы желаете ознакомиться, то просто перейдите по ссылке:`,
-    tags: ["форум", "обновление"]
-  },
-  {
+    tags: ["форум", "обновление"],
+    builder: {
+      fields: [{ key: "FORUM_URL", label: "Ссылка на форум", type: "url", placeholder: "https://forum.gtaprovince.ru/..." }]
+    },
+    body: `
+Уважаемые сотрудники, коллеги! Форумный раздел {HOSPITAL} г. {CITY} полностью обновлён, доработан и скорректирован. Если вы желаете ознакомиться, то просто перейдите по ссылке:
+{FORUM_URL}
+`
+  }),
+  createOrderTemplate({
     id: "smena-pasporta",
     title: "Смена паспортных данных",
     category: "Прочее",
-    content: `[Главный Врач по {HOSPITAL_FULL} города {CITY} | {MY_NAME} ]
+    tags: ["паспорт", "смена данных"],
+    builder: {
+      fields: [
+        { key: "OLD_NAME", label: "Старое имя", type: "text", placeholder: "Имя_Фамилия" },
+        { key: "NEW_NAME", label: "Новое имя", type: "text", placeholder: "Имя_Фамилия" },
+      ]
+    },
+    body: `
+Сотрудник {OLD_NAME} меняет свои паспортные данные на {NEW_NAME}.
 
-Сотрудник Mara_Berzloy меняет свои паспортные данные на Mara_Bruja.
-
-Состояние на данный момент: УП - {UP}/5; П - {P}/5; В - {V}/3`,
-    tags: ["паспорт", "смена данных"]
-  }
+`
+  }),
 ]
