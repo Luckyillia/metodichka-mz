@@ -23,7 +23,7 @@ interface Vehicle {
 const vehicles: Vehicle[] = [
   {
     name: "ГАЗель NEXT (Луидор 2250с4)",
-    imageUrl: "https://i.imgur.com/M9H3PRS.jpeg",
+    imageUrl: "https://i.imgur.com/3KqJJLw.png",
     minRank: 3,
     rankName: "Лаборант",
     description: "Стандартная машина скорой помощи",
@@ -36,7 +36,7 @@ const vehicles: Vehicle[] = [
   },
   {
     name: "ГАЗель NEXT (Луидор 2250с4 Реанимация)",
-    imageUrl: "https://i.imgur.com/ao6ZklI.jpeg",
+    imageUrl: "https://i.imgur.com/wy358ke.png",
     minRank: 3,
     rankName: "Лаборант",
     description: "Реанимобиль для экстренных случаев",
