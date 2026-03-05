@@ -179,7 +179,7 @@ function normalizeFieldLabel(label: string) {
 function buildFieldRegex(label: string) {
   const l = normalizeFieldLabel(label)
   const escaped = l.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
-  return new RegExp(`^(?:\\d+\\s*[).])\\s*${escaped}\\s*[:\-—]\\s*(.*)$`, "iu")
+  return new RegExp(`^(?:\\d+\\s*[).]\\s*)?${escaped}\\s*[:\-—]\\s*(.*)$`, "iu")
 }
 
 const REQUIRED_FORM_FIELDS: Array<{ key: string; labels: string[] }> = [
