@@ -172,7 +172,7 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => router.push("/account-request")}
-                className="w-full px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 transition-all text-sm font-medium"
+                className="w-full px-4 py-2 border-2 border-border text-muted-foreground rounded-lg hover:bg-muted transition-all text-sm font-medium"
               >
                 Отправить запрос на создание аккаунта
               </button>
