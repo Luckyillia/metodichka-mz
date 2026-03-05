@@ -156,7 +156,7 @@ function normalizeNameToken(token: string) {
 }
 
 function extractNameFromForm(text: string) {
-  const extracted = extractFieldValue(text, ["Имя Фамилия", "Имя и Фамилия", "ФИО", "Ф.И.О"])
+  const extracted = extractFieldValue(text, ["Имя Фамилия", "Имя и Фамилия", "ФИО", "Ф.И.О", "Фамилия Имя Отчество"])
   if (!extracted.found) {
     return { ok: false as const, error: "Не найдено поле \"Имя Фамилия\" в тексте (заполните биографию по форме)" }
   }
@@ -167,9 +167,9 @@ function extractNameFromForm(text: string) {
   // Strip trailing punctuation (common in forms)
   const cleanValue = value.replace(/[.!?,:;]+$/, "")
 
-  const mm = /^([A-Za-zА-Яа-яЁё]+)\s+([A-Za-zА-Яа-яЁё]+)$/u.exec(cleanValue)
-  if (!mm) return { ok: false as const, error: "Поле \"Имя Фамилия\" должно содержать 2 слова (Имя и Фамилия)" }
-  return { ok: true as const, firstName: mm[1], lastName: mm[2], raw: value }
+  const mm = /^([A-Za-zА-Яа-яЁё]+)\s+([A-Za-zА-Яа-яЁё]+)(?:\s+([A-Za-zА-Яа-яЁё]+))?$/u.exec(cleanValue)
+  if (!mm) return { ok: false as const, error: "Поле \"Имя Фамилия\" должно содержать 2 или 3 слова (ФИО)" }
+  return { ok: true as const, firstName: mm[1], lastName: mm[2], patronymic: mm[3] || undefined, raw: value }
 }
 
 function normalizeFieldLabel(label: string) {
@@ -179,11 +179,11 @@ function normalizeFieldLabel(label: string) {
 function buildFieldRegex(label: string) {
   const l = normalizeFieldLabel(label)
   const escaped = l.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
-  return new RegExp(`^(?:\\d+\\s*[).]\\s*)?${escaped}\\s*[:\-—]\\s*(.*)$`, "iu")
+  return new RegExp(`^(?:\\d+\\s*[).]\\s*)?${escaped}\\s*[:\-—.]\s*(.*)$`, "iu")
 }
 
 const REQUIRED_FORM_FIELDS: Array<{ key: string; labels: string[] }> = [
-  { key: "Имя Фамилия", labels: ["Имя Фамилия", "Имя и Фамилия", "ФИО", "Ф.И.О"] },
+  { key: "Имя Фамилия", labels: ["Имя Фамилия", "Имя и Фамилия", "ФИО", "Ф.И.О", "Фамилия Имя Отчество"] },
   { key: "Пол", labels: ["Пол"] },
   { key: "Национальность", labels: ["Национальность"] },
   { key: "Возраст", labels: ["Возраст"] },
@@ -446,7 +446,11 @@ export default function BiographyValidator() {
     const fFirst = normalizeNameToken(String((formNameCheck as any).firstName))
     const fLast = normalizeNameToken(String((formNameCheck as any).lastName))
 
-    return tFirst === fFirst && tLast === fLast
+    // Handle both "Имя Фамилия" and "Фамилия Имя Отчество" formats
+    const directMatch = tFirst === fFirst && tLast === fLast
+    const swappedMatch = tFirst === fLast && tLast === fFirst
+
+    return directMatch || swappedMatch
   }, [titleCheck, formNameCheck])
 
   const ageMismatch = useMemo(() => {
