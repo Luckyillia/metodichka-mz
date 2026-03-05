@@ -1,12 +1,13 @@
-export const APP_VERSION = '1.2.4';
+export const APP_VERSION = '1.2.5';
 
 // Changelog
 export const CHANGELOG = [
   {
-    version: '1.2.4',
-    date: '2026-02-09',
+    version: '1.2.5',
+    date: '2026-03-05',
     changes: [
-      'новый видимый интерфейс для создания приказов',
+      'Новая система восстановления аккаунта',
+      'Исправлены баги в валидаторе биографий',
     ]
   }
 ];
