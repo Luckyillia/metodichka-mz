@@ -37,7 +37,7 @@ export async function GET(request: Request) {
 
     let query = supabaseAdmin
         .from("users")
-        .select("id, username, game_nick, role, status, city, created_at, avatar_url, avatar_public_id, avatar_uploaded_at, avatar_moderation_status")
+        .select("id, username, game_nick, role, status, city, created_at, avatar_url, avatar_public_id, avatar_uploaded_at, avatar_moderation_status, id_photo_url")
         .order("created_at", { ascending: false })
 
     // Лидер видит только пользователей своего города

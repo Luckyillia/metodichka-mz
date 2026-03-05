@@ -29,7 +29,6 @@ export default function Header() {
   const router = useRouter()
   const [currentTheme, setCurrentTheme] = useState<Theme>('dark')
   const [showThemeMenu, setShowThemeMenu] = useState(false)
-  const mounted = typeof window !== "undefined"
 
   useEffect(() => {
     const savedTheme = (localStorage.getItem('theme') as Theme) || 'dark'
@@ -123,7 +122,7 @@ export default function Header() {
                 title="Сменить тему"
               >
                 <Palette className="w-4 h-4" />
-                <span className="text-sm">{mounted ? themes.find(t => t.value === currentTheme)?.icon : themes[0]?.icon}</span>
+                <span className="text-sm">{themes.find(t => t.value === currentTheme)?.icon || themes[0]?.icon}</span>
               </button>
               
               {showThemeMenu && (
@@ -144,57 +143,56 @@ export default function Header() {
               )}
             </div>
 
-            {mounted && isAuthenticated && user ? (
-              <>
-                <Link
-                  href="/profile"
-                  className="flex items-center gap-3 px-4 py-2 bg-secondary rounded-lg border-2 border-border hover:bg-secondary/80 transition-colors"
-                  title="Личный кабинет"
-                >
-                  {user.avatar_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={user.avatar_url}
-                      alt="avatar"
-                      className="w-10 h-10 rounded-full object-cover border-2 border-border"
-                    />
-                  ) : (
-                    <div className="w-10 h-10 rounded-full bg-muted border-2 border-border flex items-center justify-center text-sm font-semibold text-foreground">
-                      {initialsFromNick(user.game_nick)}
-                    </div>
-                  )}
+            {/* Auth section - suppress hydration warning due to client-side auth state */}
+            <div className="flex items-center gap-2" suppressHydrationWarning>
+              {isAuthenticated && user ? (
+                <>
+                  <Link
+                    href="/profile"
+                    className="flex items-center gap-3 px-4 py-2 bg-secondary rounded-lg border-2 border-border hover:bg-secondary/80 transition-colors"
+                    title="Личный кабинет"
+                  >
+                    {user.avatar_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={user.avatar_url}
+                        alt="avatar"
+                        className="w-10 h-10 rounded-full object-cover border-2 border-border"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-muted border-2 border-border flex items-center justify-center text-sm font-semibold text-foreground">
+                        {initialsFromNick(user.game_nick)}
+                      </div>
+                    )}
 
-                  <div className="flex flex-col">
-                    <span className="text-sm font-medium text-foreground flex items-center gap-2">
-                      <Shield className="w-4 h-4 text-muted-foreground"/>
-                      {user.game_nick}
-                    </span>
-                    <span className={`text-xs px-2 py-0.5 rounded ${getRoleBadge(user.role, user.city).color} text-white w-fit`}>
-                      {getRoleBadge(user.role, user.city).label}
-                    </span>
-                  </div>
-                </Link>
-                <button
-                    onClick={handleLogout}
-                    className="modern-button flex items-center gap-2"
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium text-foreground flex items-center gap-2">
+                        <Shield className="w-4 h-4 text-muted-foreground"/>
+                        {user.game_nick}
+                      </span>
+                      <span className={`text-xs px-2 py-0.5 rounded ${getRoleBadge(user.role, user.city).color} text-white w-fit`}>
+                        {getRoleBadge(user.role, user.city).label}
+                      </span>
+                    </div>
+                  </Link>
+                  <button
+                      onClick={handleLogout}
+                      className="modern-button flex items-center gap-2"
+                  >
+                    <LogOut className="w-4 h-4"/>
+                    <span>Выйти</span>
+                  </button>
+                </>
+              ) : (
+                <Link
+                  href="/login"
+                  className="modern-button flex items-center gap-2"
                 >
-                  <LogOut className="w-4 h-4"/>
-                  <span>Выйти</span>
-                </button>
-              </>
-            ) : mounted ? (
-              <Link
-                href="/login"
-                className="modern-button flex items-center gap-2"
-              >
-                <Users className="w-4 h-4" />
-                <span>Войти</span>
-              </Link>
-            ) : (
-              <div className="animate-pulse">
-                <div className="w-10 h-10 rounded-full bg-muted border-2 border-border" />
-              </div>
-            )}
+                  <Users className="w-4 h-4" />
+                  <span>Войти</span>
+                </Link>
+              )}
+            </div>
           </div>
         </div>
       </div>

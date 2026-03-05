@@ -1,7 +1,7 @@
 // app/account-request/page.tsx
 "use client"
 
-import React, { useState } from "react"
+import React, { useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { UserPlus, Loader2, CheckCircle, AlertCircle, Eye, EyeOff, Gamepad, XCircle, AlertTriangle, Info } from "lucide-react"
 
@@ -9,6 +9,7 @@ type ErrorType = 'default' | 'duplicate' | 'deactivated' | 'validation' | 'serve
 
 export default function AccountRequestPage() {
   const router = useRouter()
+  const idFileInputRef = useRef<HTMLInputElement>(null)
   const [formData, setFormData] = useState({
     username: "",
     gameNick: "",
@@ -17,12 +18,110 @@ export default function AccountRequestPage() {
     role: "user",
     city: "CGB-N" as "CGB-N" | "CGB-P" | "OKB-M",
   })
+  const [idFile, setIdFile] = useState<File | null>(null)
+  const [idPreviewUrl, setIdPreviewUrl] = useState<string | null>(null)
+  const [idUploadUrl, setIdUploadUrl] = useState<string | null>(null)
+  const [idUploadPublicId, setIdUploadPublicId] = useState<string | null>(null)
+  const [idUploading, setIdUploading] = useState(false)
+
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [errorType, setErrorType] = useState<ErrorType>('default')
   const [success, setSuccess] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+
+  const validateIdFile = (file: File) => {
+    const max = 5 * 1024 * 1024
+    const allowed = new Set(["image/jpeg", "image/png", "image/webp"])
+    if (file.size > max) return "Файл слишком большой (макс. 5MB)"
+    if (!allowed.has(file.type)) return "Неподдерживаемый формат (JPG, PNG, WEBP)"
+    return null
+  }
+
+  const onSelectIdFile = (file: File | null) => {
+    if (idPreviewUrl) URL.revokeObjectURL(idPreviewUrl)
+    setIdPreviewUrl(null)
+    setIdUploadUrl(null)
+    setIdUploadPublicId(null)
+
+    if (!file) {
+      setIdFile(null)
+      return
+    }
+
+    const err = validateIdFile(file)
+    if (err) {
+      setError(err)
+      setErrorType('validation')
+      setIdFile(null)
+      return
+    }
+
+    setIdFile(file)
+    setIdPreviewUrl(URL.createObjectURL(file))
+  }
+
+  const uploadIdFile = async () => {
+    if (!idFile) {
+      setError("Прикрепите фото с удостоверением")
+      setErrorType('validation')
+      return null
+    }
+
+    setIdUploading(true)
+    try {
+      const form = new FormData()
+      form.append("file", idFile)
+
+      const res = await fetch("/api/account-request/id-photo", {
+        method: "POST",
+        body: form,
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data?.error || "Не удалось загрузить фото")
+
+      const url = data?.url as string | undefined
+      const publicId = data?.publicId as string | undefined
+      if (!url) throw new Error("Сервер не вернул ссылку на фото")
+      setIdUploadUrl(url)
+      if (publicId) setIdUploadPublicId(publicId)
+      return url
+    } catch (e: any) {
+      setError(e?.message || "Ошибка загрузки")
+      setErrorType('server_error')
+      return null
+    } finally {
+      setIdUploading(false)
+    }
+  }
+
+  const deleteUploadedIdPhoto = async (publicId: string) => {
+    try {
+      await fetch("/api/account-request/id-photo", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ publicId }),
+      })
+    } catch {
+      // ignore cleanup errors
+    }
+  }
+
+  const onSelectIdFileAuto = async (file: File | null) => {
+    // cleanup previous upload if it exists
+    if (idUploadPublicId) {
+      await deleteUploadedIdPhoto(idUploadPublicId)
+    }
+
+    onSelectIdFile(file)
+
+    if (!file) return
+
+    // Auto upload immediately after select
+    const nextUrl = await uploadIdFile()
+    if (!nextUrl) return
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -45,7 +144,20 @@ export default function AccountRequestPage() {
       return
     }
 
+    if (!idFile) {
+      setError("Прикрепите фото с удостоверением персонажа")
+      setErrorType('validation')
+      setLoading(false)
+      return
+    }
+
     try {
+      const idPhotoUrl = idUploadUrl || (await uploadIdFile())
+      if (!idPhotoUrl) {
+        setLoading(false)
+        return
+      }
+
       const response = await fetch("/api/account-request", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -55,6 +167,7 @@ export default function AccountRequestPage() {
           password: formData.password,
           role: formData.role,
           city: formData.city,
+          idPhotoUrl,
         }),
       })
 
@@ -84,6 +197,11 @@ export default function AccountRequestPage() {
 
       setSuccess(true)
       setFormData({ username: "", gameNick: "", password: "", confirmPassword: "", role: "user", city: "CGB-N" })
+      setIdFile(null)
+      if (idPreviewUrl) URL.revokeObjectURL(idPreviewUrl)
+      setIdPreviewUrl(null)
+      setIdUploadUrl(null)
+      setIdUploadPublicId(null)
     } catch (err: any) {
       setError(err.message || "Произошла ошибка при отправке запроса")
       setErrorType('server_error')
@@ -208,6 +326,66 @@ export default function AccountRequestPage() {
 
           <div>
             <label className="block text-sm font-medium text-muted-foreground mb-2">
+              Фото с удостоверением персонажа <span className="text-red-500">*</span>
+            </label>
+            <input
+              ref={idFileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={(e) => onSelectIdFileAuto(e.target.files?.[0] || null)}
+              disabled={loading || idUploading}
+              className="hidden"
+            />
+
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => idFileInputRef.current?.click()}
+                disabled={loading || idUploading}
+                className="px-4 py-3 rounded-lg border-2 border-border bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Выбрать фото
+              </button>
+              <div className="text-sm text-muted-foreground truncate flex-1">
+                {idFile ? idFile.name : "Файл не выбран"}
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Прикрепите скриншот из игры, где виден ваш персонаж с удостоверением. Форматы: JPG/PNG/WEBP, до 5MB.
+            </p>
+
+            {idPreviewUrl && (
+              <div className="mt-3">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={idPreviewUrl}
+                  alt="preview"
+                  className="w-full max-h-56 object-contain rounded-lg border-2 border-border"
+                />
+                <div className="mt-2 flex items-center justify-between gap-2">
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (idUploadPublicId) {
+                        await deleteUploadedIdPhoto(idUploadPublicId)
+                      }
+                      onSelectIdFile(null)
+                    }}
+                    disabled={loading || idUploading}
+                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Удалить
+                  </button>
+                  <div className="text-xs text-muted-foreground">
+                    {idUploading ? "Загрузка..." : idUploadUrl ? "Загружено" : "Ожидает загрузки"}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-muted-foreground mb-2">
               Логин
             </label>
             <input
@@ -313,7 +491,7 @@ export default function AccountRequestPage() {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || idUploading}
             className="w-full px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {loading ? (

@@ -126,7 +126,11 @@ export async function POST(request: Request) {
       )
     }
 
-    const currentDateISO = new Date().toISOString()
+    const writtenDate = typeof body?.writtenDate === "string" ? body.writtenDate : null
+    const currentDateISO =
+      writtenDate && /^\d{4}-\d{2}-\d{2}$/.test(writtenDate) && !isNaN(new Date(writtenDate).getTime())
+        ? writtenDate
+        : new Date().toISOString().split("T")[0]
 
     const normalized = normalizeBiographyTo13Sections(biographyText)
 

@@ -23,13 +23,26 @@ function getClientIP(request: Request): string {
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { username, gameNick, password, role = "user", city = "CGB-N" } = body
+    const { username, gameNick, password, role = "user", city = "CGB-N", idPhotoUrl } = body
     const clientIP = getClientIP(request)
 
     console.log("[Account Request API] New account request:", username, "IP:", clientIP)
 
-    if (!username || !gameNick || !password) {
+    if (!username || !gameNick || !password || !idPhotoUrl) {
       return NextResponse.json({ error: "Все поля обязательны для заполнения" }, { status: 400 })
+    }
+
+    if (typeof idPhotoUrl !== "string" || idPhotoUrl.trim().length < 10) {
+      return NextResponse.json({ error: "Прикрепите фото с удостоверением персонажа" }, { status: 400 })
+    }
+
+    try {
+      const u = new URL(idPhotoUrl)
+      if (u.protocol !== "https:" && u.protocol !== "http:") {
+        return NextResponse.json({ error: "Неверная ссылка на фото" }, { status: 400 })
+      }
+    } catch {
+      return NextResponse.json({ error: "Неверная ссылка на фото" }, { status: 400 })
     }
 
     if (username.length < 3 || username.length > 50) {
@@ -237,9 +250,10 @@ export async function POST(request: Request) {
           city,
           status: "request",
           ip_address: clientIP,
+          id_photo_url: idPhotoUrl,
         },
       ])
-      .select("id, username, game_nick, role, city, status, created_at")
+      .select("id, username, game_nick, role, city, status, created_at, id_photo_url")
       .single()
 
     if (error) {
@@ -278,6 +292,7 @@ export async function POST(request: Request) {
             role,
             city,
             request_type: "account_creation",
+            id_photo_url: idPhotoUrl,
           },
         },
       ])

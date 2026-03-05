@@ -17,6 +17,7 @@ export interface User {
   avatar_public_id?: string | null
   avatar_uploaded_at?: string | null
   avatar_moderation_status?: "pending" | "approved" | "rejected" | null
+  id_photo_url?: string | null
 }
 
 export interface AuthState {

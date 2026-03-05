@@ -165,7 +165,7 @@ export default function LoginPage() {
               </button>
             </form>
 
-            <div className="mt-6 pt-6 border-t-2 border-border">
+            <div className="mt-6 pt-6 border-t-2 border-border space-y-3">
               <p className="text-sm text-muted-foreground text-center mb-3">
                 Нет аккаунта?
               </p>
@@ -175,6 +175,17 @@ export default function LoginPage() {
                 className="w-full px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 transition-all text-sm font-medium"
               >
                 Отправить запрос на создание аккаунта
+              </button>
+              
+              <p className="text-sm text-muted-foreground text-center mt-4 mb-2">
+                Аккаунт деактивирован?
+              </p>
+              <button
+                type="button"
+                onClick={() => router.push("/account-recovery")}
+                className="w-full px-4 py-2 border-2 border-border text-muted-foreground rounded-lg hover:bg-muted transition-all text-sm font-medium"
+              >
+                Восстановить доступ
               </button>
             </div>
           </div>

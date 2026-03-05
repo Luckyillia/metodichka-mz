@@ -65,10 +65,8 @@ export type BiographyValidationResult = {
 
 function extractFirstJson(text: string) {
   const start = text.indexOf("{")
-  const end = text.lastIndexOf("}")
-  if (start === -1 || end === -1 || end <= start) {
-    throw new Error("AI не вернул JSON")
-  }
+  const end   = text.lastIndexOf("}")
+  if (start === -1 || end === -1 || end <= start) throw new Error("AI не вернул JSON")
   return text.slice(start, end + 1)
 }
 
@@ -77,63 +75,37 @@ function stripCodeFences(text: string) {
 }
 
 function fixCommonJsonIssues(text: string) {
-  let t = text
-  // Remove trailing commas before } or ]
-  t = t.replace(/,\s*([}\]])/g, "$1")
-  return t
+  return text.replace(/,\s*([}\]])/g, "$1")
 }
 
 function safeJsonParse(raw: string) {
-  const cleaned = fixCommonJsonIssues(stripCodeFences(raw))
-  return JSON.parse(cleaned)
+  return JSON.parse(fixCommonJsonIssues(stripCodeFences(raw)))
 }
 
 function parseBirthdateDDMMYYYY(value: string) {
   const m = /^([0-3]\d)\.([01]\d)\.(\d{4})$/.exec(value.trim())
   if (!m) return null
-  const day = Number(m[1])
-  const month = Number(m[2])
-  const year = Number(m[3])
-  if (month < 1 || month > 12) return null
-  if (day < 1 || day > 31) return null
+  const day = Number(m[1]), month = Number(m[2]), year = Number(m[3])
+  if (month < 1 || month > 12 || day < 1 || day > 31) return null
   return { day, month, year }
 }
 
 function parseBirthdateRuText(value: string) {
   const t = value.toLowerCase().replace(/\u00a0/g, " ").trim()
   const months: Record<string, number> = {
-    "января": 1,
-    "февраля": 2,
-    "марта": 3,
-    "апреля": 4,
-    "мая": 5,
-    "июня": 6,
-    "июля": 7,
-    "августа": 8,
-    "сентября": 9,
-    "октября": 10,
-    "ноября": 11,
-    "декабря": 12,
+    "января":1,"февраля":2,"марта":3,"апреля":4,"мая":5,"июня":6,
+    "июля":7,"августа":8,"сентября":9,"октября":10,"ноября":11,"декабря":12,
   }
-
-  // e.g. "8 марта 2001 года"
   const m1 = t.match(/\b([0-3]?\d)\s+(января|февраля|марта|апреля|мая|июня|июля|августа|сентября|октября|ноября|декабря)\s+(\d{4})\b/u)
   if (m1) {
-    const day = Number(m1[1])
-    const month = months[m1[2]]
-    const year = Number(m1[3])
+    const day = Number(m1[1]), month = months[m1[2]], year = Number(m1[3])
     if (month && day >= 1 && day <= 31) return { day, month, year }
   }
-
-  // e.g. "08.03.2001" or "8.3.2001"
   const m2 = t.match(/\b([0-3]?\d)\.([01]?\d)\.(\d{4})\b/u)
   if (m2) {
-    const day = Number(m2[1])
-    const month = Number(m2[2])
-    const year = Number(m2[3])
+    const day = Number(m2[1]), month = Number(m2[2]), year = Number(m2[3])
     if (month >= 1 && month <= 12 && day >= 1 && day <= 31) return { day, month, year }
   }
-
   return null
 }
 
@@ -173,37 +145,38 @@ function clampStatusByDiff(diff: number) {
 
 function detectThirdPerson(text: string) {
   const t = text.toLowerCase()
-  const markers = [
-    /\bон\b/u,
-    /\bона\b/u,
-    /\bони\b/u,
-    /\bего\b/u,
-    /\bеё\b/u,
-    /\bее\b/u,
-    /\bему\b/u,
-    /\bей\b/u,
-    /\bих\b/u,
-    /\bперсонаж\b/u,
-  ]
+  const markers = [/\bон\b/u,/\bона\b/u,/\bони\b/u,/\bего\b/u,/\bеё\b/u,/\bее\b/u,/\bему\b/u,/\bей\b/u,/\bих\b/u,/\bперсонаж\b/u]
+  return markers.some(re => re.test(t))
+}
 
-  return markers.some((re) => re.test(t))
+function detectFirstPersonSelf(text: string) {
+  const t = text.toLowerCase()
+  const markers = [
+    /\bя\b/u,
+    /\bмне\b/u,
+    /\bменя\b/u,
+    /\bмой\b/u,
+    /\bмоя\b/u,
+    /\bмоё\b/u,
+    /\bмои\b/u,
+  ]
+  return markers.some(re => re.test(t))
 }
 
 export async function validateBiographyWithGroq(params: {
   biographyText: string
+  /** ISO date string (YYYY-MM-DD) — дата для проверки возраста (дата написания или сегодня) */
   currentDateISO: string
   model: GroqBiographyModel
   apiKey?: string
 }) {
   const apiKey = params.apiKey || process.env.GROQ_API_KEY
-  if (!apiKey) {
-    throw new Error("GROQ_API_KEY не задан")
-  }
+  if (!apiKey) throw new Error("GROQ_API_KEY не задан")
 
   const groq = new Groq({ apiKey })
 
   const messages = buildBiographyValidationPrompt({
-    biographyText: params.biographyText,
+    biographyText:  params.biographyText,
     currentDateISO: params.currentDateISO,
   })
 
@@ -213,14 +186,11 @@ export async function validateBiographyWithGroq(params: {
     temperature: 0.2,
     max_tokens: 2500,
     top_p: 1,
-    // Some Groq models support OpenAI-compatible JSON mode
     response_format: { type: "json_object" } as any,
   } as any)
 
   const content = completion.choices?.[0]?.message?.content
-  if (!content) {
-    throw new Error("Пустой ответ от AI")
-  }
+  if (!content) throw new Error("Пустой ответ от AI")
 
   let parsed: BiographyValidationResult
   try {
@@ -228,73 +198,52 @@ export async function validateBiographyWithGroq(params: {
     parsed = safeJsonParse(jsonText) as BiographyValidationResult
   } catch (e: any) {
     const snippet = String(content).slice(0, 800)
-    const errMsg = e?.message || "JSON parse error"
+    const errMsg  = e?.message || "JSON parse error"
     const error: any = new Error(`Не удалось распарсить JSON от модели (${params.model}). ${errMsg}`)
-    error.code = "invalid_ai_json"
-    error.model = params.model
+    error.code   = "invalid_ai_json"
+    error.model  = params.model
     error.snippet = snippet
-    try {
-      error.extractedLength = extractFirstJson(String(content)).length
-    } catch {
-      // ignore
-    }
+    try { error.extractedLength = extractFirstJson(String(content)).length } catch {}
     throw error
   }
 
+  // ── Age override ─────────────────────────────────────────────────────────
   try {
-    const extracted = parsed?.birthdate?.extracted
+    const extracted   = parsed?.birthdate?.extracted
     const birthFromAi = typeof extracted === "string" ? parseBirthdateDDMMYYYY(extracted) : null
     const s4 = getSectionText(params.biographyText, 4)
     const s5 = getSectionText(params.biographyText, 5)
 
     const statedAgeFromText = s4 ? extractFirstInt(s4) : null
-    const birthFromText = s5 ? parseBirthdateRuText(s5) : null
+    const birthFromText     = s5 ? parseBirthdateRuText(s5) : null
 
-    const birth = birthFromAi || birthFromText
-    const now = new Date(params.currentDateISO)
+    const birth     = birthFromAi || birthFromText
+    const now       = new Date(params.currentDateISO)
     const statedAge = extractStatedAge(parsed?.birthdate?.statedAge) ?? statedAgeFromText
 
     if (birth && !Number.isNaN(now.getTime())) {
       const calculatedAge = calcAge({ birth, now })
-      const difference = statedAge === null ? 0 : Math.abs(calculatedAge - statedAge)
-      const match = statedAge === null ? false : calculatedAge === statedAge
-      const status = statedAge === null ? "warning" : clampStatusByDiff(difference)
+      const difference    = statedAge === null ? 0 : Math.abs(calculatedAge - statedAge)
+      const match         = statedAge === null ? false : calculatedAge === statedAge
+      const status        = statedAge === null ? "warning" : clampStatusByDiff(difference)
 
-      parsed.birthdate = {
-        ...parsed.birthdate,
-        calculatedAge,
-        statedAge,
-        difference,
-        match,
-        status,
-      }
+      parsed.birthdate = { ...parsed.birthdate, calculatedAge, statedAge, difference, match, status }
 
-      // If any mismatch exists (difference > 0), cap the score to 7 and make status at least warning
       if (statedAge !== null && difference > 0) {
         parsed.birthdate = {
           ...parsed.birthdate,
           status: parsed.birthdate.status === "success" ? "warning" : parsed.birthdate.status,
         }
-
         parsed.score = Math.min(parsed.score ?? 10, 7)
-        if (parsed.valid === true && parsed.score < 10) {
-          // keep valid as decided by other rules; age mismatch alone is not critical
-        }
       }
     } else {
-      parsed.birthdate = {
-        ...parsed.birthdate,
-        statedAge,
-      }
+      parsed.birthdate = { ...parsed.birthdate, statedAge }
     }
-  } catch {
-    // ignore
-  }
+  } catch {}
 
+  // ── Strict validation ────────────────────────────────────────────────────
   try {
     const issues: string[] = []
-
-    // Strict 1st-person enforcement for sections 10-12 using normalized text
     const s10 = getSectionText(params.biographyText, 10)
     const s11 = getSectionText(params.biographyText, 11)
     const s12 = getSectionText(params.biographyText, 12)
@@ -303,7 +252,12 @@ export async function validateBiographyWithGroq(params: {
     const third12 = s12 ? detectThirdPerson(s12) : false
     const hasThirdPerson = third10 || third11 || third12
 
-    const score = typeof parsed.score === "number" && Number.isFinite(parsed.score) ? parsed.score : 0
+    const fp10 = s10 ? detectFirstPersonSelf(s10) : false
+    const fp11 = s11 ? detectFirstPersonSelf(s11) : false
+    const fp12 = s12 ? detectFirstPersonSelf(s12) : false
+    const hasFirstPersonSelf = fp10 || fp11 || fp12
+
+    const score  = typeof parsed.score === "number" && Number.isFinite(parsed.score) ? parsed.score : 0
     let nextScore = score
     let nextValid = !!parsed.valid
 
@@ -315,16 +269,16 @@ export async function validateBiographyWithGroq(params: {
 
     if (parsed.birthdate?.statedAge !== null && parsed.birthdate?.calculatedAge !== null) {
       const diff = Math.abs((parsed.birthdate.calculatedAge as number) - (parsed.birthdate.statedAge as number))
-      if (diff > 2) {
-        issues.push("Возраст не соответствует дате рождения (разница > 2 лет)")
+      if (diff > 1) {
+        issues.push("Возраст не соответствует дате рождения (разница > 1 года)")
         parsed.birthdate = {
           ...parsed.birthdate,
           status: "error",
           match: false,
           difference: diff,
           issues: Array.isArray(parsed.birthdate.issues)
-            ? Array.from(new Set([...parsed.birthdate.issues, "Возраст не соответствует дате рождения (разница > 2 лет)"]))
-            : ["Возраст не соответствует дате рождения (разница > 2 лет)"],
+            ? Array.from(new Set([...parsed.birthdate.issues, "Возраст не соответствует дате рождения (разница > 1 года)"]))
+            : ["Возраст не соответствует дате рождения (разница > 1 года)"],
         }
         nextValid = false
         nextScore = Math.min(nextScore, 3)
@@ -337,12 +291,14 @@ export async function validateBiographyWithGroq(params: {
       nextScore = Math.min(nextScore, 3)
     }
 
-    if (hasThirdPerson) {
+    // Heuristic: third-person is only a hard error if there are no first-person self markers.
+    // This allows describing other people ("моя сестра", "мой отец", "он" etc.) while still
+    // rejecting texts that talk about the character as "он/она" without "я".
+    if (hasThirdPerson && !hasFirstPersonSelf) {
       const violations = []
       if (third10) violations.push({ section: "Пункт 10", text: s10, issue: "обнаружены маркеры третьего лица", suggestion: "Перепишите от первого лица (я/мне/мой)" })
       if (third11) violations.push({ section: "Пункт 11", text: s11, issue: "обнаружены маркеры третьего лица", suggestion: "Перепишите от первого лица (я/мне/мой)" })
       if (third12) violations.push({ section: "Пункт 12", text: s12, issue: "обнаружены маркеры третьего лица", suggestion: "Перепишите от первого лица (я/мне/мой)" })
-
       parsed.perspective = {
         ...parsed.perspective,
         isFirstPerson: false,
@@ -351,7 +307,6 @@ export async function validateBiographyWithGroq(params: {
           ? [...parsed.perspective.violations, ...violations]
           : violations,
       }
-
       issues.push("Строгая проверка: в пунктах 10-12 найдены маркеры третьего лица")
       nextValid = false
       nextScore = Math.min(nextScore, 3)
@@ -366,32 +321,22 @@ export async function validateBiographyWithGroq(params: {
       }
     }
 
-    parsed.valid = nextValid
-    parsed.score = Math.max(0, Math.min(10, Math.round(nextScore)))
-
+    parsed.valid  = nextValid
+    parsed.score  = Math.max(0, Math.min(10, Math.round(nextScore)))
     if (issues.length) {
       parsed.summary = parsed.summary ? `${parsed.summary} ${issues.join(". ")}.` : issues.join(". ")
     }
-  } catch {
-    // ignore
-  }
+  } catch {}
 
-  // Deterministic primary verdict wording:
-  // Only "passed" when everything is OK. Otherwise: "refused".
+  // ── Primary verdict ──────────────────────────────────────────────────────
   try {
-    const hasAgeMismatch = typeof parsed?.birthdate?.difference === "number" && parsed.birthdate.difference > 0
-    const birthStatus = parsed?.birthdate?.status
-    const grammarStatus = parsed?.grammar?.status
-    const logicStatus = parsed?.logic?.status
-    const structureStatus = parsed?.structure?.status
-    const perspectiveStatus = parsed?.perspective?.status
-
+    const hasAgeMismatch    = typeof parsed?.birthdate?.difference === "number" && parsed.birthdate.difference > 0
     const allSuccess =
-      birthStatus === "success" &&
-      grammarStatus === "success" &&
-      logicStatus === "success" &&
-      structureStatus === "success" &&
-      perspectiveStatus === "success" &&
+      parsed?.birthdate?.status    === "success" &&
+      parsed?.grammar?.status      === "success" &&
+      parsed?.logic?.status        === "success" &&
+      parsed?.structure?.status    === "success" &&
+      parsed?.perspective?.status  === "success" &&
       !hasAgeMismatch
 
     parsed.primaryVerdict = allSuccess && parsed.valid ? "passed" : "refused"
@@ -401,18 +346,15 @@ export async function validateBiographyWithGroq(params: {
     } else {
       const reasons: string[] = []
       if (hasAgeMismatch) reasons.push("проверьте дату рождения и возраст")
-      if (birthStatus === "warning" || birthStatus === "error") reasons.push("проверьте данные по возрасту")
-      if (perspectiveStatus === "warning" || perspectiveStatus === "error") reasons.push("пункты 10–12 строго от 1-го лица")
-      if (structureStatus === "error") reasons.push("заполните все обязательные пункты 1–13")
-      if (grammarStatus === "warning" || grammarStatus === "error") reasons.push("проверьте/исправьте грамматику")
-      if (logicStatus === "warning" || logicStatus === "error") reasons.push("проверьте логическую связность")
-
+      if (parsed?.birthdate?.status   === "warning" || parsed?.birthdate?.status   === "error") reasons.push("проверьте данные по возрасту")
+      if (parsed?.perspective?.status === "warning" || parsed?.perspective?.status === "error") reasons.push("пункты 10–12 строго от 1-го лица")
+      if (parsed?.structure?.status   === "error") reasons.push("заполните все обязательные пункты 1–13")
+      if (parsed?.grammar?.status     === "warning" || parsed?.grammar?.status     === "error") reasons.push("проверьте/исправьте грамматику")
+      if (parsed?.logic?.status       === "warning" || parsed?.logic?.status       === "error") reasons.push("проверьте логическую связность")
       const tail = reasons.length ? ` ${reasons.join("; ")}.` : " Проверьте данные."
       parsed.summary = `Первичный вердикт: биография отказана.${tail}`
     }
-  } catch {
-    // ignore
-  }
+  } catch {}
 
   return parsed
 }

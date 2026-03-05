@@ -2,6 +2,7 @@
 
 import type { SidebarItem } from "@/types/manualTypes"
 import { useAuth } from "@/lib/auth/auth-context"
+import { useMemo } from "react"
 
 interface SidebarProps {
   sidebarItems: SidebarItem[]
@@ -12,9 +13,23 @@ interface SidebarProps {
 export default function Sidebar({ sidebarItems, activeSection, setActiveSection }: SidebarProps) {
   const { canAccessSection } = useAuth()
 
+  const visibleSidebarItems = useMemo(() => {
+    return sidebarItems
+      .map((item) => {
+        if ("items" in item) {
+          const accessibleItems = item.items.filter((navItem) => canAccessSection(navItem.id))
+          if (accessibleItems.length === 0) return null
+          return { ...item, items: accessibleItems }
+        }
+
+        return canAccessSection(item.id) ? item : null
+      })
+      .filter(Boolean) as SidebarItem[]
+  }, [sidebarItems, canAccessSection])
+
   return (
     <nav className="modern-sidebar fixed left-0 top-0 h-screen w-64 z-40 overflow-hidden">
-      <div className="flex flex-col h-full p-3">
+      <div className="flex flex-col h-full p-3" suppressHydrationWarning>
         {/* Logo and Title */}
         <div className="pt-3 pb-4 border-b-2 border-sidebar-border mb-3">
           <div className="flex items-center gap-3 px-2">
@@ -34,16 +49,10 @@ export default function Sidebar({ sidebarItems, activeSection, setActiveSection 
 
         {/* Navigation items */}
         <ul className="space-y-1 list-none flex-1 overflow-y-auto">
-          {sidebarItems.map((item) => {
+          {visibleSidebarItems.map((item) => {
             // Проверяем, является ли элемент группой или обычным элементом
             if ('items' in item) {
               // Это группа - показываем заголовок группы и её элементы
-              const accessibleItems = item.items.filter(navItem => canAccessSection(navItem.id))
-
-              if (accessibleItems.length === 0) {
-                return null
-              }
-
               return (
                 <li key={item.id} className="space-y-1">
                   {/* Заголовок группы */}
@@ -51,7 +60,7 @@ export default function Sidebar({ sidebarItems, activeSection, setActiveSection 
                     {item.title}
                   </div>
                   {/* Элементы группы */}
-                  {accessibleItems.map((navItem) => (
+                  {item.items.map((navItem) => (
                     <div key={navItem.id} className="ml-2">
                       <button
                         onClick={() => setActiveSection(navItem.id)}
@@ -78,12 +87,6 @@ export default function Sidebar({ sidebarItems, activeSection, setActiveSection 
               )
             } else {
               // Это обычный элемент навигации
-              const hasAccess = canAccessSection(item.id)
-
-              if (!hasAccess) {
-                return null
-              }
-
               return (
                 <li key={item.id}>
                   <button

@@ -407,6 +407,12 @@ const UserManagement: React.FC = () => {
 
   const [avatarPreviewTitle, setAvatarPreviewTitle] = React.useState<string>("")
 
+  const [idPhotoPreviewOpen, setIdPhotoPreviewOpen] = React.useState(false)
+
+  const [idPhotoPreviewSrc, setIdPhotoPreviewSrc] = React.useState<string | null>(null)
+
+  const [idPhotoPreviewTitle, setIdPhotoPreviewTitle] = React.useState<string>("")
+
   const { filteredUsers, getFilteredUsersByRole, stats } = useUserFilters(
     users,
     currentUser?.role,
@@ -1048,6 +1054,13 @@ const UserManagement: React.FC = () => {
 
         }}
 
+        onPreviewIdPhoto={(u: UserType) => {
+          if (!u.id_photo_url) return
+          setIdPhotoPreviewSrc(u.id_photo_url)
+          setIdPhotoPreviewTitle(`Удостоверение: ${u.game_nick}`)
+          setIdPhotoPreviewOpen(true)
+        }}
+
         onEdit={openEditModal}
 
         onChangeRole={openRoleModal}
@@ -1196,12 +1209,28 @@ const UserManagement: React.FC = () => {
 
       />
 
+      <ImagePreviewModal
+
+        isOpen={idPhotoPreviewOpen}
+
+        src={idPhotoPreviewSrc}
+
+        title={idPhotoPreviewTitle}
+
+        onClose={() => {
+
+          setIdPhotoPreviewOpen(false)
+
+          setIdPhotoPreviewSrc(null)
+
+          setIdPhotoPreviewTitle("")
+
+        }}
+
+      />
+
     </div>
-
   )
-
 }
-
-
 
 export default UserManagement

@@ -1,7 +1,7 @@
 // app/components/Manual/sections/admin/UserManagement/components/UserTable.tsx (обновлённая)
 import React from "react"
 import type { User as UserType } from "@/lib/auth/types"
-import { CheckCircle, X, AlertCircle, Edit, Shield, Trash2, RotateCcw } from "lucide-react"
+import { CheckCircle, X, AlertCircle, Edit, Shield, Trash2, RotateCcw, IdCard } from "lucide-react"
 import { getCityBadgeColor, getCityLabel, getRoleBadgeColor, getRoleLabel } from "../utils/userHelpers"
 
 interface UserTableProps {
@@ -12,6 +12,7 @@ interface UserTableProps {
   onToggleUser: (userId: string) => void
   onToggleAll: (checked: boolean, userIds: string[]) => void
   onPreviewAvatar: (user: UserType) => void
+  onPreviewIdPhoto: (user: UserType) => void
   onEdit: (user: UserType) => void
   onChangeRole: (user: UserType) => void
   onChangeCity: (user: UserType) => void
@@ -33,6 +34,7 @@ export const UserTable: React.FC<UserTableProps> = ({
   onToggleUser,
   onToggleAll,
   onPreviewAvatar,
+  onPreviewIdPhoto,
   onEdit,
   onChangeRole,
   onChangeCity,
@@ -229,7 +231,9 @@ export const UserTable: React.FC<UserTableProps> = ({
                 </td>
 
                 <td className="px-6 py-4 whitespace-nowrap hidden lg:table-cell">
-                  <div className="text-sm text-muted-foreground truncate max-w-[220px]" title={user.username}>{user.username}</div>
+                  <div className="text-sm text-muted-foreground">
+                    <div className="text-sm text-muted-foreground truncate max-w-[220px]" title={user.username}>{user.username}</div>
+                  </div>
                 </td>
 
                 <td className="px-6 py-4 whitespace-nowrap">
@@ -334,6 +338,17 @@ export const UserTable: React.FC<UserTableProps> = ({
                         {/* REQUEST ACTIONS */}
                         {user.status === "request" && canApproveRequest(user) && (
                           <>
+                            {!!user.id_photo_url && (
+                              <button
+                                type="button"
+                                onClick={() => onPreviewIdPhoto(user)}
+                                className="text-blue-600 dark:text-blue-400 hover:opacity-70 transition-all"
+                                title="Открыть фото с удостоверением"
+                              >
+                                <IdCard className="w-5 h-5" />
+                              </button>
+                            )}
+
                             <button
                               onClick={() => onApprove(user.id, user.game_nick)}
                               className="text-green-600 dark:text-green-400 hover:opacity-70 transition-all"
@@ -355,6 +370,17 @@ export const UserTable: React.FC<UserTableProps> = ({
                         {/* ACTIVE USER ACTIONS */}
                         {user.status === "active" && user.role !== "root" && (
                           <>
+                            {!!user.id_photo_url && (
+                              <button
+                                type="button"
+                                onClick={() => onPreviewIdPhoto(user)}
+                                className="text-blue-600 dark:text-blue-400 hover:opacity-70 transition-all"
+                                title="Открыть фото с удостоверением"
+                              >
+                                <IdCard className="w-5 h-5" />
+                              </button>
+                            )}
+
                             {canEditUser(user) && (
                               <button
                                 onClick={() => onEdit(user)}
@@ -439,6 +465,17 @@ export const UserTable: React.FC<UserTableProps> = ({
                         {/* INACTIVE — ROOT ONLY */}
                         {user.status === "inactive" && currentUser?.role === "root" && (
                           <>
+                            {!!user.id_photo_url && (
+                              <button
+                                type="button"
+                                onClick={() => onPreviewIdPhoto(user)}
+                                className="text-blue-600 dark:text-blue-400 hover:opacity-70 transition-all"
+                                title="Открыть фото с удостоверением"
+                              >
+                                <IdCard className="w-5 h-5" />
+                              </button>
+                            )}
+
                             <button
                               onClick={() => onRestore(user.id, user.game_nick)}
                               className="text-green-600 dark:text-green-400 hover:opacity-70 transition-all"
