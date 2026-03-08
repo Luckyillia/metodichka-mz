@@ -8,7 +8,7 @@
     "lint": "eslint .",
     "lint:next": "next lint",
     "start": "next start",
-    "prepare": "husky install",
+    "prepare": "husky",
     "version:bump": "node scripts/bump-version.js",
     "version:interactive": "node scripts/interactive-bump.js",
     "commit": "npm run version:interactive && git commit"
