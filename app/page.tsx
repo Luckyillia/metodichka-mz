@@ -8,7 +8,8 @@ import Sidebar from "@/app/components/Manual/Sidebar"
 import { sidebarItems } from "@/data/manualData"
 import OverviewSection from "@/app/components/Manual/sections/default/OverviewSection"
 import { useAuth } from "@/lib/auth/auth-context"
-import { AlertCircle, Loader2 } from "lucide-react"
+import { AlertCircle, Loader2, Shield, Sparkles } from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion"
 
 const PositionsSection = lazy(() => import("@/app/components/Manual/sections/default/PositionsSection"))
 const MSUnifiedContentSection = lazy(() => import("@/app/components/Manual/sections/default/MSUnifiedContentSection"))
@@ -77,9 +78,19 @@ const getSectionTitle = (id: string) => {
 
 function LoadingSpinner() {
   return (
-    <div className="flex items-center justify-center py-20">
-      <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-    </div>
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="flex flex-col items-center justify-center py-20"
+    >
+      <div className="relative">
+        <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+        <div className="absolute inset-0 rounded-2xl animate-ping bg-primary/20" style={{ animationDuration: '2s' }} />
+      </div>
+      <p className="text-sm text-muted-foreground mt-6">Loading content...</p>
+    </motion.div>
   )
 }
 
@@ -93,52 +104,119 @@ export default function ManualPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+        {/* Background gradient */}
+        <div className="fixed inset-0 bg-gradient-to-br from-primary/5 via-transparent to-orange-500/5 pointer-events-none" />
+        <div className="fixed top-0 left-0 right-0 h-[50vh] bg-gradient-to-b from-primary/10 to-transparent pointer-events-none" />
+        
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center relative z-10"
+        >
+          <div className="relative">
+            <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-primary to-orange-500 flex items-center justify-center mx-auto shadow-lg" style={{ boxShadow: '0 0 60px var(--primary)' }}>
+              <Sparkles className="w-10 h-10 text-white" />
+            </div>
+            <div className="absolute inset-0 rounded-3xl animate-ping bg-primary/30" style={{ animationDuration: '2s' }} />
+          </div>
+          <p className="text-muted-foreground mt-6">Loading Metodychka...</p>
+        </motion.div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative">
+      {/* Animated background */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-0 left-0 right-0 h-[50vh] bg-gradient-to-b from-primary/8 to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 h-[30vh] bg-gradient-to-t from-primary/5 to-transparent" />
+        <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px]" />
+        <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-orange-500/5 rounded-full blur-[120px]" />
+      </div>
+
       <Sidebar sidebarItems={sidebarItems} activeSection={activeSection} setActiveSection={setActiveSection} />
       <Header />
 
-      <main className="lg:ml-64 min-h-screen">
-        <div className="max-w-5xl mx-auto px-4 lg:px-8 py-8">
-          {!canAccessSection(effectiveSection) ? (
-            <div className="bg-card border border-border rounded-lg p-12 text-center">
-              <AlertCircle className="w-12 h-12 text-amber-500 mx-auto mb-4" />
-              <h2 className="text-xl font-semibold text-foreground mb-2">Authorization Required</h2>
-              <p className="text-muted-foreground mb-6">Sign in to access manual sections</p>
-              <button
-                onClick={() => router.push("/login")}
-                className="modern-button"
+      <main className="lg:ml-72 pt-16 min-h-screen relative z-10">
+        <div className="max-w-5xl mx-auto px-4 lg:px-8 py-10">
+          <AnimatePresence mode="wait">
+            {!canAccessSection(effectiveSection) ? (
+              <motion.div 
+                key="unauthorized"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="premium-card p-16 text-center"
               >
-                Sign in
-              </button>
-            </div>
-          ) : SectionComponent ? (
-            <Suspense fallback={<LoadingSpinner />}>
-              {effectiveSection !== "overview" && (
-                <div className="mb-8">
-                  <h1 className="text-2xl font-semibold text-foreground">
-                    {getSectionTitle(effectiveSection)}
-                  </h1>
-                  <div className="w-12 h-0.5 bg-primary mt-3 rounded-full" />
+                <div className="w-20 h-20 rounded-2xl bg-amber-500/10 flex items-center justify-center mx-auto mb-6">
+                  <Shield className="w-10 h-10 text-amber-500" />
                 </div>
-              )}
-              {effectiveSection === "overview" ? (
-                <OverviewSection setActiveSection={setActiveSection} />
-              ) : (
-                <SectionComponent />
-              )}
-            </Suspense>
-          ) : (
-            <div className="bg-card border border-border rounded-lg p-12 text-center">
-              <h2 className="text-xl font-semibold text-foreground mb-2">Section Not Found</h2>
-              <p className="text-muted-foreground">The requested section does not exist or has been moved.</p>
-            </div>
-          )}
+                <h2 className="text-2xl font-bold text-foreground mb-3">Authorization Required</h2>
+                <p className="text-muted-foreground mb-8 max-w-md mx-auto">
+                  Sign in to your account to access all manual sections and features
+                </p>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => router.push("/login")}
+                  className="premium-button px-8 py-3 text-base"
+                >
+                  <Sparkles className="w-4 h-4 mr-2 inline" />
+                  Sign in
+                </motion.button>
+              </motion.div>
+            ) : SectionComponent ? (
+              <motion.div
+                key={effectiveSection}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Suspense fallback={<LoadingSpinner />}>
+                  {effectiveSection !== "overview" && (
+                    <div className="mb-10">
+                      <motion.div
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className="flex items-center gap-4"
+                      >
+                        <div className="w-1.5 h-10 bg-gradient-to-b from-primary to-orange-500 rounded-full" />
+                        <div>
+                          <h1 className="text-3xl font-bold text-foreground tracking-tight">
+                            {getSectionTitle(effectiveSection)}
+                          </h1>
+                          <div className="h-1 w-20 bg-gradient-to-r from-primary to-orange-500 rounded-full mt-2 opacity-60" />
+                        </div>
+                      </motion.div>
+                    </div>
+                  )}
+                  {effectiveSection === "overview" ? (
+                    <OverviewSection setActiveSection={setActiveSection} />
+                  ) : (
+                    <SectionComponent />
+                  )}
+                </Suspense>
+              </motion.div>
+            ) : (
+              <motion.div 
+                key="not-found"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="premium-card p-16 text-center"
+              >
+                <div className="w-20 h-20 rounded-2xl bg-white/5 flex items-center justify-center mx-auto mb-6">
+                  <AlertCircle className="w-10 h-10 text-muted-foreground" />
+                </div>
+                <h2 className="text-2xl font-bold text-foreground mb-3">Section Not Found</h2>
+                <p className="text-muted-foreground">
+                  The requested section does not exist or has been moved.
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </main>
     </div>

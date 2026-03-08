@@ -1,102 +1,154 @@
-/* Modern Minimal Report Generator Styles */
+/* Premium Report Generator Styles with Glass Effects */
 
 /* Input groups */
 .input-group {
     display: flex;
     flex-direction: column;
-    margin-bottom: 1.25rem;
+    margin-bottom: 1.5rem;
 }
 
 .input-group label {
-    font-weight: 500;
+    font-weight: 600;
     color: var(--foreground);
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.75rem;
     font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.input-group label::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: var(--primary);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--primary);
 }
 
 /* Input and select styles */
 .input-group input,
 .input-group select {
-    padding: 0.75rem 1rem;
+    padding: 0.875rem 1.25rem;
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    font-size: 0.875rem;
-    background: var(--input);
+    font-size: 0.9rem;
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     color: var(--foreground);
-    transition: border-color 150ms ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .input-group input:focus,
 .input-group select:focus {
     outline: none;
     border-color: var(--primary);
+    background: rgba(255, 255, 255, 0.06);
+    box-shadow: 0 0 20px rgba(var(--primary), 0.15);
 }
 
 .input-group input::placeholder {
     color: var(--muted-foreground);
+    opacity: 0.7;
 }
 
 /* Item row grid */
 .item-row {
     display: grid;
     grid-template-columns: 1fr 1fr 2fr auto;
-    gap: 0.5rem;
+    gap: 0.75rem;
     align-items: end;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.75rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    transition: all 0.3s ease;
+}
+
+.item-row:hover {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.12);
 }
 
 .item-row input {
-    background: var(--input);
+    background: rgba(255, 255, 255, 0.05);
     color: var(--foreground);
     border: 1px solid var(--border);
     border-radius: calc(var(--radius) - 2px);
-    padding: 0.625rem 0.875rem;
+    padding: 0.75rem 1rem;
     font-size: 0.875rem;
-    transition: border-color 150ms ease;
+    transition: all 0.3s ease;
 }
 
 .item-row input:focus {
     outline: none;
     border-color: var(--primary);
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 0 15px rgba(var(--primary), 0.1);
 }
 
 .item-row input::placeholder {
     color: var(--muted-foreground);
+    opacity: 0.6;
 }
 
 /* Buttons */
 .add-btn,
 .remove-btn {
-    padding: 0.625rem 1rem;
+    padding: 0.75rem 1.25rem;
     border: none;
-    border-radius: calc(var(--radius) - 2px);
-    font-size: 0.8125rem;
-    font-weight: 500;
+    border-radius: var(--radius);
+    font-size: 0.875rem;
+    font-weight: 600;
     cursor: pointer;
-    transition: all 150ms ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
 }
 
 .add-btn {
-    background: var(--primary);
+    background: var(--gradient-primary);
     color: var(--primary-foreground);
-    margin-top: 0.75rem;
+    margin-top: 1rem;
     width: 100%;
 }
 
+.add-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 50%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
 .add-btn:hover {
-    opacity: 0.9;
+    transform: translateY(-2px);
+    box-shadow: var(--glow-primary);
+}
+
+.add-btn:hover::before {
+    opacity: 1;
+}
+
+.add-btn:active {
+    transform: translateY(0);
 }
 
 .remove-btn {
     background: transparent;
     color: var(--destructive);
-    border: 1px solid var(--border);
+    border: 1px solid rgba(239, 68, 68, 0.3);
     white-space: nowrap;
 }
 
 .remove-btn:hover {
-    background: color-mix(in srgb, var(--destructive) 10%, transparent);
+    background: rgba(239, 68, 68, 0.1);
     border-color: var(--destructive);
+    box-shadow: 0 0 15px rgba(239, 68, 68, 0.2);
+    transform: translateY(-1px);
 }
 
 /* Checkbox styles */
@@ -104,19 +156,24 @@
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
-    width: 18px;
-    height: 18px;
-    border: 1px solid var(--border);
-    border-radius: calc(var(--radius) - 4px);
-    background-color: var(--input);
+    width: 22px;
+    height: 22px;
+    border: 2px solid var(--border);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.03);
     position: relative;
     cursor: pointer;
-    transition: all 150ms ease;
+    transition: all 0.3s ease;
+}
+
+.input-group input[type="checkbox"]:hover {
+    border-color: var(--primary);
 }
 
 .input-group input[type="checkbox"]:checked {
-    background-color: var(--primary);
+    background: var(--gradient-primary);
     border-color: var(--primary);
+    box-shadow: 0 0 15px var(--primary);
 }
 
 .input-group input[type="checkbox"]:checked::after {
@@ -125,7 +182,7 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    font-size: 12px;
+    font-size: 14px;
     color: var(--primary-foreground);
     font-weight: bold;
 }
@@ -133,47 +190,88 @@
 .input-group input[type="checkbox"]:focus {
     outline: none;
     border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(var(--primary), 0.2);
 }
 
 /* Select in item rows */
 .item-row select {
-    background: var(--input);
+    background: rgba(255, 255, 255, 0.05);
     border: 1px solid var(--border);
     border-radius: calc(var(--radius) - 2px);
-    padding: 0.625rem 0.875rem;
+    padding: 0.75rem 1rem;
     font-size: 0.875rem;
-    transition: border-color 150ms ease;
+    transition: all 0.3s ease;
     cursor: pointer;
     color: var(--foreground);
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23737373' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a3a3a3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
     background-repeat: no-repeat;
-    background-position: right 0.75rem center;
+    background-position: right 1rem center;
     background-size: 1rem;
-    padding-right: 2.5rem;
+    padding-right: 3rem;
 }
 
 .item-row select:focus {
     outline: none;
     border-color: var(--primary);
+    background-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 0 15px rgba(var(--primary), 0.1);
 }
 
 .item-row select option {
-    background-color: var(--card);
+    background-color: #1a1a1a;
     color: var(--foreground);
+    padding: 0.5rem;
 }
 
 .item-row.attendance-row {
     grid-template-columns: 180px 2fr auto;
 }
 
+/* Section headers in forms */
+.form-section-header {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--foreground);
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.form-section-header::before {
+    content: '';
+    width: 4px;
+    height: 20px;
+    background: var(--gradient-primary);
+    border-radius: 2px;
+}
+
+/* Report output area */
+.report-output {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    font-family: 'Monaco', 'Menlo', monospace;
+    font-size: 0.85rem;
+    line-height: 1.8;
+    white-space: pre-wrap;
+    color: var(--muted-foreground);
+    max-height: 400px;
+    overflow-y: auto;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .item-row {
         grid-template-columns: 1fr;
-        gap: 0.5rem;
+        gap: 0.75rem;
+        padding: 0.875rem;
     }
 
     .remove-btn {
@@ -183,5 +281,10 @@
 
     .item-row.attendance-row {
         grid-template-columns: 1fr;
+    }
+
+    .input-group input,
+    .input-group select {
+        padding: 0.75rem 1rem;
     }
 }

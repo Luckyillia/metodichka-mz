@@ -1,47 +1,100 @@
-/* Modern Minimal Protocol Card */
+/* Premium Protocol Card with Glass and Glow Effects */
 .protocol-card {
     background: var(--card);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 20px;
-    margin: 12px 0;
+    padding: 24px;
+    margin: 16px 0;
     position: relative;
-    transition: border-color 150ms ease;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+}
+
+.protocol-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--gradient-primary);
+    opacity: 0;
+    transition: opacity 0.3s ease;
 }
 
 .protocol-card:hover {
-    border-color: color-mix(in srgb, var(--primary) 50%, var(--border));
+    transform: translateY(-4px);
+    border-color: rgba(255, 255, 255, 0.15);
+    box-shadow: var(--glow-primary);
 }
 
-/* High Priority Protocol */
+.protocol-card:hover::before {
+    opacity: 1;
+}
+
+/* High Priority Protocol - Amber glow */
 .protocol-card.high-priority {
-    border-left: 3px solid #fbbf24;
+    border-left: 4px solid #fbbf24;
 }
 
-/* Critical Priority Protocol */
+.protocol-card.high-priority::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(180deg, #fbbf24, #f59e0b);
+    box-shadow: 0 0 20px rgba(251, 191, 36, 0.4);
+}
+
+.protocol-card.high-priority:hover {
+    box-shadow: 0 0 40px rgba(251, 191, 36, 0.2), 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* Critical Priority Protocol - Red glow */
 .protocol-card.critical-priority {
-    border-left: 3px solid var(--destructive);
+    border-left: 4px solid var(--destructive);
+}
+
+.protocol-card.critical-priority::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(180deg, #ef4444, #dc2626);
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
+}
+
+.protocol-card.critical-priority:hover {
+    box-shadow: 0 0 40px rgba(239, 68, 68, 0.2), 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
 /* Protocol Card Header */
 .protocol-card .protocol-header {
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin-bottom: 16px;
-    padding-bottom: 12px;
+    gap: 14px;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
     border-bottom: 1px solid var(--border);
 }
 
 .protocol-card .protocol-title {
-    font-weight: 600;
-    font-size: 1rem;
+    font-weight: 700;
+    font-size: 1.1rem;
     color: var(--foreground);
     margin: 0;
+    letter-spacing: -0.01em;
 }
 
 .protocol-card .protocol-icon {
-    font-size: 1.25rem;
+    font-size: 1.5rem;
+    filter: drop-shadow(0 0 6px var(--primary));
 }
 
 /* Protocol Steps */
@@ -55,11 +108,16 @@
 .protocol-card .protocol-step {
     counter-increment: step-counter;
     position: relative;
-    padding: 10px 0 10px 36px;
+    padding: 14px 0 14px 48px;
     margin-bottom: 4px;
     color: var(--muted-foreground);
-    font-size: 0.875rem;
-    line-height: 1.6;
+    font-size: 0.9rem;
+    line-height: 1.7;
+    transition: all 0.3s ease;
+}
+
+.protocol-card .protocol-step:hover {
+    color: var(--foreground);
 }
 
 .protocol-card .protocol-step:last-child {
@@ -70,28 +128,82 @@
     content: counter(step-counter);
     position: absolute;
     left: 0;
-    top: 10px;
-    width: 22px;
-    height: 22px;
-    background: var(--secondary);
+    top: 14px;
+    width: 28px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.05);
     color: var(--foreground);
     border: 1px solid var(--border);
-    border-radius: 50%;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.7rem;
-    font-weight: 600;
+    font-size: 0.75rem;
+    font-weight: 700;
+    transition: all 0.3s ease;
+}
+
+.protocol-card .protocol-step:hover::before {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: var(--primary-foreground);
+    box-shadow: 0 0 15px var(--primary);
+    transform: scale(1.1);
+}
+
+/* Connecting line between steps */
+.protocol-card .protocol-step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 13px;
+    top: 46px;
+    width: 2px;
+    height: calc(100% - 18px);
+    background: linear-gradient(180deg, var(--border) 0%, transparent 100%);
 }
 
 .protocol-card.high-priority .protocol-step::before {
-    background: #fef3c7;
+    background: rgba(251, 191, 36, 0.15);
     border-color: #fbbf24;
-    color: #92400e;
+    color: #fbbf24;
+}
+
+.protocol-card.high-priority .protocol-step:hover::before {
+    background: #fbbf24;
+    color: #1a1a1a;
+    box-shadow: 0 0 15px rgba(251, 191, 36, 0.5);
 }
 
 .protocol-card.critical-priority .protocol-step::before {
-    background: color-mix(in srgb, var(--destructive) 15%, var(--card));
+    background: rgba(239, 68, 68, 0.15);
     border-color: var(--destructive);
     color: var(--destructive);
+}
+
+.protocol-card.critical-priority .protocol-step:hover::before {
+    background: var(--destructive);
+    color: white;
+    box-shadow: 0 0 15px rgba(239, 68, 68, 0.5);
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .protocol-card {
+        padding: 18px;
+    }
+
+    .protocol-card .protocol-step {
+        padding-left: 40px;
+    }
+
+    .protocol-card .protocol-step::before {
+        width: 24px;
+        height: 24px;
+        font-size: 0.7rem;
+    }
+
+    .protocol-card .protocol-step:not(:last-child)::after {
+        left: 11px;
+        top: 42px;
+    }
 }
