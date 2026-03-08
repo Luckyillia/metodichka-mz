@@ -2,68 +2,66 @@
 
 import { useState, useMemo } from "react"
 import ExamplePhrase from "../../ExamplePhrase"
-import { Search, X } from "lucide-react"
+import { Search, X, Pill, AlertCircle } from "lucide-react"
 
 const medications = [
-  { symptom: "Головная боль", medicine: "Миг", gender: "его" },
-  { symptom: "Мигрени", medicine: "Амигренин", gender: "его" },
-  { symptom: "Судороги, нервный тик", medicine: "Аспаркам", gender: "его" },
-  { symptom: "Боль в животе", medicine: "Ношпу", gender: "её" },
-  { symptom: "Тошнота", medicine: "Драмина", gender: "его" },
-  { symptom: "Изжога", medicine: "Алмагель", gender: "его" },
-  { symptom: "Боль в печени", medicine: "Гепабене", gender: "его" },
-  { symptom: "Сердечная боль", medicine: "Кардиомагнил", gender: "его" },
-  { symptom: "Простуда и жар", medicine: "Терафлю", gender: "его" },
-  { symptom: "Кашель", medicine: "Лазолван", gender: "его" },
-  { symptom: "Влажный кашель с мокротой", medicine: "Амбробене", gender: "его" },
-  { symptom: "Насморк", medicine: "Тизин", gender: "его" },
-  { symptom: "Боль в горле - спреи", medicine: "Гексорал", gender: "его" },
-  { symptom: "Боли в глазах", medicine: "Визин", gender: "его" },
-  { symptom: "Боли в ушах", medicine: "Отинум", gender: "его" },
-  { symptom: "Боли в почках", medicine: "Урохол", gender: "его" },
-  { symptom: "Мочевой пузырь", medicine: "Цистон", gender: "его" },
-  { symptom: "Боли в спине, ногах и суставах - мазь", medicine: "Фастум-гель", gender: "его" },
-  { symptom: "Геморрой - Свечи от геморроя", medicine: "Натальсид", gender: "его" },
-  { symptom: "Диабет", medicine: "Виктоза", gender: "её" },
-  { symptom: "Ушибы и ссадины", medicine: "Долобене", gender: "его" },
-  { symptom: "Витамины", medicine: "Витамикс", gender: "его" },
-  { symptom: "Повышенное давление", medicine: "Андипал", gender: "его" },
-  { symptom: "Пониженное давление", medicine: "Норадреналин", gender: "его" },
-  { symptom: "Обезболивающие", medicine: "Парацетамол", gender: "его" },
-  { symptom: "Для увеличения потенции", medicine: "Сиалекс", gender: "его" },
-  { symptom: "Молочница", medicine: "Нистатин", gender: "его" },
-  { symptom: "Понос", medicine: "Лоперамид", gender: "его" },
-  { symptom: "Запор", medicine: "Линекс Форте", gender: "его" },
-  { symptom: "Бессонница", medicine: "Найтвелл", gender: "его" },
-  { symptom: "Приступы Астмы", medicine: "Сальбутамол", gender: "его" },
-  { symptom: "Стресс", medicine: "Тенотен", gender: "его" },
+  { symptom: "Headache", medicine: "Mig", gender: "its" },
+  { symptom: "Migraines", medicine: "Amigrenin", gender: "its" },
+  { symptom: "Seizures, nervous tic", medicine: "Asparkam", gender: "its" },
+  { symptom: "Stomach pain", medicine: "Noshpa", gender: "its" },
+  { symptom: "Nausea", medicine: "Dramina", gender: "its" },
+  { symptom: "Heartburn", medicine: "Almagel", gender: "its" },
+  { symptom: "Liver pain", medicine: "Hepabene", gender: "its" },
+  { symptom: "Heart pain", medicine: "Cardiomagnil", gender: "its" },
+  { symptom: "Cold and fever", medicine: "Theraflu", gender: "its" },
+  { symptom: "Cough", medicine: "Lazolvan", gender: "its" },
+  { symptom: "Wet cough with phlegm", medicine: "Ambrobene", gender: "its" },
+  { symptom: "Runny nose", medicine: "Tizin", gender: "its" },
+  { symptom: "Sore throat - sprays", medicine: "Hexoral", gender: "its" },
+  { symptom: "Eye pain", medicine: "Visine", gender: "its" },
+  { symptom: "Ear pain", medicine: "Otinum", gender: "its" },
+  { symptom: "Kidney pain", medicine: "Urohol", gender: "its" },
+  { symptom: "Bladder", medicine: "Cyston", gender: "its" },
+  { symptom: "Back, leg and joint pain - ointment", medicine: "Fastum-gel", gender: "its" },
+  { symptom: "Hemorrhoids - suppositories", medicine: "Natalsid", gender: "its" },
+  { symptom: "Diabetes", medicine: "Victoza", gender: "its" },
+  { symptom: "Bruises and abrasions", medicine: "Dolobene", gender: "its" },
+  { symptom: "Vitamins", medicine: "Vitamix", gender: "its" },
+  { symptom: "High blood pressure", medicine: "Andipal", gender: "its" },
+  { symptom: "Low blood pressure", medicine: "Norepinephrine", gender: "its" },
+  { symptom: "Painkillers", medicine: "Paracetamol", gender: "its" },
+  { symptom: "Potency enhancement", medicine: "Cialex", gender: "its" },
+  { symptom: "Thrush", medicine: "Nystatin", gender: "its" },
+  { symptom: "Diarrhea", medicine: "Loperamide", gender: "its" },
+  { symptom: "Constipation", medicine: "Linex Forte", gender: "its" },
+  { symptom: "Insomnia", medicine: "Nightwell", gender: "its" },
+  { symptom: "Asthma attacks", medicine: "Salbutamol", gender: "its" },
+  { symptom: "Stress", medicine: "Tenoten", gender: "its" },
 ]
 
 const specialMedications = [
   {
-    symptom: "Аллергия",
-    medicines: "Цетрин, Кларитин, Эриус, Зодак, Тавегил, Лоратадин",
-    note: "После оказания экстренной помощи необходимо взять анализ",
+    symptom: "Allergy",
+    medicines: "Cetrin, Claritin, Erius, Zodak, Tavegil, Loratadine",
+    note: "After emergency care, a test must be taken",
   },
   {
-    symptom: "При потере сознания",
-    medicines: "Нашатырный спирт",
-    note: "Нашатырем смачивают вату и подносят под нос пострадавшему",
+    symptom: "Loss of consciousness",
+    medicines: "Ammonia",
+    note: "Moisten cotton with ammonia and hold under the patient's nose",
   },
   {
-    symptom: "Ожоги",
-    medicines: "Бепантен",
-    note: "Желательно закрыть ожог антибактериальной повязкой Космопор",
+    symptom: "Burns",
+    medicines: "Bepanten",
+    note: "It is advisable to cover the burn with antibacterial dressing Cosmopor",
   },
 ]
 
 const MedicationsSection = () => {
   const [searchQuery, setSearchQuery] = useState("")
 
-  // Фильтрация препаратов по поисковому запросу
   const filteredMedications = useMemo(() => {
     if (!searchQuery.trim()) return medications
-
     const query = searchQuery.toLowerCase()
     return medications.filter(item => 
       item.symptom.toLowerCase().includes(query) || 
@@ -71,10 +69,8 @@ const MedicationsSection = () => {
     )
   }, [searchQuery])
 
-  // Фильтрация специальных препаратов
   const filteredSpecialMedications = useMemo(() => {
     if (!searchQuery.trim()) return specialMedications
-
     const query = searchQuery.toLowerCase()
     return specialMedications.filter(item => 
       item.symptom.toLowerCase().includes(query) || 
@@ -85,81 +81,85 @@ const MedicationsSection = () => {
   const clearSearch = () => setSearchQuery("")
 
   return (
-    <>
-      <div className="subsection">
-        <h3>💊 Список препаратов</h3>
-        
-        <div className="note">
-          <p><strong>📌 Стоимость всех препаратов: 500 рублей</strong></p>
+    <div className="space-y-6">
+      {/* Price notice */}
+      <div className="bg-card border border-border rounded-lg p-4 border-l-3 border-l-primary">
+        <div className="flex items-center gap-3">
+          <Pill className="w-5 h-5 text-primary flex-shrink-0" />
+          <p className="text-sm text-foreground">
+            <span className="font-medium">Price:</span> All medications cost 500 rubles
+          </p>
         </div>
+      </div>
 
-        {/* Поисковая строка */}
-        <div className="mt-6 mb-6">
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
-            <input
-              type="text"
-              placeholder="Поиск по симптомам или названию препарата..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-12 pr-12 py-3 rounded-lg border-2 border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
-            />
-            {searchQuery && (
-              <button
-                onClick={clearSearch}
-                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                aria-label="Очистить поиск"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            )}
+      {/* Search */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <input
+          type="text"
+          placeholder="Search by symptom or medication name..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full pl-10 pr-10 py-2.5 text-sm rounded-md border border-border bg-input text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary"
+        />
+        {searchQuery && (
+          <button
+            onClick={clearSearch}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+            aria-label="Clear search"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        )}
+      </div>
+
+      {searchQuery && (
+        <p className="text-xs text-muted-foreground">
+          Found: {filteredMedications.length + filteredSpecialMedications.length} results
+        </p>
+      )}
+
+      {/* Medications list */}
+      <div className="space-y-3">
+        {filteredMedications.length > 0 ? (
+          filteredMedications.map((item, index) => (
+            <div key={index} className="bg-card border border-border rounded-lg p-4 hover:border-primary/50 transition-colors">
+              <h4 className="text-sm font-medium text-foreground mb-2">{item.symptom}</h4>
+              <ExamplePhrase text={`say I'll prescribe you ${item.medicine}, ${item.gender} cost is 500 rubles, do you agree?`} />
+            </div>
+          ))
+        ) : searchQuery ? (
+          <div className="text-center py-8 text-muted-foreground text-sm">
+            No results found for "{searchQuery}" in the main list
           </div>
-          {searchQuery && (
-            <p className="mt-2 text-sm text-muted-foreground">
-              Найдено: {filteredMedications.length + filteredSpecialMedications.length} результатов
-            </p>
-          )}
-        </div>
+        ) : null}
+      </div>
 
-        {/* Список препаратов */}
-        <div className="mt-6 space-y-4">
-          {filteredMedications.length > 0 ? (
-            filteredMedications.map((item, index) => (
-              <div key={index} className="bg-card/50 p-4 rounded-lg border-2 border-border hover:border-primary/50 transition-all">
-                <h4 className="text-lg font-semibold text-foreground mb-2">{item.symptom}</h4>
-                <ExamplePhrase text={`say Я выпишу Вам ${item.medicine}, ${item.gender} стоимость 500 рублей, Вы согласны?`} />
+      {/* Special cases */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold text-foreground">Special Cases</h3>
+        <div className="space-y-3">
+          {filteredSpecialMedications.length > 0 ? (
+            filteredSpecialMedications.map((item, index) => (
+              <div key={index} className="bg-card border border-border rounded-lg p-4 hover:border-primary/50 transition-colors">
+                <h4 className="text-sm font-medium text-foreground mb-2">{item.symptom}</h4>
+                <p className="text-sm text-muted-foreground mb-3">
+                  <span className="font-medium text-foreground">Medications:</span> {item.medicines}
+                </p>
+                <div className="flex items-start gap-2 p-3 bg-accent rounded-md border-l-2 border-primary">
+                  <AlertCircle className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                  <p className="text-xs text-muted-foreground">{item.note}</p>
+                </div>
               </div>
             ))
           ) : searchQuery ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <p>По запросу &quot;{searchQuery}&quot; ничего не найдено в основном списке</p>
+            <div className="text-center py-8 text-muted-foreground text-sm">
+              No results found for "{searchQuery}" in special cases
             </div>
           ) : null}
         </div>
-
-        {/* Специальные случаи */}
-        <div className="mt-8">
-          <h4 className="text-xl font-semibold text-foreground mb-4">🔍 Специальные случаи</h4>
-          <div className="space-y-4">
-            {filteredSpecialMedications.length > 0 ? (
-              filteredSpecialMedications.map((item, index) => (
-                <div key={index} className="bg-card/50 p-4 rounded-lg border-2 border-border hover:border-primary/50 transition-all">
-                  <h4 className="text-lg font-semibold text-foreground mb-2">{item.symptom}</h4>
-                  <p className="text-muted-foreground mb-2"><strong>Препараты:</strong> {item.medicines}</p>
-                  <div className="note mt-2">
-                    <strong>📌 Примечание:</strong> {item.note}
-                  </div>
-                </div>
-              ))
-            ) : searchQuery ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <p>По запросу &quot;{searchQuery}&quot; ничего не найдено в специальных случаях</p>
-              </div>
-            ) : null}
-          </div>
-        </div>
       </div>
-    </>
+    </div>
   )
 }
 

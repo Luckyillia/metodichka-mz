@@ -8,7 +8,7 @@ import Sidebar from "@/app/components/Manual/Sidebar"
 import { sidebarItems } from "@/data/manualData"
 import OverviewSection from "@/app/components/Manual/sections/default/OverviewSection"
 import { useAuth } from "@/lib/auth/auth-context"
-import { AlertCircle } from "lucide-react"
+import { AlertCircle, Loader2 } from "lucide-react"
 
 const PositionsSection = lazy(() => import("@/app/components/Manual/sections/default/PositionsSection"))
 const MSUnifiedContentSection = lazy(() => import("@/app/components/Manual/sections/default/MSUnifiedContentSection"))
@@ -72,7 +72,15 @@ const getSectionTitle = (id: string) => {
   }
 
   const item = findItem(sidebarItems)
-  return item ? item.title : "Раздел"
+  return item ? item.title : "Section"
+}
+
+function LoadingSpinner() {
+  return (
+    <div className="flex items-center justify-center py-20">
+      <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+    </div>
+  )
 }
 
 export default function ManualPage() {
@@ -82,61 +90,57 @@ export default function ManualPage() {
   const effectiveSection = !isLoading && !canAccessSection(activeSection) ? "overview" : activeSection
   const SectionComponent = sectionComponents[effectiveSection]
 
-  useEffect(() => {
-    // Removed manual-page class for clean design
-  }, [])
-
   if (isLoading) {
     return (
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="text-slate-300">Загрузка...</div>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+      </div>
     )
   }
 
   return (
-      <div className="min-h-screen">
-        <Header />
-        <Sidebar sidebarItems={sidebarItems} activeSection={activeSection} setActiveSection={setActiveSection} />
+    <div className="min-h-screen bg-background">
+      <Sidebar sidebarItems={sidebarItems} activeSection={activeSection} setActiveSection={setActiveSection} />
+      <Header />
 
-        <div className="ml-64">
-          <div className="max-w-screen-2xl mx-auto px-6 py-6">
-            <main className="modern-card min-h-[calc(100vh-8rem)]">
-              {!canAccessSection(effectiveSection) ? (
-                  <div className="flex flex-col items-center justify-center py-20 text-center">
-                    <AlertCircle className="w-16 h-16 text-amber-500 mb-4" />
-                    <h2 className="text-2xl font-bold text-foreground mb-2">Требуется авторизация</h2>
-                    <p className="text-muted-foreground mb-6">Чтобы получить доступ к разделам методички, войдите в аккаунт</p>
-                    <button
-                        onClick={() => router.push("/login")}
-                        className="modern-button"
-                    >
-                      Войти в аккаунт
-                    </button>
-                  </div>
-              ) : SectionComponent ? (
-                  <Suspense fallback={<div className="text-center py-8">Загрузка раздела...</div>}>
-                    <div className="mb-6">
-                      <h1 className="text-3xl font-bold text-foreground mb-2">
-                        {getSectionTitle(effectiveSection)}
-                      </h1>
-                      <div className="w-20 h-1 bg-primary rounded-full"></div>
-                    </div>
-                    {effectiveSection === "overview" ? (
-                      <OverviewSection setActiveSection={setActiveSection} />
-                    ) : (
-                      <SectionComponent />
-                    )}
-                  </Suspense>
-              ) : (
-                  <div className="text-center py-20">
-                    <h2 className="text-2xl font-bold mb-4">Раздел не найден</h2>
-                    <p className="text-muted-foreground">Запрашиваемый раздел не существует или был перемещён.</p>
-                  </div>
+      <main className="lg:ml-64 min-h-screen">
+        <div className="max-w-5xl mx-auto px-4 lg:px-8 py-8">
+          {!canAccessSection(effectiveSection) ? (
+            <div className="bg-card border border-border rounded-lg p-12 text-center">
+              <AlertCircle className="w-12 h-12 text-amber-500 mx-auto mb-4" />
+              <h2 className="text-xl font-semibold text-foreground mb-2">Authorization Required</h2>
+              <p className="text-muted-foreground mb-6">Sign in to access manual sections</p>
+              <button
+                onClick={() => router.push("/login")}
+                className="modern-button"
+              >
+                Sign in
+              </button>
+            </div>
+          ) : SectionComponent ? (
+            <Suspense fallback={<LoadingSpinner />}>
+              {effectiveSection !== "overview" && (
+                <div className="mb-8">
+                  <h1 className="text-2xl font-semibold text-foreground">
+                    {getSectionTitle(effectiveSection)}
+                  </h1>
+                  <div className="w-12 h-0.5 bg-primary mt-3 rounded-full" />
+                </div>
               )}
-            </main>
-          </div>
+              {effectiveSection === "overview" ? (
+                <OverviewSection setActiveSection={setActiveSection} />
+              ) : (
+                <SectionComponent />
+              )}
+            </Suspense>
+          ) : (
+            <div className="bg-card border border-border rounded-lg p-12 text-center">
+              <h2 className="text-xl font-semibold text-foreground mb-2">Section Not Found</h2>
+              <p className="text-muted-foreground">The requested section does not exist or has been moved.</p>
+            </div>
+          )}
         </div>
-      </div>
+      </main>
+    </div>
   )
 }

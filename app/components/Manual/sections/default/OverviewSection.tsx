@@ -2,171 +2,165 @@
 
 import { useAuth } from "@/lib/auth/auth-context"
 import { navItems } from "@/data/manualData"
+import { AlertTriangle, BookOpen, FileText, Syringe, Truck, ArrowRight } from "lucide-react"
 
 interface OverviewSectionProps {
   setActiveSection?: (id: string) => void
 }
 
+const sectionIcons: Record<string, React.ReactNode> = {
+  "positions": <BookOpen className="w-5 h-5" />,
+  "ms-unified-content": <FileText className="w-5 h-5" />,
+  "ss-unified-content": <FileText className="w-5 h-5" />,
+  "commands": <FileText className="w-5 h-5" />,
+  "exam-section": <BookOpen className="w-5 h-5" />,
+  "medical-commission": <FileText className="w-5 h-5" />,
+  "interview": <FileText className="w-5 h-5" />,
+  "medications": <Syringe className="w-5 h-5" />,
+  "medical-card": <FileText className="w-5 h-5" />,
+  "vehicles": <Truck className="w-5 h-5" />,
+}
+
 const OverviewSection = ({ setActiveSection }: OverviewSectionProps = {}) => {
   const { canAccessSection } = useAuth()
 
-  // Маппинг между ID секций и их описаниями
   const sectionDescriptions: Record<string, string> = {
-    "positions": "Иерархия должностей и рангов МЗ",
-    "ms-unified-content": "РП сценарии для младшего состава",
-    "ss-unified-content": "Обучающие материалы для старшего состава",
-    "commands": "Команды и шаблоны для отыгровки",
-    "exam-section": "Правила и процедуры проведения экзаменов",
-    "medical-commission": "Алгоритмы проведения медицинской комиссии",
-    "interview": "Шаблоны и процедуры собеседования",
-    "medications": "Справочник медицинских препаратов",
-    "medical-card": "Работа с медицинскими картами пациентов",
-    "vehicles": "Транспортные средства МЗ",
-    "goss-wave": "Работа с государственной волной связи",
-    "announcements": "Шаблоны объявлений для доски объявлений",
-    "forum-responses": "Шаблоны ответов для работы по форуму",
-    "report-generator": "Генератор отчетов для старшего состава",
-    "user-management": "Управление пользователями системы",
-    "action-log": "Журнал действий и история изменений"
+    "positions": "Hierarchy of positions and ranks",
+    "ms-unified-content": "RP scenarios for junior staff",
+    "ss-unified-content": "Training materials for senior staff",
+    "commands": "Commands and roleplay templates",
+    "exam-section": "Exam rules and procedures",
+    "medical-commission": "Medical commission algorithms",
+    "interview": "Interview templates and procedures",
+    "medications": "Medical preparations reference",
+    "medical-card": "Working with patient medical cards",
+    "vehicles": "Ministry of Health vehicles",
+    "goss-wave": "State communication wave",
+    "announcements": "Announcement board templates",
+    "forum-responses": "Forum response templates",
+    "report-generator": "Senior staff report generator",
+    "user-management": "System user management",
+    "action-log": "Action log and change history"
   }
 
-  // Создаем секции на основе navItems (кроме overview)
   const sections = navItems
     .filter(item => item.id !== "overview")
     .map(item => ({
       id: item.id,
       title: item.title,
-      description: sectionDescriptions[item.id] || "Описание раздела",
-      icon: "•"
+      description: sectionDescriptions[item.id] || "Section description",
     }))
 
-  // Фильтруем секции по правам доступа
   const accessibleSections = sections.filter(section => canAccessSection(section.id))
 
+  const stats = [
+    { label: "Sections", value: accessibleSections.length.toString() },
+    { label: "Medications", value: "30+" },
+    { label: "Vehicles", value: "4" },
+    { label: "Templates", value: "50+" },
+  ]
 
   return (
-    <div className="space-y-6">
-      {/* Заголовок главной страницы */}
-      <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold text-red-300 mb-2">Министерство Здравоохранения</h1>
-        <h2 className="text-2xl font-semibold text-slate-200 mb-1">Методическое пособие</h2>
-        <p className="text-slate-400">Справочно-информационный портал для сотрудников</p>
+    <div className="space-y-8">
+      {/* Hero Section */}
+      <div className="text-center py-8">
+        <h1 className="text-3xl font-semibold text-foreground mb-3">
+          Ministry of Health
+        </h1>
+        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          Methodical Manual - Reference and information portal for employees
+        </p>
       </div>
 
-      {/* Важное уточнение - в самом начале */}
-      <div className="bg-red-900/20 border border-red-700/50 rounded-lg p-5">
-        <div className="flex items-start gap-3">
-          <span className="text-2xl">⚠️</span>
-          <div className="text-red-100">
-            <strong className="text-red-200 block mb-3">Важное уточнение</strong>
-            <ul className="space-y-2 text-sm">
-              <li className="flex items-start gap-2">
-                <span className="text-red-400 mt-0.5">•</span>
-                <span>Данная методичка может содержать неточности или устаревшую информацию</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-red-400 mt-0.5">•</span>
-                <span>Материалы служат основой для изучения, но не являются окончательным источником</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-red-400 mt-0.5">•</span>
-                <span>При возникновении спорных вопросов обращайтесь к актуальным регламентам</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-red-400 mt-0.5">•</span>
-                <span>Администрация не несет ответственности за возможные ошибки в содержании</span>
-              </li>
+      {/* Warning Notice */}
+      <div className="bg-card border border-border rounded-lg p-4">
+        <div className="flex gap-4">
+          <div className="flex-shrink-0">
+            <AlertTriangle className="w-5 h-5 text-amber-500" />
+          </div>
+          <div>
+            <h3 className="text-sm font-medium text-foreground mb-2">Important Notice</h3>
+            <ul className="space-y-1.5 text-sm text-muted-foreground">
+              <li>This manual may contain inaccuracies or outdated information</li>
+              <li>Materials serve as a learning foundation, not the final source</li>
+              <li>For disputed questions, refer to current regulations</li>
+              <li>Administration is not responsible for potential content errors</li>
             </ul>
           </div>
         </div>
       </div>
 
-      {/* Статистические тайлы */}
-      <div className="subsection">
-        <h3 className="text-xl font-semibold text-red-300 mb-4 flex items-center gap-2">
-          <span>📊</span>
-          Статистика методички
-        </h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-gradient-to-br from-blue-900/40 to-blue-800/40 rounded-lg p-4 border border-blue-700/50 text-center">
-            <div className="text-2xl font-bold text-blue-200">{accessibleSections.length}</div>
-            <div className="text-sm text-blue-100">Доступных разделов</div>
+      {/* Stats Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {stats.map((stat) => (
+          <div
+            key={stat.label}
+            className="bg-card border border-border rounded-lg p-4 text-center"
+          >
+            <div className="text-2xl font-semibold text-foreground">{stat.value}</div>
+            <div className="text-sm text-muted-foreground mt-1">{stat.label}</div>
           </div>
-          <div className="bg-gradient-to-br from-green-900/40 to-green-800/40 rounded-lg p-4 border border-green-700/50 text-center">
-            <div className="text-2xl font-bold text-green-200">30+</div>
-            <div className="text-sm text-green-100">Препаратов</div>
-          </div>
-          <div className="bg-gradient-to-br from-purple-900/40 to-purple-800/40 rounded-lg p-4 border border-purple-700/50 text-center">
-            <div className="text-2xl font-bold text-purple-200">4</div>
-            <div className="text-sm text-purple-100">Транспортных средств</div>
-          </div>
-          <div className="bg-gradient-to-br from-orange-900/40 to-orange-800/40 rounded-lg p-4 border border-orange-700/50 text-center">
-            <div className="text-2xl font-bold text-orange-200">50+</div>
-            <div className="text-sm text-orange-100">Шаблонов и команд</div>
-          </div>
-        </div>
+        ))}
       </div>
 
-      <div className="subsection">
-        <h3 className="text-xl font-semibold text-red-300 mb-4 flex items-center gap-2">
-          <span>📋</span>
-          Разделы методички:
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Sections Grid */}
+      <div>
+        <h2 className="text-lg font-semibold text-foreground mb-4">Available Sections</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           {accessibleSections.map((section) => (
-            <div
+            <button
               key={section.id}
               onClick={() => setActiveSection?.(section.id)}
-              className="flex flex-col gap-2 p-4 rounded-lg bg-gradient-to-br from-red-900/40 to-red-800/40 border border-red-700/50 hover:border-red-600/70 hover:bg-gradient-to-br hover:from-red-900/50 hover:to-red-800/50 transition-all cursor-pointer"
+              className="group bg-card border border-border rounded-lg p-4 text-left hover:border-primary/50 transition-colors"
             >
-              <div className="flex items-center gap-2">
-                <span className="text-red-400 text-lg">{section.icon}</span>
-                <strong className="text-white text-sm">{section.title}</strong>
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="text-muted-foreground">
+                    {sectionIcons[section.id] || <FileText className="w-5 h-5" />}
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">
+                      {section.title}
+                    </h3>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {section.description}
+                    </p>
+                  </div>
+                </div>
+                <ArrowRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
-              <p className="text-xs text-slate-300">
-                {section.description}
-              </p>
-            </div>
+            </button>
           ))}
         </div>
 
         {accessibleSections.length === 0 && (
-          <div className="text-center text-slate-400 py-8">
-            Нет доступных разделов для вашей роли.
+          <div className="text-center text-muted-foreground py-12 bg-card border border-border rounded-lg">
+            No sections available for your role.
           </div>
         )}
       </div>
 
-      {/* Примечание о цветовой индикации фраз */}
-      <div className="subsection">
-        <div className="flex items-start gap-3">
-          <span className="text-red-400 text-lg">ℹ️</span>
-          <div className="text-sm text-slate-300">
-            <p className="mb-2">
-              <strong className="text-slate-200">Цветовая индикация фраз копирования:</strong>
-            </p>
-            <div className="flex flex-wrap gap-4">
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded bg-gradient-to-r from-green-400 to-blue-500 border border-green-400/50"></div>
-                <span className="text-green-300">МС - Младший состав</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded bg-gradient-to-r from-orange-400 to-orange-600 border border-orange-400/50"></div>
-                <span className="text-orange-300">СС - Старший состав</span>
-              </div>
-            </div>
+      {/* Color Legend */}
+      <div className="bg-card border border-border rounded-lg p-4">
+        <h3 className="text-sm font-medium text-foreground mb-3">Phrase Color Indication</h3>
+        <div className="flex flex-wrap gap-6 text-sm">
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-gradient-to-r from-emerald-400 to-blue-500" />
+            <span className="text-muted-foreground">MS - Junior Staff</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-gradient-to-r from-orange-400 to-orange-600" />
+            <span className="text-muted-foreground">SS - Senior Staff</span>
           </div>
         </div>
       </div>
 
-      <div className="bg-amber-900/30 border border-amber-700/50 rounded-lg p-5">
-        <div className="flex items-start gap-3">
-          <span className="text-2xl">💡</span>
-          <div className="text-amber-100">
-            <strong className="text-amber-200">Важно:</strong> Данная методичка содержит большинство инструкций для
-            работы. Используйте навигацию слева для быстрого перехода к нужному разделу.
-          </div>
-        </div>
+      {/* Quick Tip */}
+      <div className="bg-accent border border-border rounded-lg p-4 border-l-2 border-l-primary">
+        <p className="text-sm text-muted-foreground">
+          <span className="font-medium text-foreground">Tip:</span> This manual contains most work instructions. 
+          Use the navigation on the left for quick access to the section you need.
+        </p>
       </div>
     </div>
   )

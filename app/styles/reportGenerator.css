@@ -1,63 +1,42 @@
-/* Группы ввода */
+/* Modern Minimal Report Generator Styles */
+
+/* Input groups */
 .input-group {
     display: flex;
     flex-direction: column;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.25rem;
 }
 
 .input-group label {
-    font-weight: 600;
+    font-weight: 500;
     color: var(--foreground);
     margin-bottom: 0.5rem;
-    font-size: 1rem;
-    position: relative;
+    font-size: 0.875rem;
 }
 
-.input-group label::after {
-    content: '';
-    position: absolute;
-    bottom: -2px;
-    left: 0;
-    width: 0;
-    height: 2px;
-    background: var(--primary);
-    transition: width 0.3s ease;
-}
-
-.input-group:focus-within label::after {
-    width: 100%;
-}
-
-/* Стили для input и select - адаптивные под тему */
+/* Input and select styles */
 .input-group input,
 .input-group select {
-    padding: 1rem 1.2rem;
-    border: 2px solid var(--border);
-    border-radius: 12px;
-    font-size: 1rem;
-    background: var(--card);
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 0.875rem;
+    background: var(--input);
     color: var(--foreground);
-    backdrop-filter: blur(10px);
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: border-color 150ms ease;
 }
 
 .input-group input:focus,
 .input-group select:focus {
     outline: none;
     border-color: var(--primary);
-    background: var(--card);
-    box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 15%, transparent);
-    transform: translateY(-2px);
 }
 
 .input-group input::placeholder {
     color: var(--muted-foreground);
-    font-style: italic;
-    opacity: 0.7;
 }
 
-/* Стили для строк элементов */
+/* Item row grid */
 .item-row {
     display: grid;
     grid-template-columns: 1fr 1fr 2fr auto;
@@ -67,173 +46,77 @@
 }
 
 .item-row input {
-    margin-bottom: 0;
-    background: var(--card);
+    background: var(--input);
     color: var(--foreground);
-    backdrop-filter: blur(5px);
-    border: 2px solid var(--border);
-    border-radius: 10px;
-    padding: 0.8rem 1rem;
-    font-size: 0.9rem;
-    transition: all 0.3s ease;
+    border: 1px solid var(--border);
+    border-radius: calc(var(--radius) - 2px);
+    padding: 0.625rem 0.875rem;
+    font-size: 0.875rem;
+    transition: border-color 150ms ease;
 }
 
 .item-row input:focus {
+    outline: none;
     border-color: var(--primary);
-    background: var(--card);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 15%, transparent);
 }
 
 .item-row input::placeholder {
     color: var(--muted-foreground);
-    font-style: italic;
-    opacity: 0.7;
 }
-/* Кнопки */
+
+/* Buttons */
 .add-btn,
 .remove-btn {
-    padding: 0.8rem 1.5rem;
+    padding: 0.625rem 1rem;
     border: none;
-    border-radius: 12px;
-    font-size: 0.9rem;
-    font-weight: 600;
+    border-radius: calc(var(--radius) - 2px);
+    font-size: 0.8125rem;
+    font-weight: 500;
     cursor: pointer;
-    transition: all 0.3s ease;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    position: relative;
-    overflow: hidden;
+    transition: all 150ms ease;
 }
 
 .add-btn {
-    background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
-    color: white;
-    box-shadow: 0 4px 15px rgba(72, 187, 120, 0.3);
-    margin-top: 1rem;
+    background: var(--primary);
+    color: var(--primary-foreground);
+    margin-top: 0.75rem;
     width: 100%;
 }
 
 .add-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(72, 187, 120, 0.4);
+    opacity: 0.9;
 }
 
-.add-btn:active {
-    transform: translateY(0);
-}
-
-/* Кнопка удаления в стиле текста - прозрачная и минималистичная */
 .remove-btn {
     background: transparent;
-    color: #e53e3e;
-    border: 1px solid rgba(229, 62, 62, 0.3);
-    box-shadow: none;
-    padding: 0.6rem 1.2rem;
+    color: var(--destructive);
+    border: 1px solid var(--border);
     white-space: nowrap;
-    backdrop-filter: blur(5px);
-    text-transform: none;
-    letter-spacing: normal;
-    font-weight: 500;
 }
 
 .remove-btn:hover {
-    background: rgba(229, 62, 62, 0.1);
-    color: #c53030;
-    border-color: rgba(229, 62, 62, 0.5);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(229, 62, 62, 0.15);
+    background: color-mix(in srgb, var(--destructive) 10%, transparent);
+    border-color: var(--destructive);
 }
 
-.remove-btn:active {
-    transform: translateY(0);
-    background: rgba(229, 62, 62, 0.2);
-}
-
-/* Эффект волны только для кнопки добавления */
-.add-btn::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0;
-    height: 0;
-    background: rgba(255, 255, 255, 0.3);
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-    transition: width 0.6s, height 0.6s;
-}
-
-.add-btn:active::before {
-    width: 300px;
-    height: 300px;
-}
-
-/* Адаптивный дизайн */
-@media (max-width: 768px) {
-    .subsection {
-        padding: 1.5rem;
-        border-radius: 16px;
-    }
-
-    .item-row {
-        grid-template-columns: 1fr;
-        gap: 0.8rem;
-        padding: 1rem;
-    }
-
-    .remove-btn {
-        justify-self: end;
-        width: auto;
-    }
-}
-
-@media (max-width: 480px) {
-    .subsection {
-        padding: 1rem;
-        margin-bottom: 1rem;
-    }
-
-    .subsection h3 {
-        font-size: 1.2rem;
-    }
-}
-
-/* Стили для секции с отчетом */
-.subsection:last-child {
-    background: linear-gradient(135deg, rgba(26, 32, 44, 0.95) 0%, rgba(45, 55, 72, 0.95) 100%);
-    backdrop-filter: blur(10px);
-    color: #e2e8f0;
-    border: 1px solid rgba(74, 85, 104, 0.6);
-}
-
-.subsection:last-child h3 {
-    color: #e2e8f0;
-    border-bottom-color: #4facfe;
-}
-
-.subsection:last-child h3::before {
-    content: '📄';
-}
-/* Стили для чекбокса - адаптивные под тему */
+/* Checkbox styles */
 .input-group input[type="checkbox"] {
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
-    width: 24px;
-    height: 24px;
-    border: 2px solid var(--primary);
-    border-radius: 6px;
-    background-color: var(--card);
+    width: 18px;
+    height: 18px;
+    border: 1px solid var(--border);
+    border-radius: calc(var(--radius) - 4px);
+    background-color: var(--input);
     position: relative;
     cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 150ms ease;
 }
 
 .input-group input[type="checkbox"]:checked {
     background-color: var(--primary);
     border-color: var(--primary);
-    box-shadow: 0 4px 8px color-mix(in srgb, var(--primary) 30%, transparent);
 }
 
 .input-group input[type="checkbox"]:checked::after {
@@ -242,114 +125,63 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    font-size: 16px;
+    font-size: 12px;
     color: var(--primary-foreground);
     font-weight: bold;
 }
 
-.input-group input[type="checkbox"]:hover {
-    border-color: var(--primary);
-    box-shadow: 0 4px 8px color-mix(in srgb, var(--primary) 20%, transparent);
-}
-
 .input-group input[type="checkbox"]:focus {
     outline: none;
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 25%, transparent);
+    border-color: var(--primary);
 }
 
-/* Стили для лейбла рядом с чекбоксом для лучшей интеграции */
-.input-group label {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 16px;
-    cursor: pointer;
-}
-/* Стили для селекта в строках элементов - адаптивные под тему */
+/* Select in item rows */
 .item-row select {
-    margin-bottom: 0;
-    background: var(--card);
-    backdrop-filter: blur(5px);
-    border: 2px solid var(--border);
-    border-radius: 10px;
-    padding: 0.8rem 1rem;
-    font-size: 0.9rem;
-    transition: all 0.3s ease;
+    background: var(--input);
+    border: 1px solid var(--border);
+    border-radius: calc(var(--radius) - 2px);
+    padding: 0.625rem 0.875rem;
+    font-size: 0.875rem;
+    transition: border-color 150ms ease;
     cursor: pointer;
     color: var(--foreground);
-    font-weight: 500;
-
-    /* Убираем стандартную стрелочку браузера */
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
-
-    /* Добавляем кастомную стрелочку */
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23737373' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
     background-repeat: no-repeat;
-    background-position: right 0.8rem center;
-    background-size: 1.2em;
-    padding-right: 3rem; /* Место для стрелочки */
+    background-position: right 0.75rem center;
+    background-size: 1rem;
+    padding-right: 2.5rem;
 }
 
 .item-row select:focus {
-    border-color: var(--primary);
-    background-color: var(--card);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 15%, transparent);
     outline: none;
+    border-color: var(--primary);
 }
 
-.item-row select:hover {
-    border-color: color-mix(in srgb, var(--primary) 60%, transparent);
-    background-color: color-mix(in srgb, var(--muted) 50%, transparent);
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-/* Стили для опций селекта - адаптивные под тему */
 .item-row select option {
     background-color: var(--card);
     color: var(--foreground);
-    padding: 0.5rem;
-    font-weight: 500;
 }
 
-.item-row select option:hover {
-    background-color: var(--muted);
-}
-
-.item-row select option:checked {
-    background-color: var(--primary);
-    color: var(--primary-foreground);
-}
-
-/* Специальная сетка для attendance с селектом */
 .item-row.attendance-row {
-    grid-template-columns: 200px 2fr auto;
-    gap: 0.5rem;
-    align-items: end;
-    margin-bottom: 0.5rem;
+    grid-template-columns: 180px 2fr auto;
 }
 
-/* Адаптивность для мобильных устройств */
+/* Responsive */
 @media (max-width: 768px) {
-    .item-row select {
-        padding: 0.7rem 0.8rem;
-        padding-right: 2.5rem;
-        font-size: 0.85rem;
-        background-size: 1em;
+    .item-row {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+
+    .remove-btn {
+        justify-self: end;
+        width: auto;
     }
 
     .item-row.attendance-row {
         grid-template-columns: 1fr;
-        gap: 0.8rem;
-    }
-}
-
-@media (max-width: 480px) {
-    .item-row select {
-        background-size: 0.9em;
-        background-position: right 0.6rem center;
-        padding-right: 2.2rem;
     }
 }

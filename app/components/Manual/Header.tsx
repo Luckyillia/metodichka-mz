@@ -1,20 +1,20 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
-import { Users, LogOut, Shield, Palette } from "lucide-react"
+import { LogOut, User, Palette, Check, ChevronDown } from "lucide-react"
 import { useAuth } from "@/lib/auth/auth-context"
 import { useRouter } from "next/navigation"
 
 type Theme = 'dark' | 'theme-crimson-gradient' | 'theme-sunset-gradient' | 'theme-mz-glow' | 'theme-midnight-purple' | 'theme-aurora'
 
-const themes: { value: Theme; label: string; icon: string }[] = [
-  { value: 'dark', label: 'Синяя', icon: '🔵' },
-  { value: 'theme-crimson-gradient', label: 'Красная', icon: '🔴' },
-  { value: 'theme-sunset-gradient', label: 'Закат', icon: '🌅' },
-  { value: 'theme-mz-glow', label: 'МЗ Glow', icon: '✨' },
-  { value: 'theme-midnight-purple', label: 'Полночь', icon: '🔮' },
-  { value: 'theme-aurora', label: 'Аврора', icon: '🌌' },
+const themes: { value: Theme; label: string; color: string }[] = [
+  { value: 'dark', label: 'Default Dark', color: '#fafafa' },
+  { value: 'theme-mz-glow', label: 'Medical Red', color: '#ef4444' },
+  { value: 'theme-crimson-gradient', label: 'Crimson', color: '#ef4444' },
+  { value: 'theme-sunset-gradient', label: 'Sunset', color: '#f97316' },
+  { value: 'theme-midnight-purple', label: 'Midnight', color: '#a855f7' },
+  { value: 'theme-aurora', label: 'Aurora', color: '#14b8a6' },
 ]
 
 const initialsFromNick = (nick: string) => {
@@ -29,53 +29,50 @@ export default function Header() {
   const router = useRouter()
   const [currentTheme, setCurrentTheme] = useState<Theme>('dark')
   const [showThemeMenu, setShowThemeMenu] = useState(false)
+  const [showUserMenu, setShowUserMenu] = useState(false)
+  const themeMenuRef = useRef<HTMLDivElement>(null)
+  const userMenuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const savedTheme = (localStorage.getItem('theme') as Theme) || 'dark'
-    const root = document.documentElement;
-    const themeClasses = themes.map(t => t.value);
-    root.classList.remove(...themeClasses);
-    root.classList.add(savedTheme);
+    setCurrentTheme(savedTheme)
+    const root = document.documentElement
+    const themeClasses = themes.map(t => t.value)
+    root.classList.remove(...themeClasses)
+    root.classList.add(savedTheme)
   }, [])
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as HTMLElement
-      if (showThemeMenu && !target.closest('.theme-menu-container')) {
+      if (themeMenuRef.current && !themeMenuRef.current.contains(event.target as Node)) {
         setShowThemeMenu(false)
+      }
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setShowUserMenu(false)
       }
     }
 
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [showThemeMenu])
+  }, [])
 
   const changeTheme = (theme: Theme) => {
-    const root = document.documentElement;
-    const themeClasses = themes.map(t => t.value);
+    const root = document.documentElement
+    const themeClasses = themes.map(t => t.value)
     
-    // Add temporary class to disable transitions
-    root.classList.add('theme-switching');
+    root.classList.add('theme-switching')
+    root.classList.remove(...themeClasses)
+    root.classList.add(theme)
     
-    // Remove all possible theme classes
-    root.classList.remove(...themeClasses);
-    // Add the new theme class
-    root.classList.add(theme);
+    setCurrentTheme(theme)
+    localStorage.setItem('theme', theme)
     
-    setCurrentTheme(theme);
-    localStorage.setItem('theme', theme);
-    
-    // Dispatch a custom event when theme changes
-    window.dispatchEvent(new CustomEvent('theme-changed', {
-      detail: { theme }
-    }));
-    
-    setShowThemeMenu(false);
+    window.dispatchEvent(new CustomEvent('theme-changed', { detail: { theme } }))
+    setShowThemeMenu(false)
 
-    // Remove temporary class after a short delay
     setTimeout(() => {
-      root.classList.remove('theme-switching');
-    }, 300);
+      root.classList.remove('theme-switching')
+    }, 300)
   }
 
   const handleLogout = () => {
@@ -84,112 +81,138 @@ export default function Header() {
   }
 
   const getCityLabel = (city: string) => {
-    const cities = {
-      "CGB-N": "ЦГБ-Н",
-      "CGB-P": "ЦГБ-П",
-      "OKB-M": "ОКБ-М",
+    const cities: Record<string, string> = {
+      "CGB-N": "CGB-N",
+      "CGB-P": "CGB-P",
+      "OKB-M": "OKB-M",
     }
-    return cities[city as keyof typeof cities] || city
+    return cities[city] || city
   }
 
-  const getRoleBadge = (role: string, city?: string) => {
-    const badges = {
-      root: { label: "Суперадмин", color: "bg-purple-600" },
-      admin: { label: "Администратор", color: "bg-red-600" },
-      ld: { label: `Лидер ${city ? getCityLabel(city) : ''}`, color: "bg-pink-600" },
-      cc: { label: `СС ${city ? getCityLabel(city) : ''}`, color: "bg-blue-600" },
-      instructor: { label: `Инструктор ${city ? getCityLabel(city) : ''}`, color: "bg-amber-600" },
-      user: { label: `Участник ${city ? getCityLabel(city) : ''}`, color: "bg-green-600" },
+  const getRoleBadge = (role: string) => {
+    const badges: Record<string, string> = {
+      root: "Admin",
+      admin: "Admin",
+      ld: "Leader",
+      cc: "Senior",
+      instructor: "Instructor",
+      user: "Member",
     }
-    return badges[role as keyof typeof badges] || { label: role, color: "bg-gray-600" }
+    return badges[role] || role
   }
 
   return (
-    <header className="modern-nav ml-64">
-      <div className="max-w-7xl mx-auto px-6 py-4">
+    <header className="modern-nav ml-0 lg:ml-64">
+      <div className="max-w-7xl mx-auto px-4 lg:px-6 py-3">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="text-2xl">🏥</span>
-            <h1 className="text-xl font-semibold text-foreground">Методичка Министерства Здравоохранения</h1>
+          {/* Page title - hidden on mobile since sidebar toggle is there */}
+          <div className="hidden lg:flex items-center gap-2">
+            <h1 className="text-lg font-semibold text-foreground">
+              Medical Manual
+            </h1>
           </div>
 
-          <div className="flex items-center gap-4">
+          {/* Spacer for mobile */}
+          <div className="lg:hidden" />
+
+          <div className="flex items-center gap-2">
             {/* Theme Switcher */}
-            <div className="relative theme-menu-container">
+            <div className="relative" ref={themeMenuRef}>
               <button
                 onClick={() => setShowThemeMenu(!showThemeMenu)}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors border-2 border-border"
-                title="Сменить тему"
+                className="flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-accent transition-colors border border-border"
+                aria-label="Change theme"
               >
-                <Palette className="w-4 h-4" />
-                <span className="text-sm">{themes.find(t => t.value === currentTheme)?.icon || themes[0]?.icon}</span>
+                <Palette className="w-4 h-4 text-muted-foreground" />
+                <span className="hidden sm:inline text-muted-foreground">Theme</span>
+                <ChevronDown className={`w-3 h-3 text-muted-foreground transition-transform ${showThemeMenu ? 'rotate-180' : ''}`} />
               </button>
               
               {showThemeMenu && (
-                <div className="absolute right-0 mt-2 w-48 bg-card border-2 border-border rounded-lg shadow-lg overflow-hidden z-50">
-                  {themes.map((theme) => (
-                    <button
-                      key={theme.value}
-                      onClick={() => changeTheme(theme.value)}
-                      className={`w-full px-4 py-3 text-left flex items-center gap-3 hover:bg-accent hover:text-accent-foreground transition-colors ${
-                        currentTheme === theme.value ? 'bg-primary text-primary-foreground font-semibold' : 'text-card-foreground'
-                      }`}
-                    >
-                      <span className="text-lg">{theme.icon}</span>
-                      <span className="text-sm">{theme.label}</span>
-                    </button>
-                  ))}
+                <div className="absolute right-0 mt-2 w-48 bg-card border border-border rounded-md shadow-lg overflow-hidden z-50">
+                  <div className="py-1">
+                    {themes.map((theme) => (
+                      <button
+                        key={theme.value}
+                        onClick={() => changeTheme(theme.value)}
+                        className="w-full px-3 py-2 text-left flex items-center gap-3 hover:bg-accent transition-colors text-sm"
+                      >
+                        <div
+                          className="w-3 h-3 rounded-full border border-border"
+                          style={{ backgroundColor: theme.color }}
+                        />
+                        <span className="flex-1 text-foreground">{theme.label}</span>
+                        {currentTheme === theme.value && (
+                          <Check className="w-4 h-4 text-primary" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
 
-            {/* Auth section - suppress hydration warning due to client-side auth state */}
-            <div className="flex items-center gap-2" suppressHydrationWarning>
+            {/* User section */}
+            <div suppressHydrationWarning>
               {isAuthenticated && user ? (
-                <>
-                  <Link
-                    href="/profile"
-                    className="flex items-center gap-3 px-4 py-2 bg-secondary rounded-lg border-2 border-border hover:bg-secondary/80 transition-colors"
-                    title="Личный кабинет"
+                <div className="relative" ref={userMenuRef}>
+                  <button
+                    onClick={() => setShowUserMenu(!showUserMenu)}
+                    className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-accent transition-colors border border-border"
                   >
                     {user.avatar_url ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={user.avatar_url}
-                        alt="avatar"
-                        className="w-10 h-10 rounded-full object-cover border-2 border-border"
+                        alt=""
+                        className="w-6 h-6 rounded-full object-cover"
                       />
                     ) : (
-                      <div className="w-10 h-10 rounded-full bg-muted border-2 border-border flex items-center justify-center text-sm font-semibold text-foreground">
+                      <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-xs font-medium text-primary-foreground">
                         {initialsFromNick(user.game_nick)}
                       </div>
                     )}
-
-                    <div className="flex flex-col">
-                      <span className="text-sm font-medium text-foreground flex items-center gap-2">
-                        <Shield className="w-4 h-4 text-muted-foreground"/>
-                        {user.game_nick}
-                      </span>
-                      <span className={`text-xs px-2 py-0.5 rounded ${getRoleBadge(user.role, user.city).color} text-white w-fit`}>
-                        {getRoleBadge(user.role, user.city).label}
-                      </span>
-                    </div>
-                  </Link>
-                  <button
-                      onClick={handleLogout}
-                      className="modern-button flex items-center gap-2"
-                  >
-                    <LogOut className="w-4 h-4"/>
-                    <span>Выйти</span>
+                    <span className="hidden sm:inline text-sm font-medium text-foreground">
+                      {user.game_nick}
+                    </span>
+                    <ChevronDown className={`w-3 h-3 text-muted-foreground transition-transform ${showUserMenu ? 'rotate-180' : ''}`} />
                   </button>
-                </>
+
+                  {showUserMenu && (
+                    <div className="absolute right-0 mt-2 w-56 bg-card border border-border rounded-md shadow-lg overflow-hidden z-50">
+                      <div className="px-3 py-3 border-b border-border">
+                        <p className="text-sm font-medium text-foreground">{user.game_nick}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {getRoleBadge(user.role)} {user.city && `• ${getCityLabel(user.city)}`}
+                        </p>
+                      </div>
+                      <div className="py-1">
+                        <Link
+                          href="/profile"
+                          onClick={() => setShowUserMenu(false)}
+                          className="flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-accent transition-colors"
+                        >
+                          <User className="w-4 h-4 text-muted-foreground" />
+                          Profile
+                        </Link>
+                        <button
+                          onClick={handleLogout}
+                          className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-accent transition-colors"
+                        >
+                          <LogOut className="w-4 h-4 text-muted-foreground" />
+                          Sign out
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
               ) : (
                 <Link
                   href="/login"
                   className="modern-button flex items-center gap-2"
                 >
-                  <Users className="w-4 h-4" />
-                  <span>Войти</span>
+                  <User className="w-4 h-4" />
+                  <span>Sign in</span>
                 </Link>
               )}
             </div>
