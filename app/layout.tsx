@@ -3,8 +3,10 @@ import { Analytics } from "@vercel/analytics/next"
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import { Inter, Playfair_Display } from "next/font/google"
 import "@/app/styles/globals.css"
+import "@/app/styles/modern.css"
 import { Suspense } from "react"
 import { AuthProvider } from "@/lib/auth/auth-context"
+import { Providers } from "@/app/components/providers/Providers"
 import type { Metadata } from "next"
 import { AppFooter } from "@/app/components/common/AppFooter"
 
@@ -45,10 +47,12 @@ export default function RootLayout({
       <body className={`${inter.variable} ${playfair.variable} font-sans`}>
         <Suspense fallback={null}>
           <AuthProvider>
-            {children}
-            <AppFooter />
-            <Analytics />
-            <SpeedInsights />
+            <Providers>
+              {children}
+              <AppFooter />
+              <Analytics />
+              <SpeedInsights />
+            </Providers>
           </AuthProvider>
         </Suspense>
       </body>

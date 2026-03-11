@@ -69,9 +69,9 @@ export async function POST(request: Request) {
         }, { status: 403 })
       }
       
-      if (existingUser.role !== "user" && existingUser.role !== "cc") {
+      if (existingUser.role !== "user" && existingUser.role !== "cc" && existingUser.role !== "instructor") {
         return NextResponse.json({ 
-          error: "Лидер может перемещать только игроков с ролями User и CC" 
+          error: "Лидер может перемещать только игроков с ролями User, CC и Instructor" 
         }, { status: 403 })
       }
 
@@ -82,7 +82,7 @@ export async function POST(request: Request) {
         }, { status: 400 })
       }
     } else if (currentUser.role === "admin") {
-      // Admin может перемещать user, cc, ld
+      // Admin может перемещать user, cc, ld, instructor
       if (existingUser.role === "admin" || existingUser.role === "root") {
         return NextResponse.json({ 
           error: "Администратор не может перемещать администраторов и root" 

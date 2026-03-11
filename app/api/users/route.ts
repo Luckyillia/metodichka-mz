@@ -37,7 +37,7 @@ export async function GET(request: Request) {
 
     let query = supabaseAdmin
         .from("users")
-        .select("id, username, game_nick, role, status, city, created_at, avatar_url, avatar_public_id, avatar_uploaded_at, avatar_moderation_status, id_photo_url")
+        .select("id, username, game_nick, role, status, city, created_at, avatar_url, avatar_public_id, avatar_uploaded_at, avatar_moderation_status, id_photo_url, last_seen")
         .order("created_at", { ascending: false })
 
     // Лидер видит только пользователей своего города
@@ -95,7 +95,7 @@ export async function POST(request: Request) {
 
     if (currentUser.role === "admin" && (role === "admin" || role === "root")) {
       return NextResponse.json(
-          { error: "Администраторы могут создавать только пользователей с ролями 'user', 'cc' и 'ld'" },
+          { error: "Администраторы могут создавать только пользователей с ролями 'user', 'cc', 'instructor' и 'ld'" },
           { status: 403 }
       )
     }
@@ -758,7 +758,7 @@ export async function PATCH(request: Request) {
 
       if (role === "admin" || role === "root") {
         return NextResponse.json(
-            { error: "Администраторы могут назначать только роли 'user', 'cc' и 'ld'" },
+            { error: "Администраторы могут назначать только роли 'user', 'cc', 'instructor' и 'ld'" },
             { status: 403 }
         )
       }
@@ -861,10 +861,10 @@ export async function DELETE(request: Request) {
       )
     }
 
-    // Лидер может деактивировать только cc и user
-    if (currentUser.role === "ld" && existingUser.role !== "cc" && existingUser.role !== "user") {
+    // Лидер может деактивировать только cc, user и instructor
+    if (currentUser.role === "ld" && existingUser.role !== "cc" && existingUser.role !== "user" && existingUser.role !== "instructor") {
       return NextResponse.json(
-          { error: "Лидер может деактивировать только пользователей с ролями CC и User" },
+          { error: "Лидер может деактивировать только пользователей с ролями CC, User и Instructor" },
           { status: 403 }
       )
     }

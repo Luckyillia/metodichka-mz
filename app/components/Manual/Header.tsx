@@ -2,9 +2,12 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { Users, LogOut, Shield, Palette } from "lucide-react"
+import { Users, LogOut, Shield, Palette, Bookmark, History, Bell } from "lucide-react"
 import { useAuth } from "@/lib/auth/auth-context"
 import { useRouter } from "next/navigation"
+import { useBookmarks } from "@/app/components/common/Bookmarks"
+import { useHistory } from "@/app/components/common/History"
+import { RealtimeNotifications } from "@/app/components/common/RealtimeNotifications"
 
 type Theme = 'dark' | 'theme-crimson-gradient' | 'theme-sunset-gradient' | 'theme-mz-glow' | 'theme-midnight-purple' | 'theme-aurora'
 
@@ -29,6 +32,11 @@ export default function Header() {
   const router = useRouter()
   const [currentTheme, setCurrentTheme] = useState<Theme>('dark')
   const [showThemeMenu, setShowThemeMenu] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   useEffect(() => {
     const savedTheme = (localStorage.getItem('theme') as Theme) || 'dark'
@@ -105,94 +113,102 @@ export default function Header() {
   }
 
   return (
-    <header className="modern-nav ml-64">
-      <div className="max-w-7xl mx-auto px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="text-2xl">🏥</span>
-            <h1 className="text-xl font-semibold text-foreground">Методичка Министерства Здравоохранения</h1>
+    <header className="modern-nav w-full lg:w-[calc(100%-16rem)] lg:ml-64 sticky top-0 z-30">
+      <div className="w-full mx-auto px-4 md:px-6 py-3 md:py-4">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3 ml-12 lg:ml-0">
+            <span className="text-xl md:text-2xl flex-shrink-0">🏥</span>
+            <h1 className="text-sm md:text-xl font-semibold text-foreground line-clamp-1">Методичка МЗ</h1>
           </div>
 
-          <div className="flex items-center gap-4">
-            {/* Theme Switcher */}
+          <div className="flex items-center gap-2 md:gap-4 flex-shrink-0">
+            {/* Desktop Action buttons */}
+            <div className="hidden md:flex items-center gap-2">
+              <RealtimeNotifications />
+              <button
+                onClick={() => window.dispatchEvent(new CustomEvent('toggle-bookmarks'))}
+                className="p-2 rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors border-2 border-border"
+                title="Избранное"
+              >
+                <Bookmark className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => window.dispatchEvent(new CustomEvent('toggle-history'))}
+                className="p-2 rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors border-2 border-border"
+                title="История"
+              >
+                <History className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Theme Switcher - shown on both but smaller on mobile */}
             <div className="relative theme-menu-container">
               <button
                 onClick={() => setShowThemeMenu(!showThemeMenu)}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors border-2 border-border"
+                className="flex items-center gap-2 px-2 py-1.5 md:px-3 md:py-2 rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors border-2 border-border"
                 title="Сменить тему"
               >
                 <Palette className="w-4 h-4" />
-                <span className="text-sm">{themes.find(t => t.value === currentTheme)?.icon || themes[0]?.icon}</span>
+                <span className="text-xs md:text-sm">{themes.find(t => t.value === currentTheme)?.icon || themes[0]?.icon}</span>
               </button>
               
               {showThemeMenu && (
-                <div className="absolute right-0 mt-2 w-48 bg-card border-2 border-border rounded-lg shadow-lg overflow-hidden z-50">
+                <div className="absolute right-0 mt-2 w-40 md:w-48 bg-card border-2 border-border rounded-xl shadow-2xl overflow-hidden z-[100] glass-dark">
                   {themes.map((theme) => (
                     <button
                       key={theme.value}
                       onClick={() => changeTheme(theme.value)}
-                      className={`w-full px-4 py-3 text-left flex items-center gap-3 hover:bg-accent hover:text-accent-foreground transition-colors ${
-                        currentTheme === theme.value ? 'bg-primary text-primary-foreground font-semibold' : 'text-card-foreground'
+                      className={`w-full px-4 py-2.5 md:py-3 text-left flex items-center gap-3 hover:bg-accent hover:text-accent-foreground transition-colors ${
+                        currentTheme === theme.value ? 'bg-primary/20 text-primary font-bold' : 'text-card-foreground'
                       }`}
                     >
-                      <span className="text-lg">{theme.icon}</span>
-                      <span className="text-sm">{theme.label}</span>
+                      <span className="text-base md:text-lg">{theme.icon}</span>
+                      <span className="text-xs md:text-sm">{theme.label}</span>
                     </button>
                   ))}
                 </div>
               )}
             </div>
 
-            {/* Auth section - suppress hydration warning due to client-side auth state */}
-            <div className="flex items-center gap-2" suppressHydrationWarning>
-              {isAuthenticated && user ? (
-                <>
+            {/* Auth section */}
+            {mounted && (
+              <div className="flex items-center gap-2">
+                {isAuthenticated && user ? (
                   <Link
                     href="/profile"
-                    className="flex items-center gap-3 px-4 py-2 bg-secondary rounded-lg border-2 border-border hover:bg-secondary/80 transition-colors"
+                    className="flex items-center gap-2 md:gap-3 p-1 md:px-4 md:py-2 bg-secondary rounded-lg border-2 border-border hover:bg-secondary/80 transition-colors"
                     title="Личный кабинет"
                   >
                     {user.avatar_url ? (
-                      // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={user.avatar_url}
                         alt="avatar"
-                        className="w-10 h-10 rounded-full object-cover border-2 border-border"
+                        className="w-7 h-7 md:w-10 md:h-10 rounded-full object-cover border-2 border-border"
                       />
                     ) : (
-                      <div className="w-10 h-10 rounded-full bg-muted border-2 border-border flex items-center justify-center text-sm font-semibold text-foreground">
+                      <div className="w-7 h-7 md:w-10 md:h-10 rounded-full bg-muted border-2 border-border flex items-center justify-center text-[10px] md:text-sm font-semibold text-foreground">
                         {initialsFromNick(user.game_nick)}
                       </div>
                     )}
 
-                    <div className="flex flex-col">
-                      <span className="text-sm font-medium text-foreground flex items-center gap-2">
-                        <Shield className="w-4 h-4 text-muted-foreground"/>
+                    <div className="hidden sm:flex flex-col">
+                      <span className="text-xs md:text-sm font-medium text-foreground flex items-center gap-2">
+                        <Shield className="w-3 h-3 md:w-4 md:h-4 text-muted-foreground"/>
                         {user.game_nick}
-                      </span>
-                      <span className={`text-xs px-2 py-0.5 rounded ${getRoleBadge(user.role, user.city).color} text-white w-fit`}>
-                        {getRoleBadge(user.role, user.city).label}
                       </span>
                     </div>
                   </Link>
-                  <button
-                      onClick={handleLogout}
-                      className="modern-button flex items-center gap-2"
+                ) : (
+                  <Link
+                    href="/login"
+                    className="modern-button flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm"
                   >
-                    <LogOut className="w-4 h-4"/>
-                    <span>Выйти</span>
-                  </button>
-                </>
-              ) : (
-                <Link
-                  href="/login"
-                  className="modern-button flex items-center gap-2"
-                >
-                  <Users className="w-4 h-4" />
-                  <span>Войти</span>
-                </Link>
-              )}
-            </div>
+                    <Users className="w-4 h-4"/>
+                    <span>Войти</span>
+                  </Link>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>

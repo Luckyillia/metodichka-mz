@@ -203,6 +203,22 @@ export class AuthService {
       throw error
     }
   }
+  static async updateLastSeen(userId: string): Promise<void> {
+    try {
+      const token = this.getAuthToken();
+      await fetch("/api/users/last-seen", {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          ...(token ? { "Authorization": `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({ userId }),
+      })
+    } catch (error) {
+      console.error("[AuthService] Error updating last seen:", error)
+    }
+  }
+
   static getAuthToken(): string | null {
     if (typeof window === "undefined") {
       return null
@@ -314,33 +330,40 @@ export class AuthService {
       limit: number = 100,
       offset: number = 0,
       filters?: {
-        action_type?: string
-        target_type?: string
-        user_id?: string
+          action_type?:  string   // тип действия (create, update, delete...)
+          target_type?:  string   // тип объекта (user, system...)
+          user_id?:      string   // фильтр по ID пользователя
+          search?:       string   // поиск по тексту действия и нику
+          performed_by?: string   // поиск по нику (частичное совпадение)
+          date_from?:    string   // дата от (YYYY-MM-DD)
+          date_to?:      string   // дата до (YYYY-MM-DD)
       }
   ): Promise<{ logs: ActionLog[]; total: number }> {
-    try {
-      const params = new URLSearchParams({
-        limit: limit.toString(),
-        offset: offset.toString(),
-      })
+      try {
+          const params = new URLSearchParams({
+              limit:  limit.toString(),
+              offset: offset.toString(),
+          })
 
-      if (filters?.action_type) params.append("action_type", filters.action_type)
-      if (filters?.target_type) params.append("target_type", filters.target_type)
-      if (filters?.user_id) params.append("user_id", filters.user_id)
+          if (filters?.action_type)  params.append("action_type",  filters.action_type)
+          if (filters?.target_type)  params.append("target_type",  filters.target_type)
+          if (filters?.user_id)      params.append("user_id",       filters.user_id)
+          if (filters?.search)       params.append("search",        filters.search)
+          if (filters?.performed_by) params.append("performed_by",  filters.performed_by)
+          if (filters?.date_from)    params.append("date_from",     filters.date_from)
+          if (filters?.date_to)      params.append("date_to",       filters.date_to)
 
-      const response = await this.fetchWithAuth(`/api/action-logs?${params.toString()}`)
+          const response = await this.fetchWithAuth(`/api/action-logs?${params.toString()}`)
 
-      if (!response.ok) {
-        throw new Error(`Failed to fetch logs: ${response.status}`)
+          if (!response.ok) {
+              throw new Error(`Failed to fetch logs: ${response.status}`)
+          }
+
+          return await response.json()
+      } catch (error) {
+          console.error("[AuthService] Error fetching logs:", error)
+          return { logs: [], total: 0 }
       }
-
-      const data = await response.json()
-      return data
-    } catch (error) {
-      console.error("[AuthService] Error fetching logs:", error)
-      return { logs: [], total: 0 }
-    }
   }
 
   // ===== ИСПРАВЛЕННЫЕ МЕТОДЫ ДЛЯ РАБОТЫ С ПОЛЬЗОВАТЕЛЯМИ =====

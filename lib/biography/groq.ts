@@ -169,6 +169,7 @@ export async function validateBiographyWithGroq(params: {
   currentDateISO: string
   model: GroqBiographyModel
   apiKey?: string
+  strict?: boolean
 }) {
   const apiKey = params.apiKey || process.env.GROQ_API_KEY
   if (!apiKey) throw new Error("GROQ_API_KEY не задан")
@@ -178,16 +179,23 @@ export async function validateBiographyWithGroq(params: {
   const messages = buildBiographyValidationPrompt({
     biographyText:  params.biographyText,
     currentDateISO: params.currentDateISO,
+    strict: params.strict,
   })
 
-  const completion = await groq.chat.completions.create({
+  const options: any = {
     model: params.model,
     messages,
     temperature: 0.2,
     max_tokens: 2500,
     top_p: 1,
-    response_format: { type: "json_object" } as any,
-  } as any)
+  }
+
+  // OpenAI model on Groq might not support json_object mode or might be stricter about it
+  if (params.model.includes("llama")) {
+    options.response_format = { type: "json_object" }
+  }
+
+  const completion = await groq.chat.completions.create(options)
 
   const content = completion.choices?.[0]?.message?.content
   if (!content) throw new Error("Пустой ответ от AI")

@@ -1,7 +1,10 @@
 import { generateReport, generateDocxReport } from '../utils';
 import { CityData } from '../types';
+import { useToast } from '@/app/components/common/Toast';
 
 export const useReportGeneration = () => {
+    const { showSuccess, showError } = useToast();
+
     const copyReport = (
         gsNickname: string,
         organization: string,
@@ -21,7 +24,7 @@ export const useReportGeneration = () => {
             generalInfo
         );
         navigator.clipboard.writeText(report);
-        alert('Отчет ГС скопирован в буфер обмена!');
+        showSuccess('Отчет ГС скопирован в буфер обмена');
     };
 
     const downloadDocxReport = async (
@@ -43,10 +46,10 @@ export const useReportGeneration = () => {
                 grpEvents,
                 generalInfo
             );
-            alert('Отчет ГС успешно скачан!');
+            showSuccess('Отчет ГС успешно скачан');
         } catch (error) {
             console.error('Ошибка при создании документа:', error);
-            alert('Ошибка при создании документа. Попробуйте снова.');
+            showError('Ошибка при создании документа. Попробуйте снова.');
         }
     };
 

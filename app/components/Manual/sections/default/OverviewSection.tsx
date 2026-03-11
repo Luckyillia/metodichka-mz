@@ -2,6 +2,7 @@
 
 import { useAuth } from "@/lib/auth/auth-context"
 import { navItems } from "@/data/manualData"
+import { ProgressStats } from "@/app/components/common/LearningProgress"
 
 interface OverviewSectionProps {
   setActiveSection?: (id: string) => void
@@ -52,7 +53,6 @@ const OverviewSection = ({ setActiveSection }: OverviewSectionProps = {}) => {
         <h2 className="text-2xl font-semibold text-slate-200 mb-1">Методическое пособие</h2>
         <p className="text-slate-400">Справочно-информационный портал для сотрудников</p>
       </div>
-
       {/* Важное уточнение - в самом начале */}
       <div className="bg-red-900/20 border border-red-700/50 rounded-lg p-5">
         <div className="flex items-start gap-3">
@@ -79,6 +79,10 @@ const OverviewSection = ({ setActiveSection }: OverviewSectionProps = {}) => {
             </ul>
           </div>
         </div>
+      </div>
+      {/* Прогресс обучения - оставляем только его */}
+      <div className="w-full">
+        <ProgressStats />
       </div>
 
       {/* Статистические тайлы */}

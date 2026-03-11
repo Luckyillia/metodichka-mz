@@ -54,17 +54,17 @@ export const useUserFilters = (
   }, [filterCity, filterOrder, filterRole, searchQuery, sortOrder])
 
   const getFilteredUsersByRole = useCallback((usersList: UserType[]): UserType[] => {
-    // Лидер видит только user, cc и ld своего города
+    // Лидер видит только user, cc, instructor и ld своего города
     if (currentUserRole === "ld") {
       return usersList.filter((u) => 
-        (u.role === "cc" || u.role === "user" || u.role === "ld")
+        (u.role === "cc" || u.role === "user" || u.role === "ld" || u.role === "instructor")
       )
     }
     // Админ видит всех, кроме других админов и root в запросах
     if (currentUserRole === "admin") {
       if (usersList.some(u => u.status === "request")) {
         return usersList.filter((u) => 
-          u.role === "cc" || u.role === "user" || u.role === "ld"
+          u.role === "cc" || u.role === "user" || u.role === "ld" || u.role === "instructor"
         )
       }
       return usersList
@@ -99,7 +99,7 @@ export const useUserFilters = (
   const stats = useMemo(() => {
     const allUsers = users.filter(u => {
       if (currentUserRole === "ld") {
-        return u.role === "cc" || u.role === "user" || u.role === "ld"
+        return u.role === "cc" || u.role === "user" || u.role === "ld" || u.role === "instructor"
       }
       return true
     })

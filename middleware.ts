@@ -65,9 +65,21 @@ export async function middleware(request: NextRequest) {
             return NextResponse.json({ error: 'Недействительный токен' }, { status: 401 })
         }
 
-        // Проверяем права для управления пользователями и админских эндпоинтов
-        if (path.startsWith('/api/users') || path.startsWith('/api/admin')) {
-            if (user.role !== 'root' && user.role !== 'admin' && user.role !== 'ld') {
+    // Проверяем права для управления пользователями и админских эндпоинтов
+    if (path.startsWith('/api/users') || path.startsWith('/api/admin')) {
+        // Разрешаем обновление last_seen всем авторизованным пользователям
+        if (path === '/api/users/last-seen' && request.method === 'POST') {
+            const lastSeenHeaders = new Headers(request.headers)
+            lastSeenHeaders.set('x-user-id', user.id)
+            lastSeenHeaders.set('x-user-role', user.role)
+            return NextResponse.next({
+                request: {
+                    headers: lastSeenHeaders
+                }
+            })
+        }
+
+        if (user.role !== 'root' && user.role !== 'admin' && user.role !== 'ld') {
                 console.log('[Middleware] Insufficient permissions for users API')
 
                 try {

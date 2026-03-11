@@ -86,6 +86,8 @@ export async function POST(request: Request) {
     const body = await request.json()
     const biographyText = String(body?.biographyText || "")
     const debug = Boolean(body?.debug)
+    const strict = body?.strict === false ? false : true
+    const compareBoth = Boolean(body?.compareBoth)
     const apiKeyFromBody = typeof body?.apiKey === "string" ? body.apiKey : null
     const requestedModel = String(body?.model || "llama-3.3-70b-versatile")
     const allowedModels: GroqBiographyModel[] = ["llama-3.3-70b-versatile", "openai/gpt-oss-120b"]
@@ -134,14 +136,35 @@ export async function POST(request: Request) {
 
     const normalized = normalizeBiographyTo13Sections(biographyText)
 
-    let result
-    try {
-      result = await validateBiographyWithGroq({
+    const callModel = async (m: GroqBiographyModel) => {
+      return await validateBiographyWithGroq({
         biographyText: normalized.normalizedText,
         currentDateISO,
-        model,
+        model: m,
         apiKey,
+        strict,
       })
+    }
+
+    let result: any
+    let compare: any = undefined
+
+    try {
+      if (compareBoth) {
+        const [fastRes, smartRes] = await Promise.all([
+          callModel("llama-3.3-70b-versatile"),
+          callModel("openai/gpt-oss-120b"),
+        ])
+        // Store models in a separate object first to avoid circular reference
+        compare = {
+          fast: { model: "llama-3.3-70b-versatile", result: { ...fastRes } },
+          smart: { model: "openai/gpt-oss-120b", result: { ...smartRes } },
+        }
+        // Primary result is a shallow copy of fastRes
+        result = { ...fastRes }
+      } else {
+        result = await callModel(model)
+      }
     } catch (e: any) {
       const message =
         e?.error?.message ||
@@ -203,9 +226,13 @@ export async function POST(request: Request) {
       status: normalized.missingSections.length > 0 || normalized.emptySections.length > 0 ? "error" : "success",
     }
 
+    if (compareBoth) {
+      result.compare = compare
+    }
+
     if (debug) {
       ;(result as any).debug = {
-        model,
+        model: compareBoth ? "compare" : model,
         normalizedText: normalized.normalizedText,
         normalization: {
           missingSections: normalized.missingSections,

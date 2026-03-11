@@ -76,3 +76,42 @@ export const getRoleBadgeColor = (role: string): string => {
     }
     return labels[actionType] || actionType
   }
+  
+  export const formatRelativeTime = (dateString?: string | null): string => {
+    if (!dateString) return "Никогда"
+    
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
+    
+    if (diffInSeconds < 60) return "только что"
+    
+    const diffInMinutes = Math.floor(diffInSeconds / 60)
+    if (diffInMinutes < 60) {
+      if (diffInMinutes === 1) return "1 минуту назад"
+      if (diffInMinutes >= 2 && diffInMinutes <= 4) return `${diffInMinutes} минуты назад`
+      return `${diffInMinutes} минут назад`
+    }
+    
+    const diffInHours = Math.floor(diffInMinutes / 60)
+    if (diffInHours < 24) {
+      if (diffInHours === 1) return "1 час назад"
+      if (diffInHours >= 2 && diffInHours <= 4) return `${diffInHours} часа назад`
+      return `${diffInHours} часов назад`
+    }
+    
+    const diffInDays = Math.floor(diffInHours / 24)
+    if (diffInDays < 7) {
+      if (diffInDays === 1) return "вчера"
+      if (diffInDays >= 2 && diffInDays <= 4) return `${diffInDays} дня назад`
+      return `${diffInDays} дней назад`
+    }
+    
+    return date.toLocaleString("ru-RU", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit"
+    })
+  }

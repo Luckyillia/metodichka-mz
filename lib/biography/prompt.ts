@@ -3,14 +3,18 @@ export type GroqBiographyModel = "llama-3.3-70b-versatile" | "openai/gpt-oss-120
 export function buildBiographyValidationPrompt(params: {
   biographyText: string
   currentDateISO: string
+  strict?: boolean
 }) {
   const { biographyText, currentDateISO } = params
+  const strict = params.strict !== false
 
   return [
     {
       role: "system" as const,
       content:
-        "Ты — строгий модератор RP-биографий. Твоя задача — проверить биографию по правилам ниже и вернуть ТОЛЬКО валидный JSON без markdown, без комментариев, без лишнего текста.",
+        strict
+          ? "Ты — строгий модератор RP-биографий. Твоя задача — проверить биографию по правилам ниже и вернуть ТОЛЬКО валидный JSON без markdown, без комментариев, без лишнего текста."
+          : "Ты — модератор RP-биографий. Твоя задача — проверить биографию по правилам ниже и вернуть ТОЛЬКО валидный JSON без markdown, без комментариев, без лишнего текста. В мягком режиме не придирайся к стилю и мелким формулировкам — помечай их как warning, а status=error ставь только за критические нарушения.",
     },
     {
       role: "user" as const,
@@ -54,6 +58,9 @@ export function buildBiographyValidationPrompt(params: {
 
 5) Логика:
 - Проверь хронологию (детство→юность→настоящее), возрастную логику (школа, университет, стаж), соответствие образования/карьеры.
+
+РЕЖИМ ПРОВЕРКИ:
+${strict ? "- СТРОГИЙ: оценивай строго по правилам." : "- МЯГКИЙ: ошибки стиля/формулировок/пунктуации по возможности делай warning, а отказ (error) — только за критические нарушения."}
 
 ФОРМАТ ОТВЕТА: верни ТОЛЬКО JSON СЛЕДУЮЩЕЙ СТРУКТУРЫ (строго):
 {

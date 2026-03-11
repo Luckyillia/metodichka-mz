@@ -2,7 +2,7 @@
 import React from "react"
 import type { User as UserType } from "@/lib/auth/types"
 import { CheckCircle, X, AlertCircle, Edit, Shield, Trash2, RotateCcw, IdCard } from "lucide-react"
-import { getCityBadgeColor, getCityLabel, getRoleBadgeColor, getRoleLabel } from "../utils/userHelpers"
+import { getCityBadgeColor, getCityLabel, getRoleBadgeColor, getRoleLabel, formatRelativeTime } from "../utils/userHelpers"
 
 interface UserTableProps {
   users: UserType[]
@@ -61,10 +61,10 @@ export const UserTable: React.FC<UserTableProps> = ({
              (user.role !== "admin" && user.role !== "root")
     }
     
-    // Лидер может редактировать себя, и user/cc своего города
+    // Лидер может редактировать себя, и user/cc/instructor своего города
     if (currentUser.role === "ld") {
       return (currentUser.id === user.id) || 
-             ((user.role === "cc" || user.role === "user") && user.city === currentUser.city)
+             ((user.role === "cc" || user.role === "user" || user.role === "instructor") && user.city === currentUser.city)
     }
     
     return false
@@ -78,14 +78,14 @@ export const UserTable: React.FC<UserTableProps> = ({
       return user.role !== "root"
     }
     
-    // Admin может изменять роль user, cc (не может трогать admin, ld, root)
+    // Admin может изменять роль user, cc, instructor (не может трогать admin, ld, root)
     if (currentUser.role === "admin") {
-      return user.role === "user" || user.role === "cc"
+      return user.role === "user" || user.role === "cc" || user.role === "instructor"
     }
     
-    // Лидер может изменять роль между user и cc только в своем городе
+    // Лидер может изменять роль между user, cc и instructor только в своем городе
     if (currentUser.role === "ld") {
-      return (user.role === "user" || user.role === "cc") && 
+      return (user.role === "user" || user.role === "cc" || user.role === "instructor") && 
              user.city === currentUser.city
     }
     
@@ -100,14 +100,14 @@ export const UserTable: React.FC<UserTableProps> = ({
       return user.role !== "root"
     }
     
-    // Admin может деактивировать user, cc (не может трогать admin, ld, root)
-    if (currentUser.role === "admin") {
-      return user.role === "user" || user.role === "cc"
+    // Admin может деактивировать user, cc, instructor, ld (не может трогать admin, root)
+    if (currentUser.role === "admin") { 
+      return user.role === "user" || user.role === "cc" || user.role === "instructor" || user.role === "ld"
     }
     
-    // Лидер может деактивировать user и cc своего города
+    // Лидер может деактивировать user, cc и instructor своего города
     if (currentUser.role === "ld") {
-      return (user.role === "cc" || user.role === "user") && 
+      return (user.role === "cc" || user.role === "user" || user.role === "instructor") && 
              user.city === currentUser.city
     }
     
@@ -122,12 +122,12 @@ export const UserTable: React.FC<UserTableProps> = ({
     
     // Admin может одобрять запросы с ролями cc, user, ld
     if (currentUser.role === "admin") {
-      return user.role === "cc" || user.role === "user" || user.role === "ld"
+      return user.role === "cc" || user.role === "user" || user.role === "ld" || user.role === "instructor"
     }
     
-    // Лидер может одобрять запросы с ролями cc и user своего города
+    // Лидер может одобрять запросы с ролями cc, user и instructor своего города
     if (currentUser.role === "ld") {
-      return (user.role === "cc" || user.role === "user") && 
+      return (user.role === "cc" || user.role === "user" || user.role === "instructor") && 
              user.city === currentUser.city
     }
     
@@ -169,6 +169,9 @@ export const UserTable: React.FC<UserTableProps> = ({
               </th>
               <th className="px-6 py-5 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider hidden lg:table-cell">
                 Логин
+              </th>
+              <th className="px-6 py-5 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider hidden xl:table-cell">
+                Последний вход
               </th>
               <th className="px-6 py-5 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 Роль
@@ -233,6 +236,12 @@ export const UserTable: React.FC<UserTableProps> = ({
                 <td className="px-6 py-4 whitespace-nowrap hidden lg:table-cell">
                   <div className="text-sm text-muted-foreground">
                     <div className="text-sm text-muted-foreground truncate max-w-[220px]" title={user.username}>{user.username}</div>
+                  </div>
+                </td>
+
+                <td className="px-6 py-4 whitespace-nowrap hidden xl:table-cell">
+                  <div className="text-sm text-muted-foreground" title={user.last_seen ? new Date(user.last_seen).toLocaleString("ru-RU") : ""}>
+                    {formatRelativeTime(user.last_seen)}
                   </div>
                 </td>
 
@@ -426,7 +435,7 @@ export const UserTable: React.FC<UserTableProps> = ({
 
                             {/* КНОПКА ПЕРЕМЕЩЕНИЯ В ДРУГОЙ ГОРОД для LD (необратимо) */}
                             {currentUser?.role === "ld" && 
-                            (user.role === "user" || user.role === "cc") && 
+                            (user.role === "user" || user.role === "cc" || user.role === "instructor") && 
                             user.city === currentUser.city && (
                               <button
                                 onClick={() => onTransferCity(user)}

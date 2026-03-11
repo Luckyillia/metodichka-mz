@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import ExamplePhrase from './ExamplePhrase';
 import '@/app/styles/commandBlock.css'
+import { useToast } from '@/app/components/common/Toast';
 
 interface CommandBlockProps {
     command: string;
@@ -9,11 +10,14 @@ interface CommandBlockProps {
 
 const CommandBlock: React.FC<CommandBlockProps> = ({ command, description }) => {
     const [copied, setCopied] = useState(false);
+    const { showCopied } = useToast();
 
     const copyToClipboard = async () => {
         try {
             await navigator.clipboard.writeText(command);
             setCopied(true);
+            showCopied('Команда скопирована');
+            window.dispatchEvent(new CustomEvent('record-interaction'));
             setTimeout(() => setCopied(false), 2000);
         } catch (err) {
             console.error('Failed to copy text: ', err);

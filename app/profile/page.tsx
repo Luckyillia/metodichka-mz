@@ -317,19 +317,22 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="px-6 py-6 border-b border-border">
+    <div className="min-h-screen bg-background pb-24 lg:pb-0">
+      <header className="px-4 md:px-6 py-4 md:py-6 border-b border-border bg-card/50 backdrop-blur-md sticky top-0 z-30">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Link href="/" className="text-muted-foreground hover:text-foreground transition-colors">
+            <Link href="/" className="p-2 hover:bg-muted rounded-xl transition-colors lg:hidden">
               <ArrowLeft className="w-5 h-5" />
             </Link>
-            <h1 className="text-2xl font-semibold text-foreground">Личный кабинет</h1>
+            <Link href="/" className="hidden lg:flex items-center gap-3 text-muted-foreground hover:text-foreground transition-colors">
+              <ArrowLeft className="w-5 h-5" />
+            </Link>
+            <h1 className="text-lg md:text-2xl font-bold text-foreground tracking-tight">Личный кабинет</h1>
           </div>
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-6 py-8 space-y-8">
+      <main className="max-w-5xl mx-auto px-4 md:px-6 py-6 md:py-8 space-y-6 md:space-y-8">
         {msg && (
           <div
             className={`border-2 rounded-lg px-4 py-3 text-sm transition-all ${
@@ -344,25 +347,27 @@ export default function ProfilePage() {
           </div>
         )}
 
-        <section className="modern-card">
-          <div className="flex items-center justify-between gap-6 flex-wrap py-4">
-            <div className="flex items-center gap-5">
-              {avatarContent}
-              <div>
-                <div className="text-lg font-semibold text-foreground">{user.game_nick}</div>
-                <div className="text-sm text-muted-foreground">{user.username}</div>
-                <div className="text-xs text-muted-foreground mt-1">
-                  Форматы: JPG, PNG, WEBP, GIF. Максимум: 5MB.
+        <section className="modern-card p-4 md:p-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 py-2">
+            <div className="flex items-center gap-4 md:gap-5">
+              <div className="relative group flex-shrink-0">
+                {avatarContent}
+                <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-primary rounded-full flex items-center justify-center border-2 border-card text-[10px] shadow-lg">
+                  ✨
                 </div>
-                {isGif && (
-                  <div className="text-xs text-yellow-600 dark:text-yellow-400 mt-1 font-semibold">
-                    ⚡ GIF загружается без кадрирования (анимация сохраняется)
-                  </div>
-                )}
+              </div>
+              <div className="min-w-0">
+                <div className="text-lg md:text-xl font-bold text-foreground truncate">{user.game_nick}</div>
+                <div className="text-sm text-muted-foreground truncate opacity-70">@{user.username}</div>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  <span className="text-[10px] font-bold uppercase tracking-wider bg-primary/10 text-primary px-2 py-0.5 rounded-md border border-primary/20">
+                    {user.role}
+                  </span>
+                </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2 md:gap-3">
               <input
                 ref={fileInputRef}
                 type="file"
@@ -373,24 +378,30 @@ export default function ProfilePage() {
               />
               <button
                 type="button"
-                className="px-5 py-2.5 bg-secondary text-secondary-foreground rounded-xl hover:bg-secondary/80 transition-all border-2 border-border inline-flex items-center gap-2"
+                className="flex-1 md:flex-none px-4 py-2.5 bg-secondary text-secondary-foreground rounded-xl hover:bg-secondary/80 transition-all border-2 border-border inline-flex items-center justify-center gap-2 text-sm font-medium"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isUploading}
               >
                 <Upload className="w-4 h-4" />
-                Выбрать фото
+                <span>Фото</span>
               </button>
 
               <button
                 type="button"
-                className="px-5 py-2.5 bg-destructive text-destructive-foreground rounded-xl hover:opacity-90 transition-all border-2 border-destructive inline-flex items-center gap-2 disabled:opacity-50"
+                className="flex-1 md:flex-none px-4 py-2.5 bg-destructive/10 text-destructive rounded-xl hover:bg-destructive/20 transition-all border-2 border-destructive/20 inline-flex items-center justify-center gap-2 text-sm font-medium disabled:opacity-30"
                 onClick={deleteAvatar}
                 disabled={isUploading || !user.avatar_url}
               >
                 <Trash2 className="w-4 h-4" />
-                Удалить
+                <span>Удалить</span>
               </button>
             </div>
+          </div>
+
+          <div className="mt-4 pt-4 border-t border-border/50">
+            <p className="text-[10px] text-muted-foreground leading-relaxed">
+              Поддерживаются форматы JPG, PNG, WEBP и GIF (до 10MB).
+            </p>
           </div>
 
           {previewUrl && !isGif && (
@@ -536,45 +547,45 @@ export default function ProfilePage() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-muted-foreground mb-2">Текущий пароль</label>
+                <label className="block text-xs md:text-sm font-medium text-muted-foreground mb-2">Текущий пароль</label>
                 <input
                   type="password"
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
-                  className="w-full px-4 py-3 bg-input border-2 border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-colors"
+                  className="w-full px-4 py-2.5 md:py-3 bg-input border-2 border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-colors text-sm md:text-base"
                   disabled={isSavingProfile}
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-muted-foreground mb-2">Новый пароль</label>
+                <label className="block text-xs md:text-sm font-medium text-muted-foreground mb-2">Новый пароль</label>
                 <input
                   type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full px-4 py-3 bg-input border-2 border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-colors"
+                  className="w-full px-4 py-2.5 md:py-3 bg-input border-2 border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-colors text-sm md:text-base"
                   disabled={isSavingProfile}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-muted-foreground mb-2">Подтверждение</label>
+                <label className="block text-xs md:text-sm font-medium text-muted-foreground mb-2">Подтверждение</label>
                 <input
                   type="password"
                   value={confirmNewPassword}
                   onChange={(e) => setConfirmNewPassword(e.target.value)}
-                  className="w-full px-4 py-3 bg-input border-2 border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-colors"
+                  className="w-full px-4 py-2.5 md:py-3 bg-input border-2 border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-colors text-sm md:text-base"
                   disabled={isSavingProfile}
                 />
               </div>
             </div>
 
-            <div className="flex items-center justify-end">
+            <div className="flex items-center justify-end pt-2">
               <button
                 type="submit"
                 disabled={isSavingProfile}
-                className="modern-button inline-flex items-center gap-2 disabled:opacity-50"
+                className="w-full md:w-auto modern-button inline-flex items-center justify-center gap-2 disabled:opacity-50 py-3 md:py-2"
               >
                 {isSavingProfile ? (
                   <>

@@ -12,10 +12,15 @@ declare global {
 
 export const AppFooter = () => {
   const { version, lastUpdated } = getVersionInfo();
+  const [mounted, setMounted] = useState(false);
   const [currentTheme, setCurrentTheme] = useState(() => {
     if (typeof window === "undefined") return "dark"
     return localStorage.getItem("theme") || "dark"
   });
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     // Function to handle theme changes
@@ -70,7 +75,7 @@ export const AppFooter = () => {
   };
   
   return (
-    <footer className={`py-4 transition-colors duration-300 ${getThemeStyles()}`}>
+    <footer className={`py-4 transition-colors duration-300 ${mounted ? getThemeStyles() : 'bg-[#0f172a] text-[#f1f5f9] border-t border-slate-700'}`}>
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="flex flex-col items-center justify-between gap-4 sm:flex-row sm:items-center">
           <div className="flex items-center space-x-4">

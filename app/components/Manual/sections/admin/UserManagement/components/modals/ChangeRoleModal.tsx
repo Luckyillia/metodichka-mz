@@ -36,8 +36,8 @@ export const ChangeRoleModal: React.FC<ChangeRoleModalProps> = ({
       // Root может назначать любые роли кроме root
       return [
         { value: "user", label: "Пользователь" },
-        { value: "instructor", label: "Инструктор" },
         { value: "cc", label: "CC" },
+        { value: "instructor", label: "Инструктор" },
         { value: "ld", label: "Лидер" },
         { value: "admin", label: "Администратор" }
       ]
@@ -47,8 +47,8 @@ export const ChangeRoleModal: React.FC<ChangeRoleModalProps> = ({
       // Админ может назначать user, cc, ld
       return [
         { value: "user", label: "Пользователь" },
-        { value: "instructor", label: "Инструктор" },
         { value: "cc", label: "CC" },
+        { value: "instructor", label: "Инструктор" },
         { value: "ld", label: "Лидер" }
       ]
     }
@@ -57,8 +57,8 @@ export const ChangeRoleModal: React.FC<ChangeRoleModalProps> = ({
       // Лидер может переключать между user и cc
       return [
         { value: "user", label: "Пользователь" },
-        { value: "instructor", label: "Инструктор" },
-        { value: "cc", label: "CC" }
+        { value: "cc", label: "CC" },
+        { value: "instructor", label: "Инструктор" }
       ]
     }
 

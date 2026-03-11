@@ -328,6 +328,27 @@ export default function AccountRequestPage() {
             <label className="block text-sm font-medium text-muted-foreground mb-2">
               Фото с удостоверением персонажа <span className="text-red-500">*</span>
             </label>
+            <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3 mb-3">
+              <h4 className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">Требования к фото удостоверения:</h4>
+              <ul className="text-xs text-blue-600 dark:text-blue-400 space-y-1">
+                <li className="flex items-start gap-1">
+                  <span className="text-blue-500 mt-0.5">•</span>
+                  <span>Фото не должно подвергаться изменению (обрезке, монтажу)</span>
+                </li>
+                <li className="flex items-start gap-1">
+                  <span className="text-blue-500 mt-0.5">•</span>
+                  <span>Должен быть виден номер сервера снизу слева</span>
+                </li>
+                <li className="flex items-start gap-1">
+                  <span className="text-blue-500 mt-0.5">•</span>
+                  <span>Дата и время должны быть видны над худом</span>
+                </li>
+                <li className="flex items-start gap-1">
+                  <span className="text-blue-500 mt-0.5">•</span>
+                  <span>Полностью должно быть видно само удостоверение</span>
+                </li>
+              </ul>
+            </div>
             <input
               ref={idFileInputRef}
               type="file"

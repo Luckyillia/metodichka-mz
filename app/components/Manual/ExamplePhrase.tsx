@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import "@/app/styles/examplePhrase.css"
+import { useToast } from '@/app/components/common/Toast';
 
 interface ExamplePhraseProps {
     text: string;
@@ -15,6 +16,7 @@ const ExamplePhrase: React.FC<ExamplePhraseProps> = ({
                                                          maxLength = 160
                                                      }) => {
     const [copied, setCopied] = useState(false);
+    const { showCopied } = useToast();
 
     const copyToClipboard = () => {
         // Убираем табуляцию и лишние пробелы в начале строк
@@ -26,6 +28,8 @@ const ExamplePhrase: React.FC<ExamplePhraseProps> = ({
 
         navigator.clipboard.writeText(cleanText);
         setCopied(true);
+        showCopied('Фраза скопирована');
+        window.dispatchEvent(new CustomEvent('record-interaction'));
         setTimeout(() => setCopied(false), 2000);
     };
 
