@@ -1,7 +1,7 @@
 // app/components/Manual/sections/admin/UserManagement/components/UserTable.tsx (обновлённая)
 import React from "react"
 import type { User as UserType } from "@/lib/auth/types"
-import { CheckCircle, X, AlertCircle, Edit, Shield, Trash2, RotateCcw, IdCard } from "lucide-react"
+import { CheckCircle, X, AlertCircle, Edit, Shield, Trash2, RotateCcw, IdCard, Activity } from "lucide-react"
 import { getCityBadgeColor, getCityLabel, getRoleBadgeColor, getRoleLabel, formatRelativeTime } from "../utils/userHelpers"
 
 interface UserTableProps {
@@ -170,7 +170,7 @@ export const UserTable: React.FC<UserTableProps> = ({
               <th className="px-6 py-5 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider hidden lg:table-cell">
                 Логин
               </th>
-              <th className="px-6 py-5 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider hidden xl:table-cell">
+              <th className="px-6 py-5 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider hidden md:table-cell">
                 Последний вход
               </th>
               <th className="px-6 py-5 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
@@ -230,7 +230,35 @@ export const UserTable: React.FC<UserTableProps> = ({
                 </td>
 
                 <td className="px-6 py-4 whitespace-normal break-words">
-                  <div className="text-sm font-medium text-foreground">{user.game_nick}</div>
+                  <div className="flex flex-col gap-1">
+                    <div className="text-sm font-medium text-foreground">{user.game_nick}</div>
+                    {/* Mobile-only Last Seen Indicator - Explicitly shown with block md:hidden */}
+                    <div className="block md:hidden mt-2 p-2.5 rounded-xl bg-primary/10 border border-primary/20 shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
+                      <div className="text-[10px] uppercase tracking-[0.1em] text-primary/80 font-black mb-1.5 flex items-center gap-1.5">
+                        <Activity className="w-3 h-3" />
+                        Был в сети
+                      </div>
+                      <div className="flex items-center gap-2.5">
+                        <div className="relative">
+                          <span className={`block w-2.5 h-2.5 rounded-full ${
+                            user.last_seen && (Date.now() - new Date(user.last_seen).getTime() < 5 * 60 * 1000)
+                              ? "bg-green-500"
+                              : "bg-slate-500/50"
+                          }`} />
+                          {user.last_seen && (Date.now() - new Date(user.last_seen).getTime() < 5 * 60 * 1000) && (
+                            <span className="absolute inset-0 w-2.5 h-2.5 rounded-full bg-green-500 animate-ping opacity-75" />
+                          )}
+                        </div>
+                        <span className={`text-[13px] font-bold tracking-tight leading-none ${
+                          user.last_seen && (Date.now() - new Date(user.last_seen).getTime() < 5 * 60 * 1000)
+                            ? "text-green-500"
+                            : "text-foreground/90"
+                        }`}>
+                          {formatRelativeTime(user.last_seen)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </td>
 
                 <td className="px-6 py-4 whitespace-nowrap hidden lg:table-cell">
@@ -239,9 +267,20 @@ export const UserTable: React.FC<UserTableProps> = ({
                   </div>
                 </td>
 
-                <td className="px-6 py-4 whitespace-nowrap hidden xl:table-cell">
-                  <div className="text-sm text-muted-foreground" title={user.last_seen ? new Date(user.last_seen).toLocaleString("ru-RU") : ""}>
-                    {formatRelativeTime(user.last_seen)}
+                <td className="px-6 py-4 whitespace-nowrap hidden md:table-cell">
+                  <div className="flex flex-col">
+                    <div className={`text-sm font-medium ${
+                      user.last_seen && (Date.now() - new Date(user.last_seen).getTime() < 5 * 60 * 1000)
+                        ? "text-green-500"
+                        : "text-muted-foreground"
+                    }`}>
+                      {formatRelativeTime(user.last_seen)}
+                    </div>
+                    {user.last_seen && (
+                      <div className="text-[10px] text-muted-foreground/50">
+                        {new Date(user.last_seen).toLocaleDateString("ru-RU")}
+                      </div>
+                    )}
                   </div>
                 </td>
 
