@@ -49,15 +49,13 @@ export function MobileNavigation() {
     { icon: Search, label: "Поиск", action: () => {
       window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }))
     }, shortcut: "⌘K" },
-    { icon: Map, label: "Карта", href: "/tree" },
-    ...(isAuthenticated ? [
-      { icon: Bookmark, label: "Избранное", action: () => {
-        window.dispatchEvent(new CustomEvent("toggle-bookmarks"))
-      }},
-      { icon: History, label: "История", action: () => {
-        window.dispatchEvent(new CustomEvent("toggle-history"))
-      }},
-    ] : []),
+    // { icon: Map, label: "Карта", href: "/tree" },
+    { icon: Bookmark, label: "Избранное", action: () => {
+      window.dispatchEvent(new CustomEvent("toggle-bookmarks"))
+    }},
+    { icon: History, label: "История", action: () => {
+      window.dispatchEvent(new CustomEvent("toggle-history"))
+    }},
     { icon: User, label: isAuthenticated ? "Профиль" : "Вход", href: isAuthenticated ? "/profile" : "/login" },
     { icon: LogOut, label: "Выход", action: () => {
       logout()

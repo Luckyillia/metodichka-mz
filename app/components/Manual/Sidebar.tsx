@@ -10,12 +10,23 @@ interface SidebarProps {
   sidebarItems: SidebarItem[]
   activeSection: string
   setActiveSection: (id: string) => void
+  isMobileOpen?: boolean
+  onClose?: () => void
 }
 
-export default function Sidebar({ sidebarItems, activeSection, setActiveSection }: SidebarProps) {
+export default function Sidebar({ 
+  sidebarItems, 
+  activeSection, 
+  setActiveSection,
+  isMobileOpen: externalIsMobileOpen,
+  onClose
+}: SidebarProps) {
   const { canAccessSection } = useAuth()
   const [mounted, setMounted] = useState(false)
-  const [isMobileOpen, setIsMobileOpen] = useState(false)
+  const [internalIsMobileOpen, setInternalIsMobileOpen] = useState(false)
+
+  const isMobileOpen = externalIsMobileOpen !== undefined ? externalIsMobileOpen : internalIsMobileOpen
+  const setIsMobileOpen = onClose || setInternalIsMobileOpen
 
   useEffect(() => {
     setMounted(true)
@@ -23,8 +34,15 @@ export default function Sidebar({ sidebarItems, activeSection, setActiveSection 
 
   // Close mobile sidebar when section changes
   useEffect(() => {
-    setIsMobileOpen(false)
-  }, [activeSection])
+    // Only close if we are currently open
+    if (isMobileOpen) {
+      if (onClose) {
+        onClose();
+      } else {
+        setInternalIsMobileOpen(false);
+      }
+    }
+  }, [activeSection]); // Removed isMobileOpen/externalIsMobileOpen from deps to avoid immediate closing on mount/toggle
 
   const visibleSidebarItems = useMemo(() => {
     return sidebarItems
@@ -45,14 +63,16 @@ export default function Sidebar({ sidebarItems, activeSection, setActiveSection 
       {/* Logo and Title */}
       <div className="pt-3 pb-4 border-b border-sidebar-border mb-3">
         <div className="flex items-center gap-3 px-2">
-          <div className="w-10 h-10 bg-sidebar-primary/20 border border-sidebar-primary/30 rounded-xl flex items-center justify-center text-xl flex-shrink-0">
+          <div className="w-10 h-10 bg-sidebar-primary rounded-full flex items-center justify-center text-xl flex-shrink-0">
             🏥
           </div>
           <div className="flex-1">
-            <h2 className="text-xs font-bold text-sidebar-foreground leading-tight uppercase tracking-wider">
-              МЗ МАЗУТ
+            <h2 className="text-xs font-bold text-sidebar-foreground leading-tight">
+              Министерство
             </h2>
-            <p className="text-[10px] text-sidebar-foreground/50 font-medium">Методический отдел</p>
+            <h2 className="text-xs font-bold text-sidebar-foreground leading-tight">
+              Здравоохранения
+            </h2>
           </div>
           <button 
             onClick={() => setIsMobileOpen(false)}
@@ -132,18 +152,6 @@ export default function Sidebar({ sidebarItems, activeSection, setActiveSection 
 
   return (
     <>
-      {/* Mobile Toggle Button */}
-      {!isMobileOpen && (
-        <motion.button
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          onClick={() => setIsMobileOpen(true)}
-          className="lg:hidden fixed top-4 left-4 z-[50] p-3 bg-sidebar/80 backdrop-blur-lg border border-sidebar-border rounded-2xl shadow-2xl shadow-primary/20 active:scale-90 transition-all text-primary"
-        >
-          <Menu className="w-6 h-6" />
-        </motion.button>
-      )}
-
       {/* Desktop Sidebar */}
       <aside className="hidden lg:flex fixed left-0 top-0 h-screen w-64 z-40 border-r border-sidebar-border overflow-hidden">
         <SidebarContent />

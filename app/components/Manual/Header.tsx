@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { Users, LogOut, Shield, Palette, Bookmark, History, Bell } from "lucide-react"
+import { Users, LogOut, Shield, Palette, Bookmark, History, Bell, Menu } from "lucide-react"
 import { useAuth } from "@/lib/auth/auth-context"
 import { useRouter } from "next/navigation"
 import { useBookmarks } from "@/app/components/common/Bookmarks"
@@ -27,7 +27,11 @@ const initialsFromNick = (nick: string) => {
   return (a + b).toUpperCase()
 }
 
-export default function Header() {
+interface HeaderProps {
+  onMenuClick?: () => void
+}
+
+export default function Header({ onMenuClick }: HeaderProps) {
   const { user, isAuthenticated, logout } = useAuth()
   const router = useRouter()
   const [currentTheme, setCurrentTheme] = useState<Theme>('dark')
@@ -62,25 +66,20 @@ export default function Header() {
     const root = document.documentElement;
     const themeClasses = themes.map(t => t.value);
     
-    // Add temporary class to disable transitions
     root.classList.add('theme-switching');
     
-    // Remove all possible theme classes
     root.classList.remove(...themeClasses);
-    // Add the new theme class
     root.classList.add(theme);
     
     setCurrentTheme(theme);
     localStorage.setItem('theme', theme);
     
-    // Dispatch a custom event when theme changes
     window.dispatchEvent(new CustomEvent('theme-changed', {
       detail: { theme }
     }));
     
     setShowThemeMenu(false);
 
-    // Remove temporary class after a short delay
     setTimeout(() => {
       root.classList.remove('theme-switching');
     }, 300);
@@ -114,11 +113,20 @@ export default function Header() {
 
   return (
     <header className="modern-nav w-full lg:w-[calc(100%-16rem)] lg:ml-64 sticky top-0 z-30">
-      <div className="w-full mx-auto px-4 md:px-6 py-3 md:py-4">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 py-3 md:py-4">
         <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3 ml-12 lg:ml-0">
-            <span className="text-xl md:text-2xl flex-shrink-0">🏥</span>
-            <h1 className="text-sm md:text-xl font-semibold text-foreground line-clamp-1">Методичка МЗ</h1>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={onMenuClick}
+              className="lg:hidden p-2 hover:bg-muted rounded-xl transition-colors text-foreground"
+              aria-label="Открыть меню"
+            >
+              <Menu className="w-6 h-6" />
+            </button>
+            <div className="flex items-center gap-3">
+              <span className="text-xl md:text-2xl flex-shrink-0">🏥</span>
+              <h1 className="text-sm md:text-xl font-semibold text-foreground line-clamp-1">Методичка МЗ</h1>
+            </div>
           </div>
 
           <div className="flex items-center gap-2 md:gap-4 flex-shrink-0">
@@ -141,7 +149,7 @@ export default function Header() {
               </button>
             </div>
 
-            {/* Theme Switcher - shown on both but smaller on mobile */}
+            {/* Theme Switcher */}
             <div className="relative theme-menu-container">
               <button
                 onClick={() => setShowThemeMenu(!showThemeMenu)}
@@ -174,30 +182,39 @@ export default function Header() {
             {mounted && (
               <div className="flex items-center gap-2">
                 {isAuthenticated && user ? (
-                  <Link
-                    href="/profile"
-                    className="flex items-center gap-2 md:gap-3 p-1 md:px-4 md:py-2 bg-secondary rounded-lg border-2 border-border hover:bg-secondary/80 transition-colors"
-                    title="Личный кабинет"
-                  >
-                    {user.avatar_url ? (
-                      <img
-                        src={user.avatar_url}
-                        alt="avatar"
-                        className="w-7 h-7 md:w-10 md:h-10 rounded-full object-cover border-2 border-border"
-                      />
-                    ) : (
-                      <div className="w-7 h-7 md:w-10 md:h-10 rounded-full bg-muted border-2 border-border flex items-center justify-center text-[10px] md:text-sm font-semibold text-foreground">
-                        {initialsFromNick(user.game_nick)}
-                      </div>
-                    )}
+                  <>
+                    <Link
+                      href="/profile"
+                      className="flex items-center gap-2 md:gap-3 p-1 md:px-4 md:py-2 bg-secondary rounded-lg border-2 border-border hover:bg-secondary/80 transition-colors"
+                      title="Личный кабинет"
+                    >
+                      {user.avatar_url ? (
+                        <img
+                          src={user.avatar_url}
+                          alt="avatar"
+                          className="w-7 h-7 md:w-10 md:h-10 rounded-full object-cover border-2 border-border"
+                        />
+                      ) : (
+                        <div className="w-7 h-7 md:w-10 md:h-10 rounded-full bg-muted border-2 border-border flex items-center justify-center text-[10px] md:text-sm font-semibold text-foreground">
+                          {initialsFromNick(user.game_nick)}
+                        </div>
+                      )}
 
-                    <div className="hidden sm:flex flex-col">
-                      <span className="text-xs md:text-sm font-medium text-foreground flex items-center gap-2">
-                        <Shield className="w-3 h-3 md:w-4 md:h-4 text-muted-foreground"/>
-                        {user.game_nick}
-                      </span>
-                    </div>
-                  </Link>
+                      <div className="hidden sm:flex flex-col">
+                        <span className="text-xs md:text-sm font-medium text-foreground flex items-center gap-2">
+                          <Shield className="w-3 h-3 md:w-4 md:h-4 text-muted-foreground"/>
+                          {user.game_nick}
+                        </span>
+                      </div>
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="modern-button hidden md:flex items-center gap-2"
+                    >
+                      <LogOut className="w-4 h-4"/>
+                      <span>Выйти</span>
+                    </button>
+                  </>
                 ) : (
                   <Link
                     href="/login"

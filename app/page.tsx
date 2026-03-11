@@ -90,6 +90,7 @@ export default function ManualPage() {
   const { updateProgress, markCompleted, recordInteraction, progress } = useProgress()
   const [activeSection, setActiveSection] = useState("overview")
   const [mounted, setMounted] = useState(false)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
   // Track last seen when user is logged in
   useEffect(() => {
@@ -111,12 +112,9 @@ export default function ManualPage() {
     setMounted(true)
   }, [])
   
-  const effectiveSection = !isLoading && !canAccessSection(activeSection) ? "overview" : activeSection
-  const SectionComponent = sectionComponents[effectiveSection]
-
-  // Track section changes
   const handleSectionChange = useCallback((sectionId: string) => {
     setActiveSection(sectionId)
+    setIsSidebarOpen(false)
     
     // Add to history
     const sectionTitle = getSectionTitle(sectionId)
@@ -144,37 +142,31 @@ export default function ManualPage() {
   // Listen for interaction events from UI (copy, generators, etc.)
   useEffect(() => {
     const handleInteraction = () => {
-      recordInteraction(effectiveSection)
+      recordInteraction(activeSection)
     }
     window.addEventListener('record-interaction', handleInteraction as EventListener)
     return () => window.removeEventListener('record-interaction', handleInteraction as EventListener)
-  }, [recordInteraction, effectiveSection])
+  }, [recordInteraction, activeSection])
 
-  if (isLoading) {
-    return (
-        <div className="min-h-screen flex items-center justify-center">
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-slate-300 flex items-center gap-2"
-          >
-            <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-            Загрузка...
-          </motion.div>
-        </div>
-    )
-  }
+  const effectiveSection = !isLoading && !canAccessSection(activeSection) ? "overview" : activeSection;
+  const SectionComponent = sectionComponents[effectiveSection];
 
   return (
     <>
-      <div className="min-h-screen">
+      <div className="min-h-screen flex flex-col">
         <CommandPalette />
-        <Header />
-        <Sidebar sidebarItems={sidebarItems} activeSection={activeSection} setActiveSection={handleSectionChange} />
+        <Header onMenuClick={() => setIsSidebarOpen(true)} />
+        <Sidebar 
+          sidebarItems={sidebarItems} 
+          activeSection={activeSection} 
+          setActiveSection={handleSectionChange}
+          isMobileOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
+        />
 
-        <div className="lg:ml-64 w-full">
-          <div className="w-full mx-auto px-4 md:px-6 py-6 pb-24 lg:pb-6">
-            <main className="modern-card min-h-[calc(100vh-8rem)]">
+        <div className="lg:ml-64 flex-1">
+          <div className="max-w-screen-2xl mx-auto px-4 md:px-6 py-6 pb-24 lg:pb-6">
+            <main className="modern-card min-h-[calc(100vh-8rem)] w-full overflow-hidden">
               {!mounted ? (
                 // Loading skeleton - same on server and client
                 <div className="flex flex-col items-center justify-center py-20">
