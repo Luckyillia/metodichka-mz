@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import DropdownMenu from '../../../DropdownMenu';
 
 const TrainingSection = () => {
-    const trainings = [
+    const trainings = useMemo(() => [
         "Тренировка 1: Бег",
         "Тренировка 2: Приседания",
         "Тренировка 3: Прыжки в длину",
@@ -11,8 +11,8 @@ const TrainingSection = () => {
         "Тренировка 6: Прыжки в высоту",
         "Тренировка 7: Восстановление",
         "Тренировка 8: Гимнастика"
-    ];
-    const trainingIcon = {
+    ], []);
+    const trainingIcon = useMemo(() => ({
         "Тренировка 1: Бег":"🏃",
         "Тренировка 2: Приседания":"🦵",
         "Тренировка 3: Прыжки в длину":"➡️",
@@ -21,8 +21,8 @@ const TrainingSection = () => {
         "Тренировка 6: Прыжки в высоту":"🦘",
         "Тренировка 7: Восстановление":"☯️",
         "Тренировка 8: Гимнастика":"🤸"
-    }
-    const trainingContent = {
+    }), []);
+    const trainingContent = useMemo(() => ({
         "Тренировка 1: Бег": [
             "say Сейчас пройдёт тренировка «Бег».",
             "say Ваша задача добежать до середины коридора и обратно. Начали!",
@@ -65,7 +65,7 @@ const TrainingSection = () => {
             "say Делаем 1 минуту, Начали!",
             "say Тренировка «Гимнастика» закончена!",
         ],
-    };
+    }), []);
     return (
         <>
             <div className="subsection">

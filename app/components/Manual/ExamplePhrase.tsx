@@ -18,7 +18,9 @@ const ExamplePhrase: React.FC<ExamplePhraseProps> = ({
     const [copied, setCopied] = useState(false);
     const { showCopied } = useToast();
 
-    const copyToClipboard = () => {
+    const copyToClipboard = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
         // Убираем табуляцию и лишние пробелы в начале строк
         const cleanText = text
             .split('\n')
@@ -53,7 +55,7 @@ const ExamplePhrase: React.FC<ExamplePhraseProps> = ({
     return (
         <div
             className={`example-phrase ${type}-phrase ${messageType === "single" ? "single-line" : "multi-line"}`}
-            onClick={copyToClipboard}
+            onClick={(e) => copyToClipboard(e)}
         >
             <div className="phrase-content">
                 {messageType === "single" ? (

@@ -431,14 +431,20 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   const recordInteraction = useCallback((sectionId: string) => {
     setProgress(prev => {
       const current = prev[sectionId]
+      if (!current) return prev; // Если раздела нет, ничего не делаем
+
+      const nextInteractions = (current.interactions || 0) + 1;
+      
+      // Чтобы избежать лишних ререндеров всего приложения при каждом клике/копировании,
+      // мы обновляем состояние только если это действительно необходимо для достижений
+      // или если это первый раз за сессию. 
+      // Но для простоты сейчас просто обновим, так как проблема в page.tsx зависимостях.
+      
       return {
         ...prev,
         [sectionId]: {
-          sectionId,
-          completed: current?.completed || false,
-          lastViewedAt: current?.lastViewedAt ?? null,
-          timeSpent: current?.timeSpent || 0,
-          interactions: (current?.interactions || 0) + 1
+          ...current,
+          interactions: nextInteractions
         }
       }
     })

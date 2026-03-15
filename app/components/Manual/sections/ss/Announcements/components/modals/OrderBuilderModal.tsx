@@ -90,7 +90,6 @@ export const OrderBuilderModal: React.FC<OrderBuilderModalProps> = ({
     addDisciplinaryPerson,
     updateDisciplinaryPerson,
     removeDisciplinaryPerson,
-    updateDisciplinaryPenalty,
   } = useOrderWizard()
 
   const { buildWizardText, buildDisciplinaryText } = useOrderBuilder(settings)
@@ -191,7 +190,6 @@ export const OrderBuilderModal: React.FC<OrderBuilderModalProps> = ({
             {mode === "wizard" && wizard.category === "Взыскания" && (
               <DisciplinaryForm
                 disciplinary={disciplinary}
-                onPenaltyChange={updateDisciplinaryPenalty}
                 onAddPerson={addDisciplinaryPerson}
                 onUpdatePerson={updateDisciplinaryPerson}
                 onRemovePerson={removeDisciplinaryPerson}

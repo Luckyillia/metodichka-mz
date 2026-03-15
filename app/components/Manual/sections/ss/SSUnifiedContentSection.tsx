@@ -1,21 +1,19 @@
-import React, { useState, Suspense, lazy } from 'react';
+import React, { useMemo, useState } from 'react';
+
+import EventsSection from './UnifiedContent/EventsSection';
+import LecturesSection from './UnifiedContent/LecturesSection';
+import PracticalTasksSection from './UnifiedContent/PracticalTasksSection';
+import TrainingSection from './UnifiedContent/TrainingSection';
 
 const UnifiedContentSection = () => {
     const [activeTab, setActiveTab] = useState<'lectures' | 'training' | 'events' | 'practicalTasks'>('lectures');
 
-    // Динамическая загрузка компонентов
-    const LecturesSection = lazy(() => import('./UnifiedContent/LecturesSection'));
-    const TrainingSection = lazy(() => import('./UnifiedContent/TrainingSection'));
-    const EventsSection = lazy(() => import('./UnifiedContent/EventsSection'));
-    const PracticalTasksSection = lazy(() => import('./UnifiedContent/PracticalTasksSection'));
-
-
-    const tabs = [
+    const tabs = useMemo(() => [
         { id: 'lectures' as const, label: '📚 Лекции', icon: '📚', component: LecturesSection },
         { id: 'training' as const, label: '🏃 Тренировки', icon: '🏃', component: TrainingSection },
         { id: 'events' as const, label: '🎯 Мероприятия', icon: '🎯', component: EventsSection },
         { id: 'practicalTasks' as const, label: '🛠️ Практические задания', icon: '🛠️', component: PracticalTasksSection },
-    ];
+    ], []);
 
     const activeTabData = tabs.find(tab => tab.id === activeTab);
     const ActiveComponent = activeTabData?.component || LecturesSection;
@@ -44,14 +42,7 @@ const UnifiedContentSection = () => {
                 ))}
             </div>
 
-            {/* Динамический контент */}
-            <Suspense fallback={
-                <div className="flex items-center justify-center py-12">
-                    <div className="text-muted-foreground">Загрузка раздела...</div>
-                </div>
-            }>
-                <ActiveComponent />
-            </Suspense>
+            <ActiveComponent />
         </>
     );
 };

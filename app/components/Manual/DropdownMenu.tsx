@@ -1,6 +1,6 @@
 "use client"
 
-import type React from "react"
+import React, { memo } from "react"
 import { useState, useEffect, useRef } from "react"
 import ExamplePhrase from "./ExamplePhrase"
 import "@/app/styles/dropdownMenu.css"
@@ -16,7 +16,7 @@ interface DropdownMenuProps {
   onToggle?: () => void
 }
 
-const DropdownMenu: React.FC<DropdownMenuProps> = ({
+const DropdownMenu: React.FC<DropdownMenuProps> = memo(({
   title,
   items,
   icon = "📚",
@@ -116,6 +116,8 @@ const DropdownMenu: React.FC<DropdownMenuProps> = ({
       </div>
     </div>
   )
-}
+})
+
+DropdownMenu.displayName = "DropdownMenu"
 
 export default DropdownMenu

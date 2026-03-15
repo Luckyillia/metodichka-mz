@@ -959,17 +959,19 @@ const LecturesSection = () => {
                 <p>Все лекции проводятся в учебных аудиториях медицинских учреждений.</p>
             </div>
 
-            <div className="subsection">
+            <div className="space-y-4">
                 <h3>📚 Медицинские лекции</h3>
-                {lectures.map((lecture) => (
-                    <DropdownMenu
-                        key={lecture}
-                        title={lecture}
-                        icon={lectureIcons[lecture] || "📖"}
-                        items={lectureContent[lecture] || ["Содержание лекции будет добавлено позже"]}
-                        who="ss"
-                    />
-                ))}
+                <div className="space-y-3">
+                    {lectures.map((lecture) => (
+                        <DropdownMenu
+                            key={lecture}
+                            title={lecture}
+                            icon={lectureIcons[lecture] || "📖"}
+                            items={lectureContent[lecture] || ["Содержание лекции будет добавлено позже"]}
+                            who="ss"
+                        />
+                    ))}
+                </div>
             </div>
         </>
     );

@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, Suspense, lazy, useEffect, useCallback } from "react"
+import { useState, Suspense, lazy, useEffect, useCallback, useRef } from "react"
 import { useRouter } from "next/navigation"
 import Header from "@/app/components/Manual/Header"
 import Sidebar from "@/app/components/Manual/Sidebar"
@@ -18,27 +18,45 @@ import { MobileNavigation } from "@/app/components/common/MobileNavigation"
 import { BookmarkButton } from "@/app/components/common/Bookmarks"
 import { motion } from "framer-motion"
 
-const PositionsSection = lazy(() => import("@/app/components/Manual/sections/default/PositionsSection"))
-const MSUnifiedContentSection = lazy(() => import("@/app/components/Manual/sections/default/MSUnifiedContentSection"))
-const SSUnifiedContentSection = lazy(() => import("@/app/components/Manual/sections/ss/SSUnifiedContentSection"))
-const ExamSection = lazy(() => import("@/app/components/Manual/sections/ss/ExamSection"))
-const PracticalTasksSection = lazy(() => import("@/app/components/Manual/sections/ss/UnifiedContent/PracticalTasksSection"))
-const MedicalCommissionSection = lazy(() => import("@/app/components/Manual/sections/default/MedicalCommissionSection"))
-const InterviewSection = lazy(() => import("@/app/components/Manual/sections/default/InterviewSection"))
-const MedicationsSection = lazy(() => import("@/app/components/Manual/sections/default/MedicationsSection"))
-const MedicalCardSection = lazy(() => import("@/app/components/Manual/sections/default/MedicalCardSection"))
-const CommandTemplatesSection = lazy(() => import("@/app/components/Manual/sections/default/CommandTemplatesSection"))
-const AnnouncementsSection = lazy(() => import("@/app/components/Manual/sections/ss/AnnouncementsSection"))
-const ForumResponsesSection = lazy(() => import("@/app/components/Manual/sections/ss/ForumResponsesSection"))
-const GossWaveSection = lazy(() => import("@/app/components/Manual/sections/ss/GossWaveSection"))
-const ReportGenerator = lazy(() => import("@/app/components/Manual/sections/ss/ReportGenerator"))
-const LeaderReportGenerator = lazy(() => import("@/app/components/Manual/sections/leader/LeaderReportGenerator"))
-const UserManagementSection = lazy(() => import("@/app/components/Manual/sections/admin/UserManagementSection"))
-const ActionLogSection = lazy(() => import("@/app/components/Manual/sections/admin/ActionLogSection"))
-const VehiclesSection = lazy(() => import("@/app/components/Manual/sections/default/VehiclesSection"))
-const GSReportGeneratorSection = lazy(() => import("@/app/components/Manual/sections/admin/GSReportGeneratorSection"))
-const PromotionSystemSection = lazy(() => import("@/app/components/Manual/sections/admin/PromotionSystem").then(m => ({ default: m.default })));
-const BiographyValidatorSection = lazy(() => import("@/app/components/Manual/sections/admin/BiographyValidatorSection"))
+import MSUnifiedContentSection from "@/app/components/Manual/sections/default/MSUnifiedContentSection"
+import SSUnifiedContentSection from "@/app/components/Manual/sections/ss/SSUnifiedContentSection"
+import ExamSection from "@/app/components/Manual/sections/ss/ExamSection"
+import PracticalTasksSection from "@/app/components/Manual/sections/ss/UnifiedContent/PracticalTasksSection"
+import PositionsSection from "@/app/components/Manual/sections/default/PositionsSection"
+import CommandTemplatesSection from "@/app/components/Manual/sections/default/CommandTemplatesSection"
+import AnnouncementsSection from "@/app/components/Manual/sections/ss/AnnouncementsSection"
+import MedicationsSection from "@/app/components/Manual/sections/default/MedicationsSection"
+import MedicalCardSection from "@/app/components/Manual/sections/default/MedicalCardSection"
+import VehiclesSection from "@/app/components/Manual/sections/default/VehiclesSection"
+
+import ForumResponsesSection from "@/app/components/Manual/sections/ss/ForumResponsesSection"
+import GossWaveSection from "@/app/components/Manual/sections/ss/GossWaveSection"
+import ReportGenerator from "@/app/components/Manual/sections/ss/ReportGenerator"
+import LeaderReportGenerator from "@/app/components/Manual/sections/leader/LeaderReportGenerator"
+import MedicalCommissionSection from "@/app/components/Manual/sections/default/MedicalCommissionSection"
+import InterviewSection from "@/app/components/Manual/sections/default/InterviewSection"
+
+import UserManagementSection from "@/app/components/Manual/sections/admin/UserManagementSection"
+import ActionLogSection from "@/app/components/Manual/sections/admin/ActionLogSection"
+import GSReportGeneratorSection from "@/app/components/Manual/sections/admin/GSReportGeneratorSection"
+import BiographyValidatorSection from "@/app/components/Manual/sections/admin/BiographyValidatorSection"
+import PromotionSystemSection from "@/app/components/Manual/sections/admin/PromotionSystem"
+
+interface SectionWrapperProps {
+  sectionId: string;
+  SectionComponent: React.ComponentType | any;
+  handleSectionChange: (id: string) => void;
+}
+
+const SectionWrapper: React.FC<SectionWrapperProps> = ({ sectionId, SectionComponent, handleSectionChange }) => {
+  if (!SectionComponent) return null;
+  
+  if (sectionId === "overview") {
+    return <OverviewSection setActiveSection={handleSectionChange} />;
+  }
+  
+  return <SectionComponent />;
+};
 
 
 const sectionComponents: Record<string, React.ComponentType> = {
@@ -89,6 +107,11 @@ export default function ManualPage() {
   const { addToHistory } = useHistory()
   const { updateProgress, markCompleted, recordInteraction, progress } = useProgress()
   const [activeSection, setActiveSection] = useState("overview")
+  const activeSectionRef = useRef(activeSection)
+
+  useEffect(() => {
+    activeSectionRef.current = activeSection
+  }, [activeSection])
   const [mounted, setMounted] = useState(false)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
@@ -142,11 +165,13 @@ export default function ManualPage() {
   // Listen for interaction events from UI (copy, generators, etc.)
   useEffect(() => {
     const handleInteraction = () => {
-      recordInteraction(activeSection)
+      // Чтобы избежать ререндера ManualPage (и закрытия дропдаунов) при каждом копировании,
+      // мы используем ссылку на текущую секцию вместо зависимости activeSection в массиве зависимостей.
+      recordInteraction(activeSectionRef.current)
     }
     window.addEventListener('record-interaction', handleInteraction as EventListener)
     return () => window.removeEventListener('record-interaction', handleInteraction as EventListener)
-  }, [recordInteraction, activeSection])
+  }, [recordInteraction]) // Убрали activeSection из зависимостей
 
   const effectiveSection = !isLoading && !canAccessSection(activeSection) ? "overview" : activeSection;
   const SectionComponent = sectionComponents[effectiveSection];
@@ -187,53 +212,46 @@ export default function ManualPage() {
                   </div>
               ) : SectionComponent ? (
                   <ErrorBoundary sectionName={getSectionTitle(effectiveSection)}>
-                    <Suspense fallback={
-                      <div className="flex flex-col items-center justify-center py-20">
-                        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mb-4" />
-                        <p className="text-muted-foreground">Загрузка раздела...</p>
-                      </div>
-                    }>
-                      <motion.div
-                        key={effectiveSection}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        <div className="mb-6 flex items-center justify-between">
-                          <div>
-                            <h1 className="text-3xl font-bold text-foreground mb-2">
-                              {getSectionTitle(effectiveSection)}
-                            </h1>
-                            <div className="w-20 h-1 bg-primary rounded-full"></div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => markCompleted(effectiveSection)}
-                              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-all border ${
-                                progress[effectiveSection]?.completed
-                                  ? "bg-green-500/10 text-green-500 border-green-500/30"
-                                  : "bg-muted text-muted-foreground hover:text-foreground border-border"
-                              }`}
-                              title={progress[effectiveSection]?.completed ? "Раздел уже отмечен как изученный" : "Отметить раздел как изученный"}
-                            >
-                              {progress[effectiveSection]?.completed ? "✅ Изучено" : "☑️ Отметить"}
-                            </button>
-                            <BookmarkButton 
-                              id={effectiveSection}
-                              title={getSectionTitle(effectiveSection)}
-                              section="Методичка"
-                              icon="📖"
-                              variant="button"
-                            />
-                          </div>
+                    <motion.div
+                      key={effectiveSection}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <div className="mb-6 flex items-center justify-between">
+                        <div>
+                          <h1 className="text-3xl font-bold text-foreground mb-2">
+                            {getSectionTitle(effectiveSection)}
+                          </h1>
+                          <div className="w-20 h-1 bg-primary rounded-full"></div>
                         </div>
-                        {effectiveSection === "overview" ? (
-                          <OverviewSection setActiveSection={handleSectionChange} />
-                        ) : (
-                          <SectionComponent />
-                        )}
-                      </motion.div>
-                    </Suspense>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => markCompleted(effectiveSection)}
+                            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-all border ${
+                              progress[effectiveSection]?.completed
+                                ? "bg-green-500/10 text-green-500 border-green-500/30"
+                                : "bg-muted text-muted-foreground hover:text-foreground border-border"
+                            }`}
+                            title={progress[effectiveSection]?.completed ? "Раздел уже отмечен как изученный" : "Отметить раздел как изученный"}
+                          >
+                            {progress[effectiveSection]?.completed ? "✅ Изучено" : "☑️ Отметить"}
+                          </button>
+                          <BookmarkButton 
+                            id={effectiveSection}
+                            title={getSectionTitle(effectiveSection)}
+                            section="Методичка"
+                            icon="📖"
+                            variant="button"
+                          />
+                        </div>
+                      </div>
+                      <SectionWrapper 
+                        sectionId={effectiveSection} 
+                        SectionComponent={SectionComponent} 
+                        handleSectionChange={handleSectionChange} 
+                      />
+                    </motion.div>
                   </ErrorBoundary>
               ) : (
                   <div className="text-center py-20">
