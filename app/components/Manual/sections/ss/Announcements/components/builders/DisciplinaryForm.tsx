@@ -3,7 +3,6 @@ import type { DisciplinaryBuilder, DisciplinaryPerson } from '../../types'
 
 interface DisciplinaryFormProps {
   disciplinary: DisciplinaryBuilder
-  onPenaltyChange: (penalty: string) => void
   onAddPerson: () => void
   onUpdatePerson: (index: number, updates: Partial<DisciplinaryPerson>) => void
   onRemovePerson: (index: number) => void
@@ -11,7 +10,6 @@ interface DisciplinaryFormProps {
 
 export const DisciplinaryForm: React.FC<DisciplinaryFormProps> = ({
   disciplinary,
-  onPenaltyChange,
   onAddPerson,
   onUpdatePerson,
   onRemovePerson,
@@ -20,25 +18,15 @@ export const DisciplinaryForm: React.FC<DisciplinaryFormProps> = ({
     <div className="p-4 rounded-lg border-2 border-border bg-background/50">
       <h5 className="text-sm font-semibold mb-3 text-foreground">Взыскания</h5>
       <div className="space-y-3">
-        <div>
-          <label className="block text-sm font-medium mb-2 text-foreground">Вид взыскания:</label>
-          <input
-            type="text"
-            value={disciplinary.penalty}
-            onChange={(e) => onPenaltyChange(e.target.value)}
-            className="w-full px-3 py-2 border-2 border-border rounded-lg bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
-          />
-        </div>
-
-        <div className="pt-2 border-t-2 border-border">
+        <div className="pt-2">
           <div className="flex items-center justify-between mb-2">
-            <label className="block text-sm font-medium text-foreground">Сотрудники:</label>
+            <label className="block text-sm font-medium text-foreground">Список сотрудников:</label>
             <button
               onClick={onAddPerson}
               className="px-3 py-1 rounded-lg text-sm font-semibold bg-muted text-muted-foreground hover:bg-muted/80 transition-all"
               type="button"
             >
-              + Добавить
+              + Добавить сотрудника
             </button>
           </div>
 
@@ -71,6 +59,16 @@ export const DisciplinaryForm: React.FC<DisciplinaryFormProps> = ({
 
                 <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div>
+                    <label className="block text-sm font-medium mb-2 text-foreground">Вид взыскания:</label>
+                    <input
+                      type="text"
+                      value={person.penalty}
+                      onChange={(e) => onUpdatePerson(idx, { penalty: e.target.value })}
+                      placeholder="например: Выговор"
+                      className="w-full px-3 py-2 border-2 border-border rounded-lg bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                    />
+                  </div>
+                  <div>
                     <label className="block text-sm font-medium mb-2 text-foreground">Пункт:</label>
                     <input
                       type="text"
@@ -80,15 +78,16 @@ export const DisciplinaryForm: React.FC<DisciplinaryFormProps> = ({
                       className="w-full px-3 py-2 border-2 border-border rounded-lg bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2 text-foreground">Описание пункта (опционально):</label>
-                    <input
-                      type="text"
-                      value={person.articleDescription}
-                      onChange={(e) => onUpdatePerson(idx, { articleDescription: e.target.value })}
-                      className="w-full px-3 py-2 border-2 border-border rounded-lg bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
-                    />
-                  </div>
+                </div>
+
+                <div className="mt-3">
+                  <label className="block text-sm font-medium mb-2 text-foreground">Описание пункта (опционально):</label>
+                  <input
+                    type="text"
+                    value={person.articleDescription}
+                    onChange={(e) => onUpdatePerson(idx, { articleDescription: e.target.value })}
+                    className="w-full px-3 py-2 border-2 border-border rounded-lg bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                  />
                 </div>
 
                 <div className="mt-3">

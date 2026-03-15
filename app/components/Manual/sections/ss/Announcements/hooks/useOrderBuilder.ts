@@ -59,13 +59,13 @@ ${targetName} принят в ${settings.hospital} города ${settings.city}
   }, [settings])
 
   const buildDisciplinaryText = useCallback((disciplinary: DisciplinaryBuilder): string => {
-
     if (disciplinary.people.length === 0) {
       return ""
     }
 
     const peopleText = disciplinary.people
       .map((person) => {
+        const currentPenalty = person.penalty?.trim() || "Выговор"
         const articleBlock = person.articleDescription
           ? `${person.article} (${person.articleDescription})`
           : person.article
@@ -73,7 +73,7 @@ ${targetName} принят в ${settings.hospital} города ${settings.city}
           ? `\nПо жалобе: ${person.complaintUrl}`
           : ""
 
-        return `${person.name}, находясь в должности ${person.position} получает взыскание в виде ${disciplinary.penalty} и несёт ответственность по пункту ${articleBlock}${complaintBlock}
+        return `${person.name}, находясь в должности ${person.position} получает взыскание в виде ${currentPenalty} и несёт ответственность по пункту ${articleBlock}${complaintBlock}
 
 Текущее состояние:
 УП-${person.up}/5, П-${person.p}/5, В-${person.v}/3.`

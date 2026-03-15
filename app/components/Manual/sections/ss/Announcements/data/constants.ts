@@ -1,8 +1,9 @@
 import type { CityOption, PositionOption } from '../types'
 
 export const CITIES: CityOption[] = [
-  { value: "privolzhsk", label: "Приволжск", hospital: "Центральную Городскую Больницу" },
-  { value: "mirnuy", label: "Мирный", hospital: "Городскую Больницу" },
+  { value: "privolzhsk", label: "Приволжск", hospital: "Центральной Городской Больницы" },
+  { value: "mirny", label: "Мирный", hospital: "Городской Больницы" },
+  { value: "nevsky", label: "Невский", hospital: "Центральной Городской Больницы" },
 ]
 
 export const POSITIONS: PositionOption[] = [
@@ -15,7 +16,7 @@ export const POSITIONS: PositionOption[] = [
 export const DEFAULT_SETTINGS = {
   position: "gv",
   positionCustom: "",
-  hospital: "Центральную Городскую Больницу",
+  hospital: "Центральной Городской Больницы",
   city: "Приволжск",
   myName: "",
   targetName: "",

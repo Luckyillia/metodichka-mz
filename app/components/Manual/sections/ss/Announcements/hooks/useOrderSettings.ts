@@ -62,7 +62,11 @@ export const useOrderSettings = () => {
 
     const defaultPositionLabel = POSITIONS.find((p) => p.value === settings.position)?.label ?? settings.position
     const positionLabel = settings.positionCustom || defaultPositionLabel
-    return `[${positionLabel} ${derivedHospital} города ${settings.city} | ${settings.myName}]`
+    
+    // Находим название города для отображения (label вместо value)
+    const cityLabel = CITIES.find(c => c.value === settings.city)?.label ?? settings.city
+    
+    return `[${positionLabel} ${derivedHospital} города ${cityLabel} | ${settings.myName}]`
   }, [settings, derivedHospital])
 
   const replaceInContent = useCallback((content: string) => {

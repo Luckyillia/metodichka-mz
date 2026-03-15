@@ -20,21 +20,11 @@ const DEFAULT_WIZARD: WizardForm = {
 
 const DEFAULT_DISCIPLINARY: DisciplinaryBuilder = {
   people: [],
-  penalty: "выговора",
 }
 
 export const useOrderWizard = () => {
   const [wizard, setWizard] = useState<WizardForm>(DEFAULT_WIZARD)
-  const [disciplinary, setDisciplinary] = useState<DisciplinaryBuilder>(() => {
-    if (typeof window === "undefined") return DEFAULT_DISCIPLINARY
-    try {
-      const raw = localStorage.getItem(DISCIPLINARY_PENALTY_STORAGE_KEY)
-      if (!raw) return DEFAULT_DISCIPLINARY
-      return { ...DEFAULT_DISCIPLINARY, penalty: raw }
-    } catch {
-      return DEFAULT_DISCIPLINARY
-    }
-  })
+  const [disciplinary, setDisciplinary] = useState<DisciplinaryBuilder>(DEFAULT_DISCIPLINARY)
 
   useEffect(() => {
     const handler = (ev: Event) => {
@@ -70,6 +60,7 @@ export const useOrderWizard = () => {
           article: "",
           articleDescription: "",
           complaintUrl: "",
+          penalty: "Выговор",
         },
       ],
     }))
@@ -94,18 +85,6 @@ export const useOrderWizard = () => {
     }))
   }, [])
 
-  const updateDisciplinaryPenalty = useCallback((penalty: string) => {
-    setDisciplinary(prev => ({ ...prev, penalty }))
-  }, [])
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(DISCIPLINARY_PENALTY_STORAGE_KEY, disciplinary.penalty)
-    } catch {
-      // ignore
-    }
-  }, [disciplinary.penalty])
-
   const resetDisciplinary = useCallback(() => {
     setDisciplinary(DEFAULT_DISCIPLINARY)
   }, [])
@@ -120,7 +99,6 @@ export const useOrderWizard = () => {
     addDisciplinaryPerson,
     updateDisciplinaryPerson,
     removeDisciplinaryPerson,
-    updateDisciplinaryPenalty,
     resetDisciplinary,
   }
 }

@@ -66,11 +66,11 @@ export interface DisciplinaryPerson {
   article: string
   articleDescription: string
   complaintUrl: string
+  penalty: string // Обязательное поле для каждого сотрудника
 }
 
 export interface DisciplinaryBuilder {
   people: DisciplinaryPerson[]
-  penalty: string
 }
 
 export interface CityOption {
