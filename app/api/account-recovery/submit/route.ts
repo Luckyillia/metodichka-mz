@@ -67,7 +67,7 @@ export async function POST(request: Request) {
       updateData.city = city
     }
 
-    if (role && ["user", "cc", "ld"].includes(role)) {
+    if (role && ["user", "instructor", "cc", "ld"].includes(role)) {
       updateData.role = role
     }
 

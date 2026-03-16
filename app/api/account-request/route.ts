@@ -59,7 +59,7 @@ export async function POST(request: Request) {
     }
 
     // Валидация роли
-    if (!["user", "cc", "ld"].includes(role)) {
+    if (!["user", "instructor", "cc", "ld"].includes(role)) {
       return NextResponse.json({ error: "Недопустимая роль" }, { status: 400 })
     }
 
