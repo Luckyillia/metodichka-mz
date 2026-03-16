@@ -103,10 +103,10 @@ export default function Header({ onMenuClick }: HeaderProps) {
     const badges = {
       root: { label: "Суперадмин", color: "bg-purple-600" },
       admin: { label: "Администратор", color: "bg-red-600" },
-      ld: { label: `Лидер ${city ? getCityLabel(city) : ''}`, color: "bg-pink-600" },
-      cc: { label: `СС ${city ? getCityLabel(city) : ''}`, color: "bg-blue-600" },
-      instructor: { label: `Инструктор ${city ? getCityLabel(city) : ''}`, color: "bg-amber-600" },
-      user: { label: `Участник ${city ? getCityLabel(city) : ''}`, color: "bg-green-600" },
+      ld: { label: `ЛД${city ? ` ${getCityLabel(city)}` : ''}`, color: "bg-pink-600" },
+      cc: { label: `СС${city ? ` ${getCityLabel(city)}` : ''}`, color: "bg-blue-600" },
+      instructor: { label: `Инструктор${city ? ` ${getCityLabel(city)}` : ''}`, color: "bg-amber-600" },
+      user: { label: `Пользователь${city ? ` ${getCityLabel(city)}` : ''}`, color: "bg-green-600" },
     }
     return badges[role as keyof typeof badges] || { label: role, color: "bg-gray-600" }
   }
@@ -204,6 +204,11 @@ export default function Header({ onMenuClick }: HeaderProps) {
                         <span className="text-xs md:text-sm font-medium text-foreground flex items-center gap-2">
                           <Shield className="w-3 h-3 md:w-4 md:h-4 text-muted-foreground"/>
                           {user.game_nick}
+                        </span>
+                        <span
+                          className={`mt-1 inline-flex w-fit items-center px-2 py-0.5 rounded-full text-[10px] md:text-xs font-semibold text-white ${getRoleBadge(user.role, user.city).color}`}
+                        >
+                          {getRoleBadge(user.role, user.city).label}
                         </span>
                       </div>
                     </Link>

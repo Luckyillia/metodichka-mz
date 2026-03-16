@@ -57,8 +57,8 @@ export const ChangeRoleModal: React.FC<ChangeRoleModalProps> = ({
       // Лидер может переключать между user и cc
       return [
         { value: "user", label: "Пользователь" },
-        { value: "cc", label: "CC" },
-        { value: "instructor", label: "Инструктор" }
+        { value: "instructor", label: "Инструктор" },
+        { value: "cc", label: "CC" }
       ]
     }
 
@@ -116,7 +116,7 @@ export const ChangeRoleModal: React.FC<ChangeRoleModalProps> = ({
             
             {isLeader && (
               <p className="text-xs text-muted-foreground mt-2">
-                Вы можете назначать только роли Пользователь и CC
+                Вы можете назначать только роли Пользователь, Инструктор и CC
               </p>
             )}
           </div>

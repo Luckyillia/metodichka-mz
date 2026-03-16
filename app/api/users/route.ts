@@ -576,10 +576,10 @@ export async function PATCH(request: Request) {
         return NextResponse.json({ error: "Это не запрос на создание аккаунта" }, { status: 400 })
       }
 
-      // Лидер может одобрять только cc и user своего города
+      // Лидер может одобрять только cc / user / instructor своего города
       if (currentUser.role === "ld") {
-        if (existingUser.role !== "cc" && existingUser.role !== "user") {
-          return NextResponse.json({ error: "Лидер може одобрять только запросы с ролями CC и User" }, { status: 403 })
+        if (existingUser.role !== "cc" && existingUser.role !== "user" && existingUser.role !== "instructor") {
+          return NextResponse.json({ error: "Лидер може одобрять только запросы с ролями CC, User и Instructor" }, { status: 403 })
         }
         if (existingUser.city !== currentUser.city) {
           return NextResponse.json({ error: "Лидер может одобрять только запросы из своего города" }, { status: 403 })
@@ -720,22 +720,22 @@ export async function PATCH(request: Request) {
     // Лидер может изменять роль только пользователям своего города
     if (currentUser.role === "ld") {
       if (existingUser.city !== currentUser.city) {
-        return NextResponse.json({ 
-          error: "Лидер может изменять роль только пользователям своего города" 
+        return NextResponse.json({
+          error: "Лидер может изменять роль только пользователям своего города",
         }, { status: 403 })
       }
-      
-      // Лидер может назначать только user и cc
-      if (role !== "user" && role !== "cc") {
-        return NextResponse.json({ 
-          error: "Лидер может назначать только роли User и CC" 
+
+      // Лидер может назначать только user / instructor / cc
+      if (role !== "user" && role !== "instructor" && role !== "cc") {
+        return NextResponse.json({
+          error: "Лидер может назначать только роли User, Instructor и CC",
         }, { status: 403 })
       }
-      
-      // Лидер может изменять роль только у user и cc
-      if (existingUser.role !== "user" && existingUser.role !== "cc") {
-        return NextResponse.json({ 
-          error: "Лидер может изменять роль только пользователям с ролями User и CC" 
+
+      // Лидер может изменять роль только у user / instructor / cc
+      if (existingUser.role !== "user" && existingUser.role !== "instructor" && existingUser.role !== "cc") {
+        return NextResponse.json({
+          error: "Лидер может изменять роль только пользователям с ролями User, Instructor и CC",
         }, { status: 403 })
       }
     }
