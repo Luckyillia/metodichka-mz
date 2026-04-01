@@ -76,6 +76,11 @@ const AnnouncementsSection: React.FC = () => {
     return city?.hospital ?? previewSettings.hospital
   }, [previewSettings.city, previewSettings.hospital])
 
+  const derivedHospitalGen = useMemo(() => {
+    const city = CITIES.find((c) => c.label === previewSettings.city || c.value === previewSettings.city)
+    return city?.hospitalGen ?? derivedHospital
+  }, [previewSettings.city, derivedHospital])
+
   const getPositionTitle = useMemo(() => {
     if (previewSettings.positionCustom.trim()) return previewSettings.positionCustom.trim()
     const position = POSITIONS.find((p) => p.value === previewSettings.position)
@@ -95,9 +100,9 @@ const AnnouncementsSection: React.FC = () => {
     let result = content
 
     result = result.replace(/^\[[^\]]*\]\s*(\r?\n)?/m, `${buildHeaderLine}\n\n`)
-    result = result.replace(/\{HOSPITAL_FULL\}/g, derivedHospital)
+    result = result.replace(/\{HOSPITAL_FULL\}/g, derivedHospitalGen)
     result = result.replace(/\{HOSPITAL\}/g, derivedHospital)
-    result = result.replace(/\{CITY\}/g, previewSettings.city)
+    result = result.replace(/\{CITY\}/g, CITIES.find(c => c.value === previewSettings.city)?.label ?? previewSettings.city)
     result = result.replace(/\{MY_NAME\}/g, previewSettings.myName)
     result = result.replace(/\{UP\}/g, previewSettings.up)
     result = result.replace(/\{P\}/g, previewSettings.p)
@@ -107,7 +112,11 @@ const AnnouncementsSection: React.FC = () => {
   }
 
   const buildOrderListPreview = (order: Order) => {
-    return replaceVariables(order.content)
+    return replaceVariables(
+      order.content.trimStart().startsWith("[")
+        ? order.content
+        : `${buildHeaderLine}\n\n${order.content}`
+    )
       .split("\n")
       .map((l) => l.trim())
       .filter(Boolean)

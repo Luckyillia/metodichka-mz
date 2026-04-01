@@ -81,6 +81,7 @@ const MedicalCommissionSection = () => {
         
         <ExamplePhrase text={adaptText("me взял медкнижку в руки")} />
         <ExamplePhrase text={adaptText("me положил медкнижку на стол, затем открыл нужную страницу")} />
+        <ExamplePhrase text="say Хорошо, раздевайтесь до нижнего белья и положите одежду на кушетку." />
         <ExamplePhrase text="do Около кушетки стоят весы." />
         <ExamplePhrase text="say Вставайте на весы." />
         <ExamplePhrase text="do У *Имя Фамилия* какой вес?" />
@@ -134,7 +135,7 @@ const MedicalCommissionSection = () => {
         <div className="note">
           <strong>📌 Примечание:</strong> ВАЖНО! Интервал между отыгровками ~5 секунд.
         </div>
-        
+        <ExamplePhrase text="say Хорошо, можете одеваться!" />
         <ExamplePhrase text="do На столе ручка." />
         <ExamplePhrase text={adaptText("me взял ручку, затем внес изменения в медкнижку")} />
         <ExamplePhrase text="do Изменения внесены." />

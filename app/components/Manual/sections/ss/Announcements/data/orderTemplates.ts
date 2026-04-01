@@ -55,9 +55,7 @@ export const medicalOrders: Order[] = [
       ]
     },
     body: `Приказ о принятии в Медицинский Университет:  
-{TARGET_NAME} принят в Медицинский Университет {HOSPITAL} г. {CITY} по результатам открытого собеседования на должность Интерна. Желаем успешного продвижения в работе!  
-Состояние на данный момент: УП - {UP}/5; П - {P}/5; В - {V}/3`,
-    statusVariant: "none"
+{TARGET_NAME} принят в Медицинский Университет {HOSPITAL} г. {CITY} по результатам открытого собеседования на должность Интерна. Желаем успешного продвижения в работе!`,
   }),
 
   createOrderTemplate({
@@ -71,9 +69,7 @@ export const medicalOrders: Order[] = [
       ]
     },
     body: `Приказ о переводе сотрудника:
-На основании поданного заявления и в соответствии с внутренними кадровыми процедурами, сотрудник {TARGET_NAME} переводится в отдел Инструкторов Медицинского Университета!
-Состояние на данный момент: УП - {UP}/5; П - {P}/5; В - {V}/3`,
-    statusVariant: "none"
+На основании поданного заявления и в соответствии с внутренними кадровыми процедурами, сотрудник {TARGET_NAME} переводится в отдел Инструкторов Медицинского Университета!`,
   }),
 
   createOrderTemplate({
@@ -91,9 +87,7 @@ export const medicalOrders: Order[] = [
       ]
     },
     body: `Приказ о переводе сотрудника:
-Сотрудник {TARGET_NAME} переводится из организации {HOSPITAL_FULL} города {CITY} в {TARGET_HOSPITAL_FULL} города {TARGET_CITY} на должность «{TARGET_POSITION}».{APPLICATION_URL_LINE}
-Текущее положение: УП - {UP}/5; П - {P}/5; В - {V}/3`,
-    statusVariant: "none"
+Сотрудник {TARGET_NAME} переводится из организации {HOSPITAL_FULL} города {CITY} в {TARGET_HOSPITAL_FULL} города {TARGET_CITY} на должность «{TARGET_POSITION}».{APPLICATION_URL_LINE}`,
   }),
 
   createOrderTemplate({
@@ -111,8 +105,7 @@ export const medicalOrders: Order[] = [
     },
     body: `Приказ о предоставлении отпуска:
 
-Сотрудник {TARGET_NAME}, находясь в должности {TARGET_POSITION}, отправляется в отпуск с {DATE_FROM} по {DATE_TO} включительно. Хорошего отдыха!
-Состояние на данный момент: УП - {UP}/5; П - {P}/5; В - {V}/3`,
+Сотрудник {TARGET_NAME}, находясь в должности {TARGET_POSITION}, отправляется в отпуск с {DATE_FROM} по {DATE_TO} включительно. Хорошего отдыха!`,
   }),
 
   createOrderTemplate({
@@ -128,8 +121,7 @@ export const medicalOrders: Order[] = [
     },
     body: `Приказ о снятии ВрИО срока:
 
-Сотрудник {TARGET_NAME} успешно проходит ВрИО срок и становится на полноценную должность {TARGET_POSITION}.
-Состояние на данный момент: УП - {UP}/5; П - {P}/5; В - {V}/3`,
+Сотрудник {TARGET_NAME} успешно проходит ВрИО срок и становится на полноценную должность {TARGET_POSITION}.`,
   }),
 
   createOrderTemplate({
@@ -149,8 +141,7 @@ export const medicalOrders: Order[] = [
     body: `Приказ о переводе:  
 
 Сотрудник {TARGET_NAME} переводится{FROM_POSITION} на должность {TARGET_POSITION}.{TARGET_DEPARTMENT_LINE}
-Основание: {REASON}.
-Состояние на данный момент: УП - {UP}/5; П - {P}/5; В - {V}/3`,
+Основание: {REASON}.`,
   }),
 
   createOrderTemplate({
@@ -165,7 +156,7 @@ export const medicalOrders: Order[] = [
 Приказ о кадровых перестановках:
 
 Сотрудник {TARGET_NAME} назначен на должность «Заместитель начальника главного военно-медицинского управления».
-Состояние на данный момент: УП - {UP}/5; П - {P}/5; В - {V}/3`,
+`,
   }),
 
   createOrderTemplate({
@@ -180,7 +171,7 @@ export const medicalOrders: Order[] = [
 Приказ о кадровых перестановках:
 
 Сотрудник {TARGET_NAME} назначен на должность «Командир военно-медицинским отделом».
-Состояние на данный момент: УП - {UP}/5; П - {P}/5; В - {V}/3`,
+`,
   }),
 
   createOrderTemplate({
@@ -195,7 +186,7 @@ export const medicalOrders: Order[] = [
 Приказ о кадровых перестановках:
 
 Сотрудник {TARGET_NAME} назначен на должность «Начальник ИМУ».
-Состояние на данный момент: УП - {UP}/5; П - {P}/5; В - {V}/3`,
+`,
   }),
 
   createOrderTemplate({
@@ -216,7 +207,7 @@ export const medicalOrders: Order[] = [
 {TARGET_NAME} — назначен на должность: {TARGET_POSITION}.
 
 ВрИО срок {VRIO_DAYS} дней.
-Состояние на данный момент: УП - {UP}/5; П - {P}/5; В - {V}/3`,
+`,
   }),
 
   createOrderTemplate({
@@ -234,7 +225,7 @@ export const medicalOrders: Order[] = [
 Приказ о кадровых перестановках:
 
 {TARGET_NAME} — назначен на должность: {TARGET_POSITION}.
-Состояние на данный момент: УП - {UP}/5; П - {P}/5; В - {V}/3`,
+`,
   }),
 
   createOrderTemplate({
@@ -249,7 +240,7 @@ export const medicalOrders: Order[] = [
 Приказ о кадровых перестановках:
 
 Сотрудник {TARGET_NAME} назначен на должность «Заместитель Начальника санитарной авиации».
-Состояние на данный момент: УП - {UP}/5; П - {P}/5; В - {V}/3`,
+`,
   }),
 
   createOrderTemplate({
@@ -264,7 +255,7 @@ export const medicalOrders: Order[] = [
 Приказ о кадровых перестановках:
 
 Сотрудник {TARGET_NAME} назначен на должность «Начальник санитарной авиации».
-Состояние на данный момент: УП - {UP}/5; П - {P}/5; В - {V}/3`,
+`,
   }),
 
   createOrderTemplate({
@@ -279,7 +270,7 @@ export const medicalOrders: Order[] = [
 Приказ о переводе сотрудника:
 
 На основании поданного рапорта и в соответствии с кадровыми процедурами, сотрудник {TARGET_NAME} переводится в отдел Санитарной Авиации на должность Пилота Санитарной Авиации. Желаем успехов, продуктивной работы и роста в новых обязанностях!
-Состояние на данный момент: УП - {UP}/5; П - {P}/5; В - {V}/3`,
+`,
   }),
 
   createOrderTemplate({
@@ -294,7 +285,7 @@ export const medicalOrders: Order[] = [
 Приказ о переводе сотрудника:
 
 На основании поданного рапорта и в соответствии с кадровыми процедурами, сотрудник {TARGET_NAME} переводится в отдел Санитарной Авиации на должность Фельдшера Санитарной Авиации. Желаем успехов, продуктивной работы и роста в новых обязанностях!
-Состояние на данный момент: УП - {UP}/5; П - {P}/5; В - {V}/3`,
+`,
   }),
 
   createOrderTemplate({
@@ -309,7 +300,7 @@ export const medicalOrders: Order[] = [
 Приказ о принятии в Старший состав:
 
 Сотрудник {TARGET_NAME} восстановлен в Старший состав {HOSPITAL_FULL} города {CITY} по результатам закрытого собеседования и снова готов приступить к своим обязанностям с новыми силами. Рады видеть вас снова!
-Состояние на данный момент: УП - {UP}/5; П - {P}/5; В - {V}/3`,
+`,
   }),
 
   createOrderTemplate({
@@ -327,7 +318,7 @@ export const medicalOrders: Order[] = [
 Приказ о снятии ВрИО срока:
 
 Сотрудник {TARGET_NAME} успешно проходит ВрИО срок и становится на полноценную должность {TARGET_POSITION}.
-Состояние на данный момент: УП - {UP}/5; П - {P}/5; В - {V}/3`,
+`,
   }),
 
   createOrderTemplate({
@@ -342,7 +333,7 @@ export const medicalOrders: Order[] = [
 Приказ о возвращении из отпуска:
 
 {TARGET_NAME} - досрочно выходит из отпуска.
-Состояние на данный момент: УП - {UP}/5; П - {P}/5; В - {V}/3`,
+`,
   }),
 
   createOrderTemplate({
@@ -357,7 +348,7 @@ export const medicalOrders: Order[] = [
 Приказ о возвращении с отпуска:
 
 Сотрудник {TARGET_NAME} возвращается из отпуска и приступает к своим должностным обязанностям.
-Состояние на данный момент: УП - {UP}/5; П - {P}/5; В - {V}/3`,
+`,
   }),
 
   createOrderTemplate({
@@ -378,7 +369,7 @@ export const medicalOrders: Order[] = [
 Причина: Собственное желание. Неустойка не требуется.
 Должность при увольнении: ({TARGET_POSITION}).
 Спасибо за проделанную медицинскую работу!
-Состояние на данный момент: УП - {UP}/5; П - {P}/5; В - {V}/3`,
+`,
   }),
 
   createOrderTemplate({
@@ -396,7 +387,7 @@ export const medicalOrders: Order[] = [
 Приказ об увольнении:  
 
 Сотрудник {TARGET_NAME} находясь в должности ({TARGET_POSITION}), {HOSPITAL_FULL} города {CITY}, с занесением в общий чёрный список для дальнейшего исключения возможности трудоустройства в организации сроком на 30 дней по пункту 0.1.11 ОЧС (Самолив из оф.бесед).
-Состояние на данный момент: УП - {UP}/5; П - {P}/5; В - {V}/3`,
+`,
   }),
 
   createOrderTemplate({
@@ -414,7 +405,7 @@ export const medicalOrders: Order[] = [
 Приказ об увольнении:  
 
 Сотрудник {TARGET_NAME} находясь в должности ({TARGET_POSITION}), покидает {HOSPITAL_FULL} города {CITY}, с занесением в общий чёрный список для дальнейшего исключения возможности трудоустройства в организации сроком на 30 дней по пункту 0.1.3 ОЧС (Бан на 10 и более дней).
-Состояние на данный момент: УП - {UP}/5; П - {P}/5; В - {V}/3`,
+`,
   }),
 
   createOrderTemplate({
@@ -433,7 +424,7 @@ export const medicalOrders: Order[] = [
 Приказ об увольнении:
 
 Сотрудник {TARGET_NAME} находясь в должности {TARGET_POSITION}, покидает {HOSPITAL_FULL} города {CITY}, с занесением в общий чёрный список для дальнейшего исключения возможности трудоустройства в организации сроком на {BLACKLIST_DAYS} дней за нарушение пункта 0.1.9 ОЧС (Продолжительный неактив без предупреждения).
-Состояние на данный момент: УП - {UP}/5; П - {P}/5; В - {V}/3`,
+`,
   }),
 
   createOrderTemplate({
@@ -448,7 +439,7 @@ export const medicalOrders: Order[] = [
 Приказ о принятии в Медицинский Университет:  
 
 {TARGET_NAME} принят в Медицинский Университет {HOSPITAL} г. {CITY} по результатам закрытого собеседования на должность Интерна. Желаем успешного продвижения в работе!
-Состояние на данный момент: УП - {UP}/5; П - {P}/5; В - {V}/3`,
+`,
   }),
 
   createOrderTemplate({
@@ -463,139 +454,139 @@ export const medicalOrders: Order[] = [
 Приказ о принятии в Отдел Лабораторной Диагностики:  
 
 {TARGET_NAME} восстанавливается в Отдел Лабораторной Диагностики {HOSPITAL} г. {CITY} по результатам закрытого собеседования на должность врач-участковый. Рады видеть вас снова!
-Состояние на данный момент: УП - {UP}/5; П - {P}/5; В - {V}/3`,
-  }),
+`,
+}),
 
-  createOrderTemplate({
-    id: "povyshenie-old",
-    title: "Повышение классификации с переводом в ОЛД",
-    category: "Повышения",
-    tags: ["повышение", "классификация", "перевод", "ОЛД"],
-    builder: {
-      fields: [
-        { key: "TARGET_NAME", label: "Сотрудник", type: "text", placeholder: "Имя_Фамилия" },
-        { key: "FROM_POSITION", label: "С какой должности", type: "text", placeholder: "Интерна" },
-        { key: "TO_POSITION", label: "На какую должность", type: "text", placeholder: "Лаборант" },
-      ]
-    },
-    body: `
+createOrderTemplate({
+  id: "povyshenie-old",
+  title: "Повышение классификации с переводом в ОЛД",
+  category: "Повышения",
+  tags: ["повышение", "классификация", "перевод", "ОЛД"],
+  builder: {
+    fields: [
+      { key: "TARGET_NAME", label: "Сотрудник", type: "text", placeholder: "Имя_Фамилия" },
+      { key: "FROM_POSITION", label: "С какой должности", type: "text", placeholder: "Интерна" },
+      { key: "TO_POSITION", label: "На какую должность", type: "text", placeholder: "Лаборант" },
+    ]
+  },
+  body: `
 Приказ о повышении классификации сотрудника:  
 
 Сотрудник {TARGET_NAME} повышается в классификации с {FROM_POSITION} до {TO_POSITION} в связи с успешной сдачей отчётности.
 На основании поданного рапорта и в соответствии с кадровыми процедурами, сотрудник {TARGET_NAME} переводится в Отдел Лабораторной Диагностики (далее ОЛД).
 Продолжайте в том же духе!
-Состояние на данный момент: УП - {UP}/5; П - {P}/5; В - {V}/3`,
-  }),
+`,
+}),
 
-  createOrderTemplate({
-    id: "povyshenie-oth",
-    title: "Повышение классификации с переводом в ОТХ",
-    category: "Повышения",
-    tags: ["повышение", "классификация", "перевод", "ОТХ"],
-    builder: {
-      fields: [
-        { key: "TARGET_NAME", label: "Сотрудник", type: "text", placeholder: "Имя_Фамилия" },
-        { key: "FROM_POSITION", label: "С какой должности", type: "text", placeholder: "Интерна" },
-        { key: "TO_POSITION", label: "На какую должность", type: "text", placeholder: "Врач-Терапевт" },
-      ]
-    },
-    body: `
+createOrderTemplate({
+  id: "povyshenie-oth",
+  title: "Повышение классификации с переводом в ОТХ",
+  category: "Повышения",
+  tags: ["повышение", "классификация", "перевод", "ОТХ"],
+  builder: {
+    fields: [
+      { key: "TARGET_NAME", label: "Сотрудник", type: "text", placeholder: "Имя_Фамилия" },
+      { key: "FROM_POSITION", label: "С какой должности", type: "text", placeholder: "Интерна" },
+      { key: "TO_POSITION", label: "На какую должность", type: "text", placeholder: "Врач-Терапевт" },
+    ]
+  },
+  body: `
 Приказ о повышении классификации сотрудника:  
 
 Сотрудник {TARGET_NAME} повышается в классификации с {FROM_POSITION} до {TO_POSITION} в связи с успешной сдачей отчётности.
 На основании поданного рапорта и в соответствии с кадровыми процедурами, сотрудник {TARGET_NAME} переводится в Отдел Терапии и Хирургии (далее - ОТХ).
 Продолжайте в том же духе!
-Состояние на данный момент: УП - {UP}/5; П - {P}/5; В - {V}/3`,
-  }),
+`,
+}),
 
-  createOrderTemplate({
-    id: "pooshchrenie-2",
-    title: "Поощрение сотрудника (расширенное)",
-    category: "Поощрения",
-    tags: ["поощрение", "премия", "ответственность"],
-    builder: {
-      fields: [
-        { key: "TARGET_NAME", label: "Сотрудник", type: "text", placeholder: "Имя_Фамилия" },
-        { key: "TARGET_POSITION", label: "Должность сотрудника", type: "text", placeholder: "Врач-хирург" },
-        { key: "AMOUNT", label: "Сумма премии", type: "number", placeholder: "200000" },
-        { key: "SCREEN_URL", label: "Скрин перевода (опционально)", type: "url", placeholder: "https://..." },
-      ]
-    },
-    body: `
+createOrderTemplate({
+  id: "pooshchrenie-2",
+  title: "Поощрение сотрудника (расширенное)",
+  category: "Поощрения",
+  tags: ["поощрение", "премия", "ответственность"],
+  builder: {
+    fields: [
+      { key: "TARGET_NAME", label: "Сотрудник", type: "text", placeholder: "Имя_Фамилия" },
+      { key: "TARGET_POSITION", label: "Должность сотрудника", type: "text", placeholder: "Врач-хирург" },
+      { key: "AMOUNT", label: "Сумма премии", type: "number", placeholder: "200000" },
+      { key: "SCREEN_URL", label: "Скрин перевода (опционально)", type: "url", placeholder: "https://..." },
+    ]
+  },
+  body: `
 За проявленный высокий уровень профессиональной ответственности, активное участие в жизни {HOSPITAL_FULL} города {CITY}, инициативность и качественное выполнение должностных обязанностей, сотруднику {TARGET_NAME}, занимающему должность {TARGET_POSITION}, выплачивается премия в размере {AMOUNT}.
 Продолжайте в том же духе!
 Скрин перевода: {SCREEN_URL}
-Состояние на данный момент: УП - {UP}/5; П - {P}/5; В - {V}/3`,
-  }),
+`,
+}),
 
-  createOrderTemplate({
-    id: "sobranie-mp",
-    title: "Собрание всего состава (Мероприятие)",
-    category: "Собрания",
-    tags: ["собрание", "мероприятие", "премия"],
-    builder: {
-      fields: [
-        { key: "DATE", label: "Дата", type: "text", placeholder: "10.04.25" },
-        { key: "TIME", label: "Время", type: "text", placeholder: "17:00" },
-        { key: "RESPONSIBLE", label: "Ответственный", type: "text", placeholder: "Имя_Фамилия" },
-      ]
-    },
-    body: `
+createOrderTemplate({
+  id: "sobranie-mp",
+  title: "Собрание всего состава (Мероприятие)",
+  category: "Собрания",
+  tags: ["собрание", "мероприятие", "премия"],
+  builder: {
+    fields: [
+      { key: "DATE", label: "Дата", type: "text", placeholder: "10.04.25" },
+      { key: "TIME", label: "Время", type: "text", placeholder: "17:00" },
+      { key: "RESPONSIBLE", label: "Ответственный", type: "text", placeholder: "Имя_Фамилия" },
+    ]
+  },
+  body: `
 Приказ о собрании всего состава:  
 
 {DATE} в {TIME} по МСК состоится сбор всего состава для проведения совместного мероприятия.
 Ответственный за построение: {RESPONSIBLE}.
 Явка на смене обязательна. Премии присутствуют.
-Состояние на данный момент: УП - {UP}/5; П - {P}/5; В - {V}/3`,
-  }),
+`,
+}),
 
-  createOrderTemplate({
-    id: "ezhenedelnoe-postroenie",
-    title: "Еженедельное построение",
-    category: "Собрания",
-    tags: ["построение", "еженедельное", "премия"],
-    builder: {
-      fields: [
-        { key: "DATE", label: "Дата", type: "text", placeholder: "14.04.2025" },
-        { key: "TIME", label: "Время", type: "text", placeholder: "21:00" },
-      ]
-    },
-    body: `
+createOrderTemplate({
+  id: "ezhenedelnoe-postroenie",
+  title: "Еженедельное построение",
+  category: "Собрания",
+  tags: ["построение", "еженедельное", "премия"],
+  builder: {
+    fields: [
+      { key: "DATE", label: "Дата", type: "text", placeholder: "14.04.2025" },
+      { key: "TIME", label: "Время", type: "text", placeholder: "21:00" },
+    ]
+  },
+  body: `
 Завтра, {DATE} в {TIME} пройдет еженедельное построение всего состава {HOSPITAL} города {CITY}. На нем подведём итоги уходящей недели, обсудим рабочие моменты. В конце построения, сотрудникам будут выплачены премии.
-Состояние на данный момент: УП - {UP}/5; П - {P}/5; В - {V}/3`,
-  }),
+`,
+}),
 
-  createOrderTemplate({
-    id: "forum-gotov",
-    title: "Готовность форумного раздела",
-    category: "Прочее",
-    tags: ["форум", "обновление"],
-    builder: {
-      fields: [{ key: "FORUM_URL", label: "Ссылка на форум", type: "url", placeholder: "https://forum.gtaprovince.ru/..." }]
-    },
-    body: `
+createOrderTemplate({
+  id: "forum-gotov",
+  title: "Готовность форумного раздела",
+  category: "Прочее",
+  tags: ["форум", "обновление"],
+  builder: {
+    fields: [{ key: "FORUM_URL", label: "Ссылка на форум", type: "url", placeholder: "https://forum.gtaprovince.ru/..." }]
+  },
+  body: `
 Уважаемые сотрудники, коллеги! Форумный раздел {HOSPITAL} г. {CITY} полностью обновлён, доработан и скорректирован. Если вы желаете ознакомиться, то просто перейдите по ссылке:
 {FORUM_URL}
-Состояние на данный момент: УП - {UP}/5; П - {P}/5; В - {V}/3`,
-  }),
+`,
+}),
 
-  createOrderTemplate({
-    id: "smena-pasporta",
-    title: "Смена паспортных данных",
-    category: "Прочее",
-    tags: ["паспорт", "смена данных"],
-    builder: {
-      fields: [
-        { key: "OLD_NAME", label: "Старое имя", type: "text", placeholder: "Имя_Фамилия" },
-        { key: "NEW_NAME", label: "Новое имя", type: "text", placeholder: "Имя_Фамилия" },
-      ]
-    },
-    body: `
+createOrderTemplate({
+  id: "smena-pasporta",
+  title: "Смена паспортных данных",
+  category: "Прочее",
+  tags: ["паспорт", "смена данных"],
+  builder: {
+    fields: [
+      { key: "OLD_NAME", label: "Старое имя", type: "text", placeholder: "Имя_Фамилия" },
+      { key: "NEW_NAME", label: "Новое имя", type: "text", placeholder: "Имя_Фамилия" },
+    ]
+  },
+  body: `
 Приказ о смене паспортных данных:
 
 Сотрудник {OLD_NAME} меняет свои паспортные данные на {NEW_NAME}.
-Состояние на данный момент: УП - {UP}/5; П - {P}/5; В - {V}/3`,
-  }),
+`,
+}),
 ]
 
 export const getOrderById = (id: string): Order | undefined => {

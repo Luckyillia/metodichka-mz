@@ -24,6 +24,7 @@ export interface OrderSettings {
   position: string
   positionCustom: string
   hospital: string
+  hospitalGen?: string
   city: string
   myName: string
   targetName: string
@@ -77,6 +78,7 @@ export interface CityOption {
   value: string
   label: string
   hospital: string
+  hospitalGen: string
 }
 
 export interface PositionOption {

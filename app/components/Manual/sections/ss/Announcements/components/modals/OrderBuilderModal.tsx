@@ -8,7 +8,7 @@ import { TemplateFieldsForm } from '../builders/TemplateFieldsForm'
 import { OrderPreview } from '../OrderPreview'
 import { useOrderSettings, useOrderWizard, useOrderBuilder } from '../../hooks'
 import { POSITIONS, CITIES } from '../../data'
-import { hasStateLine, sanitizeForCopy } from '../../utils'
+import { hasStateLine } from '../../utils'
 
 interface OrderBuilderModalProps {
   isOpen: boolean
@@ -141,8 +141,7 @@ export const OrderBuilderModal: React.FC<OrderBuilderModalProps> = ({
   }, [mode, selectedOrder, buildWizardText, wizard])
 
   const copyText = useCallback(async () => {
-    const sanitized = sanitizeForCopy(previewText)
-    await navigator.clipboard.writeText(sanitized)
+    await navigator.clipboard.writeText(previewText)
   }, [previewText])
 
   if (!isOpen) return null

@@ -55,6 +55,11 @@ export const useOrderSettings = () => {
     return city?.hospital ?? settings.hospital
   }, [settings.city, settings.hospital])
 
+  const derivedHospitalGen = useMemo(() => {
+    const city = CITIES.find(c => c.value === settings.city)
+    return city?.hospitalGen ?? derivedHospital
+  }, [settings.city, derivedHospital])
+
   const buildHeaderLine = useCallback(() => {
     if (!settings.headerShowHospitalCity && settings.headerCustomTitle) {
       return `[${settings.headerCustomTitle} | ${settings.myName}]`
@@ -65,23 +70,23 @@ export const useOrderSettings = () => {
     
     // Находим название города для отображения (label вместо value)
     const cityLabel = CITIES.find(c => c.value === settings.city)?.label ?? settings.city
-    
-    return `[${positionLabel} ${derivedHospital} города ${cityLabel} | ${settings.myName}]`
-  }, [settings, derivedHospital])
+    return `[${positionLabel} ${derivedHospitalGen} города ${cityLabel} | ${settings.myName}]`
+  }, [settings, derivedHospitalGen])
 
   const replaceInContent = useCallback((content: string) => {
     const normalized = content.trimStart()
     const withHeader = normalized.startsWith("[")
       ? content
       : `${buildHeaderLine()}\n\n${content}`
-    return replaceVariables(withHeader, { ...settings, hospital: derivedHospital })
-  }, [settings, derivedHospital, buildHeaderLine])
+    return replaceVariables(withHeader, { ...settings, hospital: derivedHospital, hospitalGen: derivedHospitalGen })
+  }, [settings, derivedHospital, derivedHospitalGen, buildHeaderLine])
 
   return {
     settings,
     updateSetting,
     updateMultipleSettings,
     derivedHospital,
+    derivedHospitalGen,
     buildHeaderLine,
     replaceInContent,
   }

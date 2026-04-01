@@ -1,10 +1,13 @@
 import { useCallback } from 'react'
 import type { WizardForm, DisciplinaryBuilder, OrderSettings } from '../types'
 import { buildStatusLine } from '../utils/orderHelpers'
+import { CITIES } from '../data'
 
 export const useOrderBuilder = (settings: OrderSettings) => {
   const buildWizardText = useCallback((wizard: WizardForm): string => {
     const { category, targetName, targetPosition, dateFrom, dateTo, reason, isPenaltyFree, isOchs, ochsPoint, ochsReason, blacklistDays } = wizard
+
+    const cityLabel = CITIES.find((c) => c.value === settings.city)?.label ?? settings.city
 
     switch (category) {
       case "Отпуск":
@@ -20,13 +23,13 @@ export const useOrderBuilder = (settings: OrderSettings) => {
           const descBlock = desc ? ` (${desc})` : ""
           return `Приказ об увольнении:
 
-Сотрудник ${targetName} находясь в должности (${targetPosition}), ${settings.hospital} города ${settings.city}, с занесением в общий чёрный список для дальнейшего исключения возможности трудоустройства в организации сроком на ${days} дней по пункту ${point} ОЧС${descBlock}.
+Сотрудник ${targetName} находясь в должности (${targetPosition}), ${settings.hospital} города ${cityLabel}, с занесением в общий чёрный список для дальнейшего исключения возможности трудоустройства в организации сроком на ${days} дней по пункту ${point} ОЧС${descBlock}.
 
 ${buildStatusLine("dot")}`
         }
         return `Приказ об увольнении:
 
-Сотрудник ${targetName} уволен из ${settings.hospital} города ${settings.city}.
+Сотрудник ${targetName} уволен из ${settings.hospital} города ${cityLabel}.
 Причина: ${reason || "Собственное желание"}. ${isPenaltyFree ? "Неустойка не требуется." : "Неустойка оплачена."}
 Должность при увольнении: (${targetPosition}).
 Спасибо за проделанную медицинскую работу!
@@ -36,7 +39,7 @@ ${buildStatusLine("dot")}`
       case "Приём":
         return `Приказ о принятии:
 
-${targetName} принят в ${settings.hospital} города ${settings.city} на должность ${targetPosition}.`
+${targetName} принят в ${settings.hospital} города ${cityLabel} на должность ${targetPosition}.`
 
       case "Перевод":
         return `Приказ о переводе:

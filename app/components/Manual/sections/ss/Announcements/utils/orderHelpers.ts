@@ -1,4 +1,5 @@
 import type { Order, OrderSettings } from '../types'
+import { CITIES } from '../data'
 
 type HeaderVariant = "gv" | "gv_sa"
 
@@ -36,10 +37,11 @@ export const replaceVariables = (
   content: string,
   settings: OrderSettings
 ): string => {
+  const cityLabel = CITIES.find((c) => c.value === settings.city)?.label ?? settings.city
   const replacements: Record<string, string> = {
-    HOSPITAL_FULL: settings.hospital,
+    HOSPITAL_FULL: settings.hospitalGen ?? settings.hospital,
     HOSPITAL: settings.hospital,
-    CITY: settings.city,
+    CITY: cityLabel,
     MY_NAME: settings.myName,
     TARGET_NAME: settings.targetName,
     UP: settings.up,
@@ -73,9 +75,30 @@ export const hasStateLine = (content: string): boolean => {
 }
 
 export const sanitizeForCopy = (text: string): string => {
-  return text
+  let result = text.replace(/\r\n/g, "\n")
+
+  result = result
+    .split("\n")
+    .map((l) => l.trimEnd())
+    .join("\n")
+
+  result = result.replace(/\n{3,}/g, "\n\n")
+
+  result = result.replace(
+    /\n?(Состояние на данный момент:)/g,
+    "\n\n$1"
+  )
+
+  result = result.replace(
+    /Состояние на данный момент:\s*УП\s*[-–—]?\s*(\d+)\s*\/\s*5\s*;\s*П\s*[-–—]?\s*(\d+)\s*\/\s*5\s*;\s*В\s*[-–—]?\s*(\d+)\s*\/\s*3\s*\.?/g,
+    "Состояние на данный момент:\nУП - $1/5\nП - $2/5\nВ - $3/3"
+  )
+
+  result = result
     .split("\n")
     .map((l) => l.trimStart())
     .join("\n")
     .trim()
+
+  return result
 }
