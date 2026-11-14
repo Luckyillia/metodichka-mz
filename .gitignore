@@ -30,3 +30,9 @@ data.zip
 /NewFile/
 /scripts/
 /migrations/
+
+AGENTS.md
+CLAUDE.md
+/.venv
+/.codex
+/.claude
