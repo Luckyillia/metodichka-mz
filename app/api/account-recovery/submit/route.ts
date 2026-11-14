@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { supabase } from "@/lib/supabase"
-import { validateRecoveryToken } from "../verify/route"
+import { validateRecoveryToken } from "@/lib/auth/recovery-token"
 
 export async function POST(request: Request) {
   try {
