@@ -1,6 +1,10 @@
+import type { Faction } from "@/lib/biography/factions"
+
+export type { Faction }
+
 export type Status = "success" | "warning" | "error"
 
-export type AIModel = "llama-3.3-70b-versatile" | "openai/gpt-oss-120b"
+export type AIModel = "openai/gpt-oss-20b" | "openai/gpt-oss-120b"
 
 export interface BiographySection {
   number: number
@@ -14,7 +18,7 @@ export interface BiographySection {
 export interface BiographyValidationResult {
   valid: boolean
   score: number
-  primaryVerdict?: "passed" | "failed"
+  primaryVerdict?: "passed" | "refused"
   sections?: BiographySection[]
   birthdate: {
     extracted: string | null
@@ -61,6 +65,13 @@ export interface BiographyValidationResult {
     issues: string[]
     status: Status
   }
+  faction?: {
+    selected: Faction
+    detected: string | null
+    match: boolean
+    issues: string[]
+    status: Status
+  }
   recommendations: string[]
   summary: string
   debug?: {
@@ -76,6 +87,8 @@ export interface BiographyValidationResult {
 export interface ValidatorFormState {
   biographyTitle: string
   writtenDate: string
+  /** Фракция, под которую написана биография ("" — не выбрана) */
+  faction: Faction | ""
   text: string
   model: AIModel
   strict: boolean

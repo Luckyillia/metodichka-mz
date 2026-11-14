@@ -25,6 +25,7 @@ export const ValidationResults: React.FC<ValidationResultsProps> = ({
 }) => {
   const isPassed = (result as any)?.primaryVerdict === "passed"
   const compare = (result as any)?.compare
+  const faction = (result as any)?.faction
 
   const safeStatus = (s: any): "success" | "warning" | "error" => {
     if (s === "success" || s === "warning" || s === "error") return s
@@ -34,6 +35,7 @@ export const ValidationResults: React.FC<ValidationResultsProps> = ({
   function getFailReason(): string {
     const diff = (result as any)?.birthdate?.difference
     if (typeof diff === "number" && diff > 0) return "Причина: возраст не совпадает с датой рождения"
+    if (faction?.status === "error") return `Причина: биография не соответствует фракции ${faction.selected}`
     if ((result as any)?.perspective?.status === "error")  return "Причина: пункты 10–12 не от 1-го лица"
     if ((result as any)?.structure?.status  === "error")  return "Причина: структура 1–13 заполнена не полностью"
     return "Причина: требуются исправления"
@@ -44,6 +46,7 @@ export const ValidationResults: React.FC<ValidationResultsProps> = ({
     const diff = (result as any)?.birthdate?.difference
     if (typeof diff === "number" && diff > 0)              items.push("Возраст не совпадает с датой рождения")
     if ((result as any)?.birthdate?.status   === "error") items.push("Ошибка в дате рождения / возрасте")
+    if (faction?.status === "error")                      items.push(`Биография не соответствует выбранной фракции (${faction.selected})`)
     if ((result as any)?.perspective?.status === "error") items.push("Пункты 10–12 должны быть строго от 1-го лица")
     if ((result as any)?.structure?.status   === "error") items.push("Не заполнены обязательные пункты 1–13")
     if ((result as any)?.grammar?.status     === "error") items.push("Критические ошибки грамматики")
@@ -70,6 +73,7 @@ export const ValidationResults: React.FC<ValidationResultsProps> = ({
                 birthdate: <span className="font-semibold text-foreground">{(compare.fast.result as any)?.birthdate?.status ?? "—"}</span>
                 {" "}· perspective: <span className="font-semibold text-foreground">{(compare.fast.result as any)?.perspective?.status ?? "—"}</span>
                 {" "}· structure: <span className="font-semibold text-foreground">{(compare.fast.result as any)?.structure?.status ?? "—"}</span>
+                {" "}· faction: <span className="font-semibold text-foreground">{(compare.fast.result as any)?.faction?.status ?? "—"}</span>
               </div>
             </div>
 
@@ -81,6 +85,7 @@ export const ValidationResults: React.FC<ValidationResultsProps> = ({
                 birthdate: <span className="font-semibold text-foreground">{(compare.smart.result as any)?.birthdate?.status ?? "—"}</span>
                 {" "}· perspective: <span className="font-semibold text-foreground">{(compare.smart.result as any)?.perspective?.status ?? "—"}</span>
                 {" "}· structure: <span className="font-semibold text-foreground">{(compare.smart.result as any)?.structure?.status ?? "—"}</span>
+                {" "}· faction: <span className="font-semibold text-foreground">{(compare.smart.result as any)?.faction?.status ?? "—"}</span>
               </div>
             </div>
           </div>
@@ -123,6 +128,12 @@ export const ValidationResults: React.FC<ValidationResultsProps> = ({
           </div>
 
           <div className="flex flex-col items-end gap-2">
+            {faction?.selected && (
+              <div className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background/50 px-3 py-1.5 text-xs text-muted-foreground">
+                🏛️ Фракция:{" "}
+                <span className="font-semibold text-foreground">{faction.selected}</span>
+              </div>
+            )}
             {usedDate && (
               <div className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background/50 px-3 py-1.5 text-xs text-muted-foreground">
                 📅 Возраст проверен на:{" "}
@@ -206,6 +217,33 @@ export const ValidationResults: React.FC<ValidationResultsProps> = ({
 
       {/* ── Detail grid ────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Faction */}
+        {faction ? (
+          <div className={`rounded-2xl border bg-card/50 backdrop-blur p-6 shadow-xl ${faction.status === "error" ? "border-rose-500/40 bg-rose-500/5" : "border-border"}`}>
+            <div className="flex items-center justify-between gap-3">
+              <h3 className="text-lg font-semibold text-foreground">Соответствие фракции</h3>
+              <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${statusBadgeClass(safeStatus(faction.status))}`}>
+                {faction.status ?? "—"}
+              </span>
+            </div>
+            <div className="mt-3 text-sm text-foreground/90 space-y-1">
+              <div>Выбрана фракция: <span className="font-semibold">{faction.selected ?? "—"}</span></div>
+              <div>Определена по тексту: <span className="font-semibold">{faction.detected ?? "—"}</span></div>
+              <div>
+                Соответствие:{" "}
+                <span className={`font-semibold ${faction.match ? "text-emerald-400" : "text-rose-400"}`}>
+                  {faction.match ? "✅" : "❌"}
+                </span>
+              </div>
+            </div>
+            {Array.isArray(faction.issues) && faction.issues.length > 0 && (
+              <ul className="mt-3 text-sm text-muted-foreground list-disc pl-5 space-y-1">
+                {faction.issues.map((it: string, idx: number) => <li key={idx}>{it}</li>)}
+              </ul>
+            )}
+          </div>
+        ) : null}
+
         {/* Birthdate */}
         <div className={`rounded-2xl border bg-card/50 backdrop-blur p-6 shadow-xl ${ageMismatch ? "border-orange-500/40 bg-orange-500/5" : "border-border"}`}>
           <div className="flex items-center justify-between gap-3">

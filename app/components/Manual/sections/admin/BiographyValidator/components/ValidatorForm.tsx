@@ -1,10 +1,11 @@
 import React from "react"
 import { DateInput } from "./DateInput"
 import { formatDMY } from "../utils"
-import type { ValidatorFormState, TitleCheckResult, FormNameCheckResult, StructureCheckResult } from "../types"
+import type { ValidatorFormState, TitleCheckResult, FormNameCheckResult, StructureCheckResult, Faction } from "../types"
 import { MIN_CHARS, MAX_CHARS } from "../utils"
 import type { AIModel } from "../types"
 import { explainTitleMismatch } from "../utils"
+import { FACTIONS, FACTION_DESCRIPTIONS, type FactionCheckResult } from "@/lib/biography/factions"
 
 interface ValidatorFormProps {
   form: ValidatorFormState
@@ -16,6 +17,7 @@ interface ValidatorFormProps {
   formNameCheck: FormNameCheckResult
   structureCheck: StructureCheckResult
   titleMatchesForm: boolean
+  factionCheck: FactionCheckResult | null
   canSubmit: boolean
   loading: boolean
   onUpdate: <K extends keyof ValidatorFormState>(key: K, value: ValidatorFormState[K]) => void
@@ -33,6 +35,7 @@ export const ValidatorForm: React.FC<ValidatorFormProps> = ({
   formNameCheck,
   structureCheck,
   titleMatchesForm,
+  factionCheck,
   canSubmit,
   loading,
   onUpdate,
@@ -48,7 +51,7 @@ export const ValidatorForm: React.FC<ValidatorFormProps> = ({
         <div>
           <h2 className="text-2xl font-semibold text-foreground">Проверка RP Биографий</h2>
           <p className="text-sm text-muted-foreground mt-1">
-            Автоматическая AI-проверка на соответствие требованиям (возраст, 1-е лицо, структура, логика).
+            Автоматическая AI-проверка на соответствие требованиям (возраст, 1-е лицо, структура, логика, фракция).
           </p>
         </div>
         <div className="text-right shrink-0">
@@ -112,6 +115,59 @@ export const ValidatorForm: React.FC<ValidatorFormProps> = ({
         </div>
       </div>
 
+      {/* Faction */}
+      <div className="mt-5">
+        <label className="text-sm font-medium text-foreground">
+          Фракция
+          <span className="ml-1 text-xs text-rose-400">(обязательно)</span>
+        </label>
+        <select
+          value={form.faction}
+          onChange={(e) => onUpdate("faction", e.target.value as Faction | "")}
+          disabled={loading}
+          className="mt-2 w-full sm:w-1/2 px-4 py-3 bg-input border-2 border-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-colors"
+        >
+          <option value="">Выберите фракцию…</option>
+          {FACTIONS.map((f) => (
+            <option key={f} value={f}>{f}</option>
+          ))}
+        </select>
+
+        {form.faction === "" ? (
+          <div className="mt-1 text-xs text-muted-foreground">
+            Биография будет проверена на соответствие выбранной фракции (чтобы текст не был написан под другую структуру).
+          </div>
+        ) : (
+          <div className="mt-1 text-xs text-muted-foreground">{FACTION_DESCRIPTIONS[form.faction]}</div>
+        )}
+
+        {factionCheck && factionCheck.status === "success" && (
+          <div className="mt-2 text-xs text-emerald-400">
+            ✓ В пункте 12 найдено упоминание фракции {factionCheck.selected}
+          </div>
+        )}
+        {factionCheck && factionCheck.status !== "success" && (
+          <div
+            className={`mt-2 rounded-xl border p-3 text-xs ${
+              factionCheck.status === "error"
+                ? "border-rose-500/30 bg-rose-500/10 text-rose-100/90"
+                : "border-amber-500/30 bg-amber-500/10 text-amber-100/90"
+            }`}
+          >
+            <div className="font-semibold">
+              {factionCheck.status === "error"
+                ? "Биография не соответствует выбранной фракции"
+                : "Возможные несоответствия фракции"}
+            </div>
+            <ul className="mt-1 list-disc ml-5 space-y-0.5">
+              {factionCheck.issues.map((t, i) => (
+                <li key={i}>{t}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+
       {/* Model */}
       <div className="mt-5">
         <label className="text-sm font-medium text-foreground">Модель</label>
@@ -122,7 +178,7 @@ export const ValidatorForm: React.FC<ValidatorFormProps> = ({
             disabled={loading}
             className="w-full px-4 py-3 bg-input border-2 border-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-colors"
           >
-            <option value="llama-3.3-70b-versatile">llama-3.3-70b-versatile (быстро)</option>
+            <option value="openai/gpt-oss-20b">openai/gpt-oss-20b (быстро)</option>
             <option value="openai/gpt-oss-120b">openai/gpt-oss-120b (умнее)</option>
           </select>
           <div className="text-xs text-muted-foreground flex items-center">

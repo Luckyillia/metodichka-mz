@@ -17,6 +17,7 @@ export default function BiographyValidator() {
     formNameCheck,
     structureCheck,
     titleMatchesForm,
+    factionCheck,
     ageMismatch,
     canSubmit,
 
@@ -43,6 +44,7 @@ export default function BiographyValidator() {
         formNameCheck={formNameCheck}
         structureCheck={structureCheck}
         titleMatchesForm={titleMatchesForm}
+        factionCheck={factionCheck}
         canSubmit={canSubmit}
         loading={loading}
         onUpdate={updateField}

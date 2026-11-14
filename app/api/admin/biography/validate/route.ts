@@ -3,11 +3,16 @@ import { supabase } from "@/lib/supabase"
 import { validateBiographyWithGroq } from "@/lib/biography/groq"
 import type { GroqBiographyModel } from "@/lib/biography/prompt"
 import { normalizeBiographyTo13Sections } from "@/lib/biography/normalize"
+import { isFaction } from "@/lib/biography/factions"
 
 const MIN_CHARS = 100
 const MAX_CHARS = 10000
 const RATE_LIMIT_WINDOW_MS = 60 * 1000
 const RATE_LIMIT_MAX_REQUESTS = 10
+
+const FAST_MODEL: GroqBiographyModel = "openai/gpt-oss-20b"
+const SMART_MODEL: GroqBiographyModel = "openai/gpt-oss-120b"
+const ALLOWED_MODELS: GroqBiographyModel[] = [FAST_MODEL, SMART_MODEL]
 
 function getUserFromHeaders(request: Request) {
   const userId = request.headers.get("x-user-id")
@@ -89,10 +94,15 @@ export async function POST(request: Request) {
     const strict = body?.strict === false ? false : true
     const compareBoth = Boolean(body?.compareBoth)
     const apiKeyFromBody = typeof body?.apiKey === "string" ? body.apiKey : null
-    const requestedModel = String(body?.model || "llama-3.3-70b-versatile")
-    const allowedModels: GroqBiographyModel[] = ["llama-3.3-70b-versatile", "openai/gpt-oss-120b"]
+    const requestedModel = String(body?.model || FAST_MODEL)
 
-    if (!allowedModels.includes(requestedModel as GroqBiographyModel)) {
+    // ── Фракция (обязательна) ─────────────────────────────────────────────
+    const faction = isFaction(body?.faction) ? body.faction : undefined
+    if (!faction) {
+      return NextResponse.json({ error: "Выберите фракцию" }, { status: 400 })
+    }
+
+    if (!ALLOWED_MODELS.includes(requestedModel as GroqBiographyModel)) {
       return NextResponse.json(
         { error: "Неподдерживаемая модель", model: requestedModel },
         { status: 400 }
@@ -143,6 +153,7 @@ export async function POST(request: Request) {
         model: m,
         apiKey,
         strict,
+        faction,
       })
     }
 
@@ -152,13 +163,13 @@ export async function POST(request: Request) {
     try {
       if (compareBoth) {
         const [fastRes, smartRes] = await Promise.all([
-          callModel("llama-3.3-70b-versatile"),
-          callModel("openai/gpt-oss-120b"),
+          callModel(FAST_MODEL),
+          callModel(SMART_MODEL),
         ])
         // Store models in a separate object first to avoid circular reference
         compare = {
-          fast: { model: "llama-3.3-70b-versatile", result: { ...fastRes } },
-          smart: { model: "openai/gpt-oss-120b", result: { ...smartRes } },
+          fast: { model: FAST_MODEL, result: { ...fastRes } },
+          smart: { model: SMART_MODEL, result: { ...smartRes } },
         }
         // Primary result is a shallow copy of fastRes
         result = { ...fastRes }
@@ -199,14 +210,16 @@ export async function POST(request: Request) {
           action: "Проверка RP биографии (AI)",
           action_type: "biography_validate",
           target_type: "system",
-          details: `score=${result?.score}; valid=${result?.valid}`,
+          details: `faction=${faction}; score=${result?.score}; valid=${result?.valid}`,
           metadata: {
             model,
+            faction,
             score: result?.score,
             valid: result?.valid,
             birthdate: result?.birthdate,
             structure: result?.structure,
             perspective: result?.perspective,
+            factionCheck: result?.factionCheck,
           },
           ip_address,
           user_agent,
@@ -233,6 +246,7 @@ export async function POST(request: Request) {
     if (debug) {
       ;(result as any).debug = {
         model: compareBoth ? "compare" : model,
+        faction,
         normalizedText: normalized.normalizedText,
         normalization: {
           missingSections: normalized.missingSections,

@@ -1,6 +1,7 @@
 import Groq from "groq-sdk"
 import { buildBiographyValidationPrompt, type GroqBiographyModel } from "./prompt"
 import { getSectionText } from "./normalize"
+import { checkFactionMatch, type Faction } from "./factions"
 
 export type BiographyValidationResult = {
   valid: boolean
@@ -56,6 +57,14 @@ export type BiographyValidationResult = {
     chronologyIssues: string[]
     ageConsistency: boolean
     educationCareerMatch: boolean
+    issues: string[]
+    status: "success" | "warning" | "error"
+  }
+  /** Проверка соответствия выбранной фракции (есть только если фракция передана) */
+  faction?: {
+    selected: Faction
+    detected: string | null
+    match: boolean
     issues: string[]
     status: "success" | "warning" | "error"
   }
@@ -170,6 +179,8 @@ export async function validateBiographyWithGroq(params: {
   model: GroqBiographyModel
   apiKey?: string
   strict?: boolean
+  /** Фракция, под которую написана биография (РЖД / МЗ / ГИБДД / ГУВД) */
+  faction?: Faction
 }) {
   const apiKey = params.apiKey || process.env.GROQ_API_KEY
   if (!apiKey) throw new Error("GROQ_API_KEY не задан")
@@ -180,18 +191,24 @@ export async function validateBiographyWithGroq(params: {
     biographyText:  params.biographyText,
     currentDateISO: params.currentDateISO,
     strict: params.strict,
+    faction: params.faction,
   })
+
+  // gpt-oss — reasoning-модель: рассуждения расходуют токены, поэтому лимит больше,
+  // а усилие рассуждения снижаем, иначе JSON может прийти обрезанным.
+  const isGptOss = params.model.startsWith("openai/gpt-oss")
 
   const options: any = {
     model: params.model,
     messages,
     temperature: 0.2,
-    max_tokens: 2500,
+    max_tokens: isGptOss ? 6000 : 2500,
     top_p: 1,
   }
 
-  // OpenAI model on Groq might not support json_object mode or might be stricter about it
-  if (params.model.includes("llama")) {
+  if (isGptOss) {
+    options.reasoning_effort = "low"
+  } else {
     options.response_format = { type: "json_object" }
   }
 
@@ -336,6 +353,39 @@ export async function validateBiographyWithGroq(params: {
     }
   } catch {}
 
+  // ── Faction check ────────────────────────────────────────────────────────
+  // Объединяем вывод AI с детерминированной проверкой по ключевым словам (п.11–12):
+  // итоговый статус — худший из двух.
+  if (params.faction) {
+    try {
+      const heur = checkFactionMatch(params.biographyText, params.faction)
+      const ai   = parsed.faction
+
+      const rank = { success: 0, warning: 1, error: 2 } as const
+      const aiStatus: "success" | "warning" | "error" =
+        ai?.status === "warning" || ai?.status === "error" ? ai.status : "success"
+      const status = rank[heur.status] >= rank[aiStatus] ? heur.status : aiStatus
+
+      const aiIssues = Array.isArray(ai?.issues) ? ai!.issues.filter((i) => typeof i === "string") : []
+      const issues   = Array.from(new Set([...heur.issues, ...aiIssues]))
+
+      parsed.faction = {
+        selected: params.faction,
+        detected: typeof ai?.detected === "string" ? ai.detected : (heur.detected[0] ?? null),
+        match: status !== "error",
+        issues,
+        status,
+      }
+
+      if (status === "error") {
+        parsed.valid = false
+        parsed.score = Math.max(0, Math.min(parsed.score ?? 10, 3))
+        const note = `Биография не соответствует выбранной фракции (${params.faction}).`
+        parsed.summary = parsed.summary ? `${parsed.summary} ${note}` : note
+      }
+    } catch {}
+  }
+
   // ── Primary verdict ──────────────────────────────────────────────────────
   try {
     const hasAgeMismatch    = typeof parsed?.birthdate?.difference === "number" && parsed.birthdate.difference > 0
@@ -347,7 +397,10 @@ export async function validateBiographyWithGroq(params: {
       parsed?.perspective?.status  === "success" &&
       !hasAgeMismatch
 
-    parsed.primaryVerdict = allSuccess && parsed.valid ? "passed" : "refused"
+    // Для фракции отказ только при status=error (warning — лишь предупреждение)
+    const factionOk = !params.faction || parsed?.faction?.status !== "error"
+
+    parsed.primaryVerdict = allSuccess && parsed.valid && factionOk ? "passed" : "refused"
 
     if (parsed.primaryVerdict === "passed") {
       parsed.summary = "Биография прошла проверку."
@@ -359,6 +412,7 @@ export async function validateBiographyWithGroq(params: {
       if (parsed?.structure?.status   === "error") reasons.push("заполните все обязательные пункты 1–13")
       if (parsed?.grammar?.status     === "warning" || parsed?.grammar?.status     === "error") reasons.push("проверьте/исправьте грамматику")
       if (parsed?.logic?.status       === "warning" || parsed?.logic?.status       === "error") reasons.push("проверьте логическую связность")
+      if (!factionOk) reasons.push(`биография должна соответствовать фракции ${params.faction}`)
       const tail = reasons.length ? ` ${reasons.join("; ")}.` : " Проверьте данные."
       parsed.summary = `Первичный вердикт: биография отказана.${tail}`
     }

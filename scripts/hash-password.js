@@ -43,7 +43,7 @@ function hashPassword() {
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    password = "illia2107" // ИЗМЕНИТЕ!
+                    password = "root" // ИЗМЕНИТЕ!
                     ;
                     return [4 /*yield*/, bcryptjs_1.default.hash(password, 10)];
                 case 1:

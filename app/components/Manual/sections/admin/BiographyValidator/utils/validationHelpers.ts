@@ -6,21 +6,16 @@ export const MIN_CHARS = 800
 export const MAX_CHARS = 8000
 
 export function normalizeNameToken(token: string): string {
-  const t = token.trim().toLowerCase()
-  if (!t) return ""
-  const hasCyr = /[а-яё]/iu.test(t)
-  if (!hasCyr) return t
+  let s = token.trim().toLowerCase().replace(/ё/g, "е")
+  if (!s) return ""
+  if (!/[а-я]/u.test(s)) return s // латиница — без изменений
 
-  // Special cases for common masculine name endings and their genitive forms
-  if (t.endsWith("ий") || t.endsWith("ия")) return t.slice(0, -2) // дмитрий/дмитрия -> дмитр
-  if (t.endsWith("ья") || t.endsWith("ьи")) return t.slice(0, -2) // илья/ильи -> иль
-
-  let s = t
-  if (s.endsWith("ова") || s.endsWith("ева")) s = s.slice(0, -1)
-  else if (s.endsWith("иной"))                s = s.slice(0, -2)
-  else if (s.endsWith("ого") || s.endsWith("его")) s = s.slice(0, -1)
-  else if (s.endsWith("а")  || s.endsWith("я"))    s = s.slice(0, -1)
-  if (s.endsWith("ии")) s = s.slice(0, -1)
+  // Убираем падежные окончания, чтобы совпадали разные формы одного имени:
+  // Алексей / Алексея / Алексею -> алекс
+  // Дмитрий / Дмитрия -> дмитр, Нельсон / Нельсона -> нельсон
+  while (s.length > 3 && /[аяуюыиеоьй]$/u.test(s)) {
+    s = s.slice(0, -1)
+  }
   return s
 }
 

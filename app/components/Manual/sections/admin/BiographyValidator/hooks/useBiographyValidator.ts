@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback } from "react"
 import { AuthService } from "@/lib/auth/auth-service"
-import type { BiographyValidationResult, ValidatorFormState, AIModel } from "../types"
+import { checkFactionMatch } from "@/lib/biography/factions"
+import type { BiographyValidationResult, ValidatorFormState } from "../types"
 import {
   parseDMY,
   toISODate,
@@ -17,8 +18,9 @@ import {
 const DEFAULT_FORM: ValidatorFormState = {
   biographyTitle: "",
   writtenDate: "",
+  faction: "",
   text: "",
-  model: "llama-3.3-70b-versatile",
+  model: "openai/gpt-oss-20b",
   strict: true,
   compareBoth: false,
   debug: false,
@@ -59,6 +61,12 @@ export const useBiographyValidator = () => {
     [titleCheck, formNameCheck]
   )
 
+  // Быстрая проверка соответствия фракции (без AI) — подсказка до отправки
+  const factionCheck = useMemo(() => {
+    if (!form.faction || form.text.trim().length === 0) return null
+    return checkFactionMatch(form.text, form.faction)
+  }, [form.faction, form.text])
+
   const ageMismatch = useMemo(() => {
     const diff = result?.birthdate?.difference
     return typeof diff === "number" && diff > 0
@@ -69,6 +77,7 @@ export const useBiographyValidator = () => {
     charsOk &&
     writtenDateValid &&
     writtenDateNotFuture &&
+    form.faction !== "" &&
     titleCheck.ok &&
     formNameCheck.ok &&
     titleMatchesForm &&
@@ -90,8 +99,8 @@ export const useBiographyValidator = () => {
   }, [])
 
   // ── Validate ──────────────────────────────────────────────────────────────
-  const handleValidate = useCallback(async () => {
-    if (!writtenDateISO) return
+  const runValidation = useCallback(async (compareBoth: boolean) => {
+    if (!writtenDateISO || !form.faction) return
 
     setLoading(true)
     setError(null)
@@ -106,9 +115,10 @@ export const useBiographyValidator = () => {
           biographyText:  form.text,
           biographyTitle: form.biographyTitle.trim(),
           writtenDate:    writtenDateISO,
+          faction:        form.faction,
           model:          form.model,
           strict:         form.strict,
-          compareBoth:    form.compareBoth,
+          compareBoth,
           debug:          form.debug,
           apiKey:         form.useCustomApiKey && form.customApiKey.trim().length
                             ? form.customApiKey.trim()
@@ -126,41 +136,8 @@ export const useBiographyValidator = () => {
     }
   }, [form, writtenDateISO])
 
-  const handleValidateBoth = useCallback(async () => {
-    if (!writtenDateISO) return
-
-    setLoading(true)
-    setError(null)
-    setResult(null)
-    setUsedDate(writtenDateISO)
-
-    try {
-      const res = await AuthService.fetchWithAuth("/api/admin/biography/validate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          biographyText:  form.text,
-          biographyTitle: form.biographyTitle.trim(),
-          writtenDate:    writtenDateISO,
-          model:          form.model,
-          strict:         form.strict,
-          compareBoth:    true,
-          debug:          form.debug,
-          apiKey:         form.useCustomApiKey && form.customApiKey.trim().length
-                            ? form.customApiKey.trim()
-                            : undefined,
-        }),
-      })
-
-      const data = await res.json().catch(() => null)
-      if (!res.ok) throw new Error(data?.error || `Ошибка HTTP: ${res.status}`)
-      setResult(data as BiographyValidationResult)
-    } catch (e) {
-      setError(normalizeErrorMessage(e))
-    } finally {
-      setLoading(false)
-    }
-  }, [form, writtenDateISO])
+  const handleValidate = useCallback(() => runValidation(form.compareBoth), [runValidation, form.compareBoth])
+  const handleValidateBoth = useCallback(() => runValidation(true), [runValidation])
 
   // ── Copy result JSON ──────────────────────────────────────────────────────
   const handleCopyJSON = useCallback(async () => {
@@ -185,6 +162,7 @@ export const useBiographyValidator = () => {
     formNameCheck,
     structureCheck,
     titleMatchesForm,
+    factionCheck,
     ageMismatch,
     canSubmit,
 

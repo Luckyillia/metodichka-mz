@@ -1,12 +1,45 @@
-export type GroqBiographyModel = "llama-3.3-70b-versatile" | "openai/gpt-oss-120b"
+import { FACTION_DESCRIPTIONS, type Faction } from "./factions"
+
+export type GroqBiographyModel = "openai/gpt-oss-20b" | "openai/gpt-oss-120b"
 
 export function buildBiographyValidationPrompt(params: {
   biographyText: string
   currentDateISO: string
   strict?: boolean
+  faction?: Faction
 }) {
-  const { biographyText, currentDateISO } = params
+  const { biographyText, currentDateISO, faction } = params
   const strict = params.strict !== false
+
+  const factionRules = faction
+    ? `
+6) Соответствие фракции (ОБЯЗАТЕЛЬНАЯ ПРОВЕРКА):
+- Биография написана для вступления во фракцию: ${faction} — ${FACTION_DESCRIPTIONS[faction]}.
+- Определи по смыслу (пункты 11 и 12 в первую очередь), к какой фракции на самом деле относится биография, и запиши это в faction.detected (РЖД | МЗ | ГИБДД | ГУВД | null).
+- Пункт 12 (настоящее время) должен вести именно в ${faction}: персонаж там служит, поступает туда или хочет туда поступить.
+- Если в пункте 12 персонаж служит/работает в ДРУГОЙ фракции, использует её должности, звания, подразделения или биография по сути написана под другую фракцию — faction.status=error, faction.match=false.
+- Если в пункте 11 упоминается служба в другой фракции, это допустимо только как логичная предыстория перед переходом в ${faction} — тогда faction.status=warning и поясни в issues. Если переход не объяснён — warning/error по тяжести.
+- Образование и опыт не должны явно противоречить выбранной фракции (например, полностью не связанная профессия без объяснения) — это warning.
+- Упоминание других структур в рассказе о ДРУГИХ людях (родственники, знакомые) нарушением не является.
+- Названия и аббревиатуры игрового мира не считай ошибками.
+- Если всё соответствует — faction.status=success, faction.match=true, issues=[].
+`
+    : ""
+
+  const factionCritical = faction
+    ? `\n- Биография написана под другую фракцию, а не под выбранную (${faction})`
+    : ""
+
+  const factionSchema = faction
+    ? `,
+  "faction": {
+    "selected": "${faction}",
+    "detected": "РЖД" | "МЗ" | "ГИБДД" | "ГУВД" | null,
+    "match": boolean,
+    "issues": string[],
+    "status": "success" | "warning" | "error"
+  }`
+    : ""
 
   return [
     {
@@ -58,7 +91,7 @@ export function buildBiographyValidationPrompt(params: {
 
 5) Логика:
 - Проверь хронологию (детство→юность→настоящее), возрастную логику (школа, университет, стаж), соответствие образования/карьеры.
-
+${factionRules}
 РЕЖИМ ПРОВЕРКИ:
 ${strict ? "- СТРОГИЙ: оценивай строго по правилам." : "- МЯГКИЙ: ошибки стиля/формулировок/пунктуации по возможности делай warning, а отказ (error) — только за критические нарушения."}
 
@@ -120,7 +153,7 @@ ${strict ? "- СТРОГИЙ: оценивай строго по правила�
     "status": "success" | "warning" | "error"
   },
   "recommendations": string[],
-  "summary": string
+  "summary": string${factionSchema}
 }
 
 ДОПОЛНИТЕЛЬНОЕ ТРЕБОВАНИЕ ПО РАЗДЕЛАМ:
@@ -143,7 +176,7 @@ ${strict ? "- СТРОГИЙ: оценивай строго по правила�
 - Возраст не соответствует дате рождения (разница >2 лет)
 - Пункты 10-12 от третьего лица
 - Отсутствует >3 пунктов
-- Текст не о персонаже
+- Текст не о персонаже${factionCritical}
 
 БИОГРАФИЯ ДЛЯ ПРОВЕРКИ:
 ${biographyText}`,
